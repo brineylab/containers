@@ -23,6 +23,9 @@ docker-build-all:
 	@echo "\nBuilding jupyter-scipy image...\n"
 	make docker-build -C jupyter-scipy TAG=${TAG} 
 
+	@echo "\nBuilding jupyter-ab[x] image...\n"
+	make docker-build -C jupyter-abx TAG=${TAG} 
+
 	@echo "\nBuilding jupyter-pytorch image...\n"
 	make docker-build-cpu -C jupyter-pytorch TAG=${TAG} 
 
