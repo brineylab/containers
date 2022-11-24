@@ -4,6 +4,7 @@ FROM ubuntu:22.04
 # Images were initially created by the Kubeflow team:
 # https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers
 # and were subsequently modified by me.
+ARG OWNER=brineylab
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 # args
