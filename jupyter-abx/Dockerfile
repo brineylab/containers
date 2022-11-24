@@ -1,3 +1,4 @@
+ARG OWNER=brineylab
 ARG BASE_IMG=$OWNER/jupyter
 FROM $BASE_IMG
 
@@ -5,7 +6,6 @@ FROM $BASE_IMG
 # https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers
 # and the Jupyter team:
 # https://github.com/jupyter/docker-stacks
-ARG OWNER=brineylab
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 USER root
