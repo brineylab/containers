@@ -1,29 +1,48 @@
-# Use the respective Makefile to pass the appropriate BASE_IMG and build the image correctly
-ARG BASE_IMG=<base>
+ARG BASE_IMG=$OWNER/base
 FROM $BASE_IMG
+
+# This image is modified from images initially created by the Kubeflow team:
+# https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers
+# and the Jupyter team:
+# https://github.com/jupyter/docker-stacks
+ARG OWNER=brineylab
+LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 USER root
 
 # args - software versions
 ARG MINIFORGE_ARCH="x86_64"
  # renovate: datasource=github-tags depName=conda-forge/miniforge versioning=loose
-ARG MINIFORGE_VERSION=4.10.1-4
-ARG PIP_VERSION=21.1.2
-ARG PYTHON_VERSION=3.8.10
+# ARG MINIFORGE_VERSION=4.10.1-4
+# ARG PIP_VERSION=21.1.2
+# ARG PYTHON_VERSION=3.8.10
+ARG MINIFORGE_VERSION=22.9.0-2
+ARG PIP_VERSION=22.3.1
+ARG PYTHON_VERSION=3.10.8
+
+
+# set shell to bash
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # install -- node.js
-RUN export DEBIAN_FRONTEND=noninteractive \
- && curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
+RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
  && echo "deb https://deb.nodesource.com/node_14.x focal main" > /etc/apt/sources.list.d/nodesource.list \
- && apt-get -yq update \
- && apt-get -yq install --no-install-recommends \
+ && apt-get --yes update \
+ && apt-get --yes install --no-install-recommends \
     nodejs \
+    # for cython: https://cython.readthedocs.io/en/latest/src/quickstart/install.html
+    build-essential \
+    # for latex labels
+    cm-super \
+    dvipng \
+    # for matplotlib anim
+    ffmpeg \
  && apt-get clean \
  && rm -rf /var/lib/apt/lists/*
 
 # setup environment for conda
-ENV CONDA_DIR /opt/conda
-ENV PATH "${CONDA_DIR}/bin:${PATH}"
+ENV CONDA_DIR=/opt/conda
+ENV PATH="${CONDA_DIR}/bin:${PATH}"
 RUN mkdir -p ${CONDA_DIR} \
  && echo ". /opt/conda/etc/profile.d/conda.sh" >> ${HOME}/.bashrc \
  && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
@@ -55,8 +74,16 @@ RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIF
  && chown -R ${NB_USER}:users ${CONDA_DIR} \
  && chown -R ${NB_USER}:users ${HOME}
 
+# need to be root to chown the requirements file
+USER root
+
 # install - requirements.txt
-COPY --chown=jovyan:users requirements.txt /tmp
+COPY requirements.txt /tmp
+RUN chown -R ${NB_USER}:users /tmp/requirements.txt
+
+# switch back to NB_USER to install python packages
+USER ${NB_UID}
+
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
  && rm -f /tmp/requirements.txt \
  && jupyter lab --generate-config \
@@ -64,14 +91,18 @@ RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
  && chown -R ${NB_USER}:users ${CONDA_DIR} \
  && chown -R ${NB_USER}:users ${HOME}
 
+# need to be root again to do some s6 stuff
+USER root
+
 # s6 - copy scripts
-COPY --chown=jovyan:users s6/ /etc
+COPY s6/ /etc
+RUN chown -R ${NB_USER}:users /etc/s6
 
 # s6 - 01-copy-tmp-home
-USER root
 RUN mkdir -p /tmp_home \
  && cp -r ${HOME} /tmp_home \
  && chown -R ${NB_USER}:users /tmp_home
+
 USER ${NB_UID}
 
 EXPOSE 8888
