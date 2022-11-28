@@ -15,11 +15,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # R dependencies
 RUN apt update --yes \
- && apt-get install --yes --no-install-recommends \
-    fonts-dejavu \
-    gcc \
-    gfortran \
- && apt-get clean && rm -rf /var/lib/apt/lists/*
+   && apt-get install --yes --no-install-recommends \
+   fonts-dejavu \
+   gcc \
+   gfortran \
+   && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # copy requirements.txt
 COPY requirements.txt /tmp
@@ -34,39 +34,39 @@ RUN conda install -c conda-forge scikit-bio
 
 # install - requirements.txt
 RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
- && rm -f /tmp/requirements.txt
+   && rm -f /tmp/requirements.txt
 
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
 RUN conda install --quiet --yes \
-    'r-base' \
-    'r-ggplot2' \
-    'r-irkernel' \
-    'r-rcurl' \
-    'r-sparklyr' \
-    # 'r-caret' \
-    # 'r-crayon' \
-    # 'r-devtools' \
-    # 'r-e1071' \
-    # 'r-forecast' \
-    # 'r-ggplot2' \
-    # 'r-hexbin' \
-    # 'r-htmltools' \
-    # 'r-htmlwidgets' \
-    # 'r-irkernel' \
-    # 'r-nycflights13' \
-    # 'r-randomforest' \
-    # 'r-rcurl' \
-    # 'r-rmarkdown' \
-    # 'r-rodbc' \
-    # 'r-rsqlite' \
-    # 'r-shiny' \
-    # 'r-sparklyr' \
-    # 'r-tidymodels' \
-    'r-tidyverse' \
-    # 'rpy2' \
-    # 'unixodbc' \
- && conda clean -a -f -y
+   'r-base' \
+   'r-ggplot2' \
+   'r-irkernel' \
+   'r-rcurl' \
+   'r-sparklyr' \
+   # 'r-caret' \
+   # 'r-crayon' \
+   # 'r-devtools' \
+   # 'r-e1071' \
+   # 'r-forecast' \
+   # 'r-ggplot2' \
+   # 'r-hexbin' \
+   # 'r-htmltools' \
+   # 'r-htmlwidgets' \
+   # 'r-irkernel' \
+   # 'r-nycflights13' \
+   # 'r-randomforest' \
+   # 'r-rcurl' \
+   # 'r-rmarkdown' \
+   # 'r-rodbc' \
+   # 'r-rsqlite' \
+   # 'r-shiny' \
+   # 'r-sparklyr' \
+   # 'r-tidymodels' \
+   'r-tidyverse' \
+   # 'rpy2' \
+   # 'unixodbc' \
+   && conda clean -a -f -y
 
 
 
