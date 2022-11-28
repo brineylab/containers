@@ -1,39 +1,53 @@
 # Use the respective Makefile to build the image.
-FROM ubuntu:20.04
+FROM ubuntu:22.04
 
-# common environemnt variables
-ENV NB_USER jovyan
-ENV NB_UID 1000
-ENV NB_PREFIX /
-ENV HOME /home/$NB_USER
-ENV SHELL /bin/bash
+# Images were initially created by the Kubeflow team:
+# https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers
+# and were subsequently modified by me.
+ARG OWNER=brineylab
+LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
-# args - software versions
+# args
+ARG NB_USER="jovyan"
+ARG NB_UID="1000"
+ARG NB_GID="100"
+
+# software versions
 ARG KUBECTL_ARCH="amd64"
 ARG KUBECTL_VERSION=v1.21.0
 ARG S6_ARCH="amd64"
- # renovate: datasource=github-tags depName=just-containers/s6-overlay versioning=loose
+# renovate: datasource=github-tags depName=just-containers/s6-overlay versioning=loose
 ARG S6_VERSION=v2.2.0.3
 
 # set shell to bash
-SHELL ["/bin/bash", "-c"]
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# install - usefull linux packages
-RUN export DEBIAN_FRONTEND=noninteractive \
- && apt-get -yq update \
- && apt-get -yq install --no-install-recommends \
+# install - useful linux packages
+ENV DEBIAN_FRONTEND noninteractive
+RUN apt-get --yes update \
+ && apt-get --yes install --no-install-recommends \
     apt-transport-https \
     bash \
     bzip2 \
     ca-certificates \
     curl \
+    fonts-liberation \
     git \
     gnupg \
     gnupg2 \
+    htop \
+    less \
     locales \
     lsb-release \
     nano \
+    openssh-client \
+    pandoc \
+    run-one \
     software-properties-common \
+    texlive-xetex \
+    texlive-fonts-recommended \
+    texlive-plain-generic \
+    tmux \
     tzdata \
     unzip \
     vim \
@@ -59,6 +73,26 @@ RUN curl -sL "https://dl.k8s.io/release/${KUBECTL_VERSION}/bin/linux/${KUBECTL_A
  && rm /tmp/kubectl.sha256 \
  && chmod +x /usr/local/bin/kubectl
 
+# configure environment
+ENV NB_USER="${NB_USER}" \
+    NB_UID=${NB_UID} \
+    NB_GID=${NB_GID}
+# paths
+ENV PATH="${CONDA_DIR}/bin:${PATH}" \
+    HOME="/home/${NB_USER}" \
+    CONDA_DIR=/opt/conda \
+    NB_PREFIX="/"
+
+# Copy a script that we will use to correct permissions after running certain commands
+COPY fix-permissions /usr/local/bin/fix-permissions
+RUN chmod a+rx /usr/local/bin/fix-permissions
+
+# Enable prompt color in the skeleton .bashrc before creating the default NB_USER
+# hadolint ignore=SC2016
+RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc && \
+   # Add call to conda init script see https://stackoverflow.com/a/58081608/4413446
+   echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/skel/.bashrc
+
 # create user and set required ownership
 RUN useradd -M -s /bin/bash -N -u ${NB_UID} ${NB_USER} \
  && mkdir -p ${HOME} \
@@ -69,8 +103,8 @@ RUN useradd -M -s /bin/bash -N -u ${NB_UID} ${NB_USER} \
 # set locale configs
 RUN echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
  && locale-gen
-ENV LANG en_US.UTF-8
-ENV LANGUAGE en_US.UTF-8
-ENV LC_ALL en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
 
 USER $NB_UID
