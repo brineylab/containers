@@ -27,9 +27,8 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ./base
           push: true
-          file: ./base/Dockerfile
           tags: |
             brineylab/base:latest
             brineylab/base:${{ github.event.release.tag_name }}
@@ -58,9 +57,8 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ./jupyter
           push: true
-          file: ${{ matrix.dockerfile }}
           tags: |
             brineylab/jupyter:latest
             brineylab/jupyter:${{ github.event.release.tag_name }}
@@ -74,7 +72,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dockerfile: ./jupyter-abx/Dockerfile
+          - context: ./jupyter-abx
             image_name: jupyter-abx
 
     permissions:
@@ -96,9 +94,8 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ${{ matrix.context }}
           push: true
-          file: ${{ matrix.dockerfile }}
           tags: |
             brineylab/${{ matrix.image_name }}:latest
             brineylab/${{ matrix.image_name }}:${{ github.event.release.tag_name }}
@@ -112,7 +109,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - dockerfile: ./jupyter-abx-pyspark/Dockerfile
+          - context: ./jupyter-abx-pyspark
             image_name: jupyter-abx-pyspark
 
     permissions:
@@ -134,9 +131,8 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-          context: .
+          context: ${{ matrix.context }}
           push: true
-          file: ${{ matrix.dockerfile }}
           tags: |
             brineylab/${{ matrix.image_name }}:latest
             brineylab/${{ matrix.image_name }}:${{ github.event.release.tag_name }}
