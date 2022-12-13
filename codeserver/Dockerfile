@@ -20,8 +20,9 @@ RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_
     && rm -f /tmp/code-server.deb
 
 # s6 - copy scripts
-COPY s6/ /etc
-RUN chown -R ${NB_USER}:users /etc/s6
+# COPY s6/ /etc
+# RUN chown -R ${NB_USER}:users /etc/s6
+COPY --chown=${NB_USER}:users s6/ /etc
 
 # s6 - 01-copy-tmp-home
 RUN mkdir -p /tmp_home \
