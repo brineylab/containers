@@ -10,26 +10,14 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 USER root
 
-# # args - software versions
-# ARG MINIFORGE_ARCH="x86_64"
-# # renovate: datasource=github-tags depName=conda-forge/miniforge versioning=loose
-# ARG MINIFORGE_VERSION=4.10.1-4
-# ARG PIP_VERSION=21.1.2
-# ARG PYTHON_VERSION=3.8.10
-# # ARG MINIFORGE_VERSION=22.9.0-2
-# # ARG PIP_VERSION=22.3.1
-# # ARG PYTHON_VERSION=3.9.15
-# # ARG PYTHON_VERSION=3.10.8
-
-
 # set shell to bash
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # install -- node.js
 RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
    && echo "deb https://deb.nodesource.com/node_14.x focal main" > /etc/apt/sources.list.d/nodesource.list \
-   && apt-get --yes update \
-   && apt-get --yes install --no-install-recommends \
+   && apt --yes update \
+   && apt --yes install --no-install-recommends \
    nodejs \
    # for cython: https://cython.readthedocs.io/en/latest/src/quickstart/install.html
    build-essential \
@@ -38,8 +26,9 @@ RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key ad
    dvipng \
    # for matplotlib anim
    ffmpeg \
-   && apt-get clean \
+   && apt clean \
    && rm -rf /var/lib/apt/lists/*
+
 
 # setup environment for conda
 # ENV CONDA_DIR=/opt/conda
@@ -55,44 +44,6 @@ RUN mkdir -p ${CONDA_DIR} \
 # switch to NB_UID for installs
 USER ${NB_UID}
 
-# # install - conda, pip, python
-# RUN curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh" -o /tmp/Miniforge3.sh \
-#    && curl -sL "https://github.com/conda-forge/miniforge/releases/download/${MINIFORGE_VERSION}/Miniforge3-${MINIFORGE_VERSION}-Linux-${MINIFORGE_ARCH}.sh.sha256" -o /tmp/Miniforge3.sh.sha256 \
-#    && echo "$(cat /tmp/Miniforge3.sh.sha256 | awk '{ print $1; }') /tmp/Miniforge3.sh" | sha256sum --check \
-#    && rm /tmp/Miniforge3.sh.sha256 \
-#    && /bin/bash /tmp/Miniforge3.sh -b -f -p ${CONDA_DIR} \
-#    && rm /tmp/Miniforge3.sh \
-#    && conda config --system --set auto_update_conda false \
-#    && conda config --system --set show_channel_urls true \
-#    && echo "conda ${MINIFORGE_VERSION:0:-2}" >> ${CONDA_DIR}/conda-meta/pinned \
-#    && echo "python ${PYTHON_VERSION}" >> ${CONDA_DIR}/conda-meta/pinned \
-#    && conda install -y -q \
-#    python=${PYTHON_VERSION} \
-#    conda=${MINIFORGE_VERSION:0:-2} \
-#    pip=${PIP_VERSION} \
-#    && conda update -y -q --all \
-#    && conda clean -a -f -y \
-#    && chown -R ${NB_USER}:users ${CONDA_DIR} \
-#    && chown -R ${NB_USER}:users ${HOME}
-
-# # need to be root to chown the requirements file
-# USER root
-
-# # install - requirements.txt
-# COPY requirements.txt /tmp
-# RUN chown -R ${NB_USER}:users /tmp/requirements.txt
-
-# # switch back to NB_USER to install python packages
-# USER ${NB_UID}
-
-# RUN python3 -m pip install -r /tmp/requirements.txt --quiet --no-cache-dir \
-#    && rm -f /tmp/requirements.txt \
-#    && jupyter lab --generate-config \
-#    && rm -rf ${HOME}/.cache/yarn \
-#    && chown -R ${NB_USER}:users ${CONDA_DIR} \
-#    && chown -R ${NB_USER}:users ${HOME}
-
-
 # Pin python version here, or set it to "default"
 ARG PYTHON_VERSION=3.9
 ARG PIP_VERSION="default"
@@ -102,7 +53,7 @@ ARG PIP_VERSION="default"
 #   Similar projects using Micromamba:
 #     - Micromamba-Docker: <https://github.com/mamba-org/micromamba-docker>
 #     - repo2docker: <https://github.com/jupyterhub/repo2docker>
-# Install Python, Mamba and jupyter_core
+# Install Python, Mamba, pip and jupyter_core
 # Cleanup temporary files and remove Micromamba
 # Correct permissions
 # Do all this in a single RUN command to avoid duplicating all of the
@@ -157,6 +108,7 @@ RUN mamba install --quiet --yes \
    # scipy
    'altair' \
    'beautifulsoup4' \
+   'black' \
    'bokeh' \
    'bottleneck' \
    'cloudpickle' \
@@ -187,14 +139,24 @@ RUN mamba install --quiet --yes \
    'widgetsnbextension'\
    'xlrd'
 
+RUN python3 -m pip install \
+   'jupyterlab-code-formatter' \
+   'jupyterlab-fasta' \
+   'jupyterlab-git' \
+   'jupyterlab-system-monitor' \
+   # 'jupyterlab_tensorboard' \
+   'nbdime' 
+
 # Install kfserving, which needs pip not mamba
 RUN python3 -m pip install kfserving
 
-# Install facets which does not have a pip or conda package at the moment
+# Install extensions which do not have pip or conda packages at the moment
 WORKDIR /tmp
 RUN git clone https://github.com/PAIR-code/facets.git && \
    jupyter nbextension install facets/facets-dist/ --sys-prefix && \
    rm -rf /tmp/facets
+# jupyter labextension install jupyterlab_voyager && \
+# jupyter labextension install nbgather
 
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME="/home/${NB_USER}/.cache/"
