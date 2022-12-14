@@ -29,9 +29,11 @@ RUN apt-get --yes update \
     && apt-get --yes install --no-install-recommends \
     apt-transport-https \
     bash \
+    bashtop \
     bzip2 \
     ca-certificates \
     curl \
+    dnsutils \
     fonts-liberation \
     git \
     gnupg \
@@ -46,10 +48,12 @@ RUN apt-get --yes update \
     pandoc \
     run-one \
     software-properties-common \
+    sudo \
     texlive-xetex \
     texlive-fonts-recommended \
     texlive-plain-generic \
     tmux \
+    traceroute \
     tzdata \
     unzip \
     vim \
