@@ -15,11 +15,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # R dependencies
 RUN apt update --yes \
-   && apt-get install --yes --no-install-recommends \
+   && apt install --yes --no-install-recommends \
    fonts-dejavu \
    gcc \
    gfortran \
-   && apt-get clean && rm -rf /var/lib/apt/lists/*
+   && apt clean && rm -rf /var/lib/apt/lists/*
 
 # Spark dependencies
 # Default values can be overridden at build time
@@ -33,11 +33,11 @@ ARG openjdk_version="17"
 ENV APACHE_SPARK_VERSION="${spark_version}" \
    HADOOP_VERSION="${hadoop_version}"
 
-RUN apt-get update --yes \
-   && apt-get install --yes --no-install-recommends \
+RUN apt update --yes \
+   && apt install --yes --no-install-recommends \
    "openjdk-${openjdk_version}-jre-headless" \
    ca-certificates-java \
-   && apt-get clean && rm -rf /var/lib/apt/lists/*
+   && apt clean && rm -rf /var/lib/apt/lists/*
 
 # Spark installation
 WORKDIR /tmp
