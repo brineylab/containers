@@ -8,7 +8,7 @@ ARG OWNER=brineylab
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 # args
-ARG NB_USER="jovyan"
+ARG NB_USER="brineylab"
 ARG NB_UID="1000"
 ARG NB_GID="100"
 
@@ -30,6 +30,8 @@ RUN apt-get --yes update \
     apt-transport-https \
     bash \
     bashtop \
+    btop \
+    build-essential \
     bzip2 \
     ca-certificates \
     curl \
@@ -46,6 +48,7 @@ RUN apt-get --yes update \
     nfs-common \
     openssh-client \
     pandoc \
+    pigz \
     run-one \
     software-properties-common \
     sudo \
