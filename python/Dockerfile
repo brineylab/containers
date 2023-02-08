@@ -41,6 +41,9 @@ RUN mkdir -p ${CONDA_DIR} \
    && chown -R ${NB_USER}:users ${CONDA_DIR} \
    && chown -R ${NB_USER}:users ${HOME}
 
+COPY initial-condarc "${CONDA_DIR}/.condarc"
+RUN chown -R ${NB_USER}:users "${CONDA_DIR}/.condarc"
+
 # switch to NB_UID for installs
 USER ${NB_UID}
 
@@ -59,8 +62,8 @@ ARG PIP_VERSION="default"
 # Do all this in a single RUN command to avoid duplicating all of the
 # files across image layers when the permissions change
 # COPY --chown="${NB_UID}:${NB_GID}" initial-condarc "${CONDA_DIR}/.condarc"
-COPY initial-condarc "${CONDA_DIR}/.condarc"
-RUN chown -R ${NB_USER}:users "${CONDA_DIR}/.condarc"
+# COPY initial-condarc "${CONDA_DIR}/.condarc"
+# RUN chown -R ${NB_USER}:users "${CONDA_DIR}/.condarc"
 
 WORKDIR /tmp
 RUN set -x && \
