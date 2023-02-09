@@ -172,7 +172,7 @@ jobs:
   # codeserver image depends on python
   codeserver:
     runs-on: ubuntu-latest
-    needs: [base]
+    needs: [python]
 
     permissions:
       contents: read
