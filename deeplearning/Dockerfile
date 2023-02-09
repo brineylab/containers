@@ -15,10 +15,6 @@ ENV NVIDIA_VISIBLE_DEVICES='all'
 ENV NVIDIA_DRIVER_CAPABILITIES='compute,utility'
 ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 
-# for some reason, I need to re-run chown on the conda directory
-# or else I get a permissions error when I try to install jupyterlab_nvdashboard
-RUN chown -R ${NB_USER}:users ${CONDA_DIR}
-
 
 # switch to NB_USER to install python packages
 USER ${NB_UID}
