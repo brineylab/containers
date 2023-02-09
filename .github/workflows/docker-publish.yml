@@ -5,6 +5,10 @@ on:
     types: [published]
 
 jobs:
+  # ------------------
+  #       BASE
+  # ------------------
+
   base:
     runs-on: ubuntu-latest
 
@@ -33,10 +37,48 @@ jobs:
             brineylab/base:latest
             brineylab/base:${{ github.event.release.tag_name }}
 
-  # jupyter image depends on base, and need to wait for base to proceed
-  jupyter:
+  # ------------------
+  #     PYTHON
+  # ------------------
+
+  # python image depends on base, and need to wait for base to proceed
+  python:
     runs-on: ubuntu-latest
     needs: [base]
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@v2
+      - name: login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./python
+          push: true
+          tags: |
+            brineylab/python:latest
+            brineylab/python:${{ github.event.release.tag_name }}
+
+  # ------------------
+  #     JUPYTER
+  # ------------------
+
+  # jupyter depends on python and needs to wait to be built
+  jupyter:
+    runs-on: ubuntu-latest
+    needs: [python]
 
     permissions:
       contents: read
@@ -63,18 +105,11 @@ jobs:
             brineylab/jupyter:latest
             brineylab/jupyter:${{ github.event.release.tag_name }}
 
-  # jupyter-plus images depend on jupyter, but can be built in parallel
-  jupyter-plus:
+  # datascience image depends on jupyter
+  datascience:
     runs-on: ubuntu-latest
     needs: [jupyter]
 
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - context: ./jupyter-abx
-            image_name: jupyter-abx
-
     permissions:
       contents: read
       packages: write
@@ -94,23 +129,16 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-          context: ${{ matrix.context }}
+          context: ./datascience
           push: true
           tags: |
-            brineylab/${{ matrix.image_name }}:latest
-            brineylab/${{ matrix.image_name }}:${{ github.event.release.tag_name }}
+            brineylab/datascience:latest
+            brineylab/datascience:${{ github.event.release.tag_name }}
 
-  # jupyter-abx-plus images depend on jupyter, but can be built in parallel
-  jupyter-abx-plus:
+  # deeplearning image depends on datascience
+  deeplearning:
     runs-on: ubuntu-latest
-    needs: [jupyter-plus]
-
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - context: ./jupyter-abx-pyspark
-            image_name: jupyter-abx-pyspark
+    needs: [datascience]
 
     permissions:
       contents: read
@@ -131,8 +159,106 @@ jobs:
       - name: build and push
         uses: docker/build-push-action@v3
         with:
-          context: ${{ matrix.context }}
+          context: ./deeplearning
           push: true
           tags: |
-            brineylab/${{ matrix.image_name }}:latest
-            brineylab/${{ matrix.image_name }}:${{ github.event.release.tag_name }}
+            brineylab/deeplearning:latest
+            brineylab/deeplearning:${{ github.event.release.tag_name }}
+
+  # ------------------
+  #    CODESERVER
+  # ------------------
+
+  # codeserver image depends on python
+  codeserver:
+    runs-on: ubuntu-latest
+    needs: [base]
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: checkout
+        uses: actions/checkout@v3
+      - name: set up QEMU
+        uses: docker/setup-qemu-action@v2
+      - name: set up docker buildx
+        uses: docker/setup-buildx-action@v2
+      - name: login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+      - name: build and push
+        uses: docker/build-push-action@v3
+        with:
+          context: ./codeserver
+          push: true
+          tags: |
+            brineylab/codeserver:latest
+            brineylab/codeserver:${{ github.event.release.tag_name }}
+
+  # # ------------------
+  # #        R
+  # # ------------------
+
+  # # r image depends on base
+  # r:
+  #   runs-on: ubuntu-latest
+  #   needs: [base]
+
+  #   permissions:
+  #     contents: read
+  #     packages: write
+
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v3
+  #     - name: set up QEMU
+  #       uses: docker/setup-qemu-action@v2
+  #     - name: set up docker buildx
+  #       uses: docker/setup-buildx-action@v2
+  #     - name: login to Docker Hub
+  #       uses: docker/login-action@v2
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: build and push
+  #       uses: docker/build-push-action@v3
+  #       with:
+  #         context: ./r
+  #         push: true
+  #         tags: |
+  #           brineylab/r:latest
+  #           brineylab/r:${{ github.event.release.tag_name }}
+
+  # # rstudio image depends on r
+  # rstudio:
+  #   runs-on: ubuntu-latest
+  #   needs: [r]
+
+  #   permissions:
+  #     contents: read
+  #     packages: write
+
+  #   steps:
+  #     - name: checkout
+  #       uses: actions/checkout@v3
+  #     - name: set up QEMU
+  #       uses: docker/setup-qemu-action@v2
+  #     - name: set up docker buildx
+  #       uses: docker/setup-buildx-action@v2
+  #     - name: login to Docker Hub
+  #       uses: docker/login-action@v2
+  #       with:
+  #         username: ${{ secrets.DOCKERHUB_USERNAME }}
+  #         password: ${{ secrets.DOCKERHUB_TOKEN }}
+  #     - name: build and push
+  #       uses: docker/build-push-action@v3
+  #       with:
+  #         context: ./rstudio
+  #         push: true
+  #         tags: |
+  #           brineylab/rstudio:latest
+  #           brineylab/rstudio:${{ github.event.release.tag_name }}
