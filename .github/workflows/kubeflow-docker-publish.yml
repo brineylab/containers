@@ -1,4 +1,4 @@
-name: build and push Docker images
+name: build and push Docker images for Kubeflow
 
 on:
   release:
