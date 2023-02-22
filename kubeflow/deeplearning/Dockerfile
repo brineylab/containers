@@ -1,5 +1,5 @@
 ARG OWNER=brineylab
-ARG BASE_IMG=$OWNER/datascience
+ARG BASE_IMG=$OWNER/kubeflow-datascience
 FROM $BASE_IMG
 
 # This image is modified from images initially created by the Kubeflow team:

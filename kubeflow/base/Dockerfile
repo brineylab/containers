@@ -1,4 +1,3 @@
-# Use the respective Makefile to build the image.
 FROM ubuntu:22.04
 
 # Images were initially created by the Kubeflow team:
