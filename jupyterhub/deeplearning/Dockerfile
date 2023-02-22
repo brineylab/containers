@@ -1,12 +1,21 @@
 ARG OWNER=brineylab
-ARG BASE_IMG=$OWNER/datascience
+ARG BASE_IMG=$OWNER/jupyterhub-datascience
 FROM $BASE_IMG
 
-# This image is modified from images initially created by the Kubeflow team:
-# https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers
-# and the Jupyter team:
+# This image was initially created by the Jupyter Development Team:
 # https://github.com/jupyter/docker-stacks
+# and was subsequently modified and maintained by the Briney Lab.
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
+
+# In alignment with the licensing of the orignal image created
+# by the Jupyter Development Team, this image is distributed 
+# under the terms of the Modified BSD License.
+# https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
+
+
+# Fix: https://github.com/hadolint/hadolint/wiki/DL4006
+# Fix: https://github.com/koalaman/shellcheck/wiki/SC3014
+SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 
@@ -14,7 +23,6 @@ USER root
 ENV NVIDIA_VISIBLE_DEVICES='all'
 ENV NVIDIA_DRIVER_CAPABILITIES='compute,utility'
 ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
-
 
 # switch to NB_USER to install python packages
 USER ${NB_UID}
@@ -25,23 +33,11 @@ RUN python3 -m pip install \
     torch==1.13.0+cu117 \
     torchvision==0.14.0+cu117
 
-
-# # tensorflow
-# RUN mamba install --yes \
-#     -c conda-forge \
-#     cudatoolkit=11.2 \
-#     cudnn=8.1.0 && \
-#     export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$CONDA_PREFIX/lib/ && \
-#     python3 -m pip install tensorflow && \
-#     # verify install:
-#     python3 -c "import tensorflow as tf; print(tf.config.list_physical_devices('GPU'))"
-
 # hugging face
 RUN python3 -m pip install \
     transformers \
     diffusers \
     datasets
-
 
 # jupyterlab extensions
 RUN python3 -m pip install \

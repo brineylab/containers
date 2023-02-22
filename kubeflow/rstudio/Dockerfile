@@ -1,5 +1,5 @@
 ARG OWNER=brineylab
-ARG BASE_IMG=$OWNER/r
+ARG BASE_IMG=$OWNER/kubeflow-r
 FROM $BASE_IMG
 
 # This image is modified from images initially created by the Kubeflow team:
