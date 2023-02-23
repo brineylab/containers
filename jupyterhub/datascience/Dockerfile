@@ -22,9 +22,9 @@ USER root
 # R pre-requisites
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \
-        fonts-dejavu \
-        gfortran \
-        gcc \
+    fonts-dejavu \
+    gfortran \
+    gcc \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
@@ -46,8 +46,8 @@ ENV APACHE_SPARK_VERSION="${spark_version}" \
 
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \
-        "openjdk-${openjdk_version}-jre-headless" \
-        ca-certificates-java \
+    "openjdk-${openjdk_version}-jre-headless" \
+    ca-certificates-java \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
@@ -58,12 +58,12 @@ WORKDIR /tmp
 # But it seems to be slower, that's why we use recommended site for download
 RUN if [ -z "${scala_version}" ]; then \
     wget -qO "spark.tgz" "https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"; \
-  else \
+    else \
     wget -qO "spark.tgz" "https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}-scala${scala_version}.tgz"; \
-  fi && \
-  echo "${spark_checksum} *spark.tgz" | sha512sum -c - \
-  && tar xzf "spark.tgz" -C /usr/local --owner root --group root --no-same-owner \
-  && rm "spark.tgz"
+    fi && \
+    echo "${spark_checksum} *spark.tgz" | sha512sum -c - \
+    && tar xzf "spark.tgz" -C /usr/local --owner root --group root --no-same-owner \
+    && rm "spark.tgz"
 
 # Configure Spark
 ENV SPARK_HOME=/usr/local/spark
@@ -72,12 +72,12 @@ ENV SPARK_OPTS="--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M 
 
 RUN if [ -z "${scala_version}" ]; then \
     ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" "${SPARK_HOME}"; \
-  else \
+    else \
     ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}-scala${scala_version}" "${SPARK_HOME}"; \
-  fi \
-  # Add a link in the before_notebook hook in order to source automatically PYTHONPATH && \
-  && mkdir -p /usr/local/bin/before-notebook.d \
-  && ln -s "${SPARK_HOME}/sbin/spark-config.sh" /usr/local/bin/before-notebook.d/spark-config.sh
+    fi \
+    # Add a link in the before_notebook hook in order to source automatically PYTHONPATH && \
+    && mkdir -p /usr/local/bin/before-notebook.d \
+    && ln -s "${SPARK_HOME}/sbin/spark-config.sh" /usr/local/bin/before-notebook.d/spark-config.sh
 
 # Configure IPython system-wide
 COPY ipython_kernel_config.py "/etc/ipython/"
@@ -87,7 +87,7 @@ USER ${NB_UID}
 
 # Install pyarrow
 RUN mamba install --quiet --yes \
-        "pyarrow" \
+    "pyarrow" \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
@@ -113,8 +113,8 @@ RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_
 USER ${NB_UID}
 
 RUN mamba install --quiet --yes \
-        "jupyter-server-proxy" \
-        "jupyter-vscode-proxy" \
+    "jupyter-server-proxy" \
+    "jupyter-vscode-proxy" \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
@@ -132,19 +132,19 @@ USER root
 # install ubuntu desktop GUI
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \
-        # "ubuntu-desktop" \
-        "dbus-x11" \ 
-        "libgl1-mesa-glx" \
-        "xorg" \ 
-        "xfce4" \
-        "xfce4-panel" \ 
-        "xfce4-session" \ 
-        "xfce4-settings" \ 
-        "xubuntu-icon-theme" \ 
-        # these are required to add-apt-repository
-        # "software-properties-common" \
-        # "gpg" \
-        # "gpg-agent" \
+    # "ubuntu-desktop" \
+    "dbus-x11" \ 
+    "libgl1-mesa-glx" \
+    "xorg" \ 
+    "xfce4" \
+    "xfce4-panel" \ 
+    "xfce4-session" \ 
+    "xfce4-settings" \ 
+    "xubuntu-icon-theme" \ 
+    # these are required to add-apt-repository
+    # "software-properties-common" \
+    # "gpg" \
+    # "gpg-agent" \
     && apt-get remove --yes --quiet light-locker \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
@@ -165,7 +165,7 @@ RUN python3 -m pip install \
 
 # install websockify
 RUN mamba install --quiet --yes \
-        "websockify" \
+    "websockify" \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
@@ -177,43 +177,43 @@ RUN mamba install --quiet --yes \
 
 # ab[x] and dependencies
 RUN python3 -m pip install \
-   "anndata" \
-   # "baltic" \
-   "biopython" \
-   "celery" \
-   "dnachisel" \
-   "doubletdetection" \
-   "ete3" \
-   "fastcluster" \
-   "harmonypy" \
-   "humanize" \
-   "leidenalg" \
-   "logomaker" \
-   "matplotlib" \
-   "mnemonic" \
-   "nwalign3" \
-   "paramiko" \
-   "prettytable" \
-   "pycircos" \
-   "pymongo" \
-   "pytest" \
-   "python-Levenshtein" \
-   "pyyaml" \
-   "sample-sheet" \
-   "scanorama" \
-   "scanpy" \
-   "scrublet" \
-   "scvelo" \
-   "smart_open" \
-   "tqdm" \
-   "umap-learn" \
-   # ab[x]
-   "abutils" \
-   "abstar" \
-   "scab" \
-   # pyspark
-   "pyspark" \
-   "findspark" 
+    "anndata" \
+    # "baltic" \
+    "biopython" \
+    "celery" \
+    "dnachisel" \
+    "doubletdetection" \
+    "ete3" \
+    "fastcluster" \
+    "harmonypy" \
+    "humanize" \
+    "leidenalg" \
+    "logomaker" \
+    "matplotlib" \
+    "mnemonic" \
+    "nwalign3" \
+    "paramiko" \
+    "prettytable" \
+    "pycircos" \
+    "pymongo" \
+    "pytest" \
+    "python-Levenshtein" \
+    "pyyaml" \
+    "sample-sheet" \
+    "scanorama" \
+    "scanpy" \
+    "scrublet" \
+    "scvelo" \
+    "smart_open" \
+    "tqdm" \
+    "umap-learn" \
+    # ab[x]
+    "abutils" \
+    "abstar" \
+    "scab" \
+    # pyspark
+    "pyspark" \
+    "findspark" 
 
 # find spark and initialize
 RUN python3 -c "import findspark; findspark.init()"
@@ -221,27 +221,27 @@ RUN python3 -c "import findspark; findspark.init()"
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
 RUN mamba install --quiet --yes \
-        'r-base' \
-        'r-caret' \
-        'r-crayon' \
-        'r-devtools' \
-        'r-e1071' \
-        'r-forecast' \
-        'r-hexbin' \
-        'r-htmltools' \
-        'r-htmlwidgets' \
-        'r-irkernel' \
-        'r-nycflights13' \
-        'r-randomforest' \
-        'r-rcurl' \
-        'r-rmarkdown' \
-        'r-rodbc' \
-        'r-rsqlite' \
-        'r-shiny' \
-        'r-tidymodels' \
-        'r-tidyverse' \
-        'rpy2' \
-        'unixodbc' \
+    'r-base' \
+    'r-caret' \
+    'r-crayon' \
+    'r-devtools' \
+    'r-e1071' \
+    'r-forecast' \
+    'r-hexbin' \
+    'r-htmltools' \
+    'r-htmlwidgets' \
+    'r-irkernel' \
+    'r-nycflights13' \
+    'r-randomforest' \
+    'r-rcurl' \
+    'r-rmarkdown' \
+    'r-rodbc' \
+    'r-rsqlite' \
+    'r-shiny' \
+    'r-tidymodels' \
+    'r-tidyverse' \
+    'rpy2' \
+    'unixodbc' \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
@@ -271,7 +271,7 @@ RUN set -x \
     && julia_arch=$(uname -m) \
     && julia_short_arch="${julia_arch}" \
     && if [ "${julia_short_arch}" == "x86_64" ]; then \
-      julia_short_arch="x64"; \
+    julia_short_arch="x64"; \
     fi; \
     julia_installer="julia-${JULIA_VERSION}-linux-${julia_arch}.tar.gz" \
     && julia_major_minor=$(echo "${JULIA_VERSION}" | cut -d. -f 1,2) \
@@ -304,5 +304,75 @@ RUN julia -e 'import Pkg; Pkg.update()' \
     && rm -rf "${HOME}/.local" \
     && fix-permissions "${JULIA_PKGDIR}" "${CONDA_DIR}/share/jupyter"
 
-WORKDIR "${HOME}"
+#-------------------
+#     NGS TOOLS
+#-------------------
 
+USER root
+
+ENV NGS_TOOLS_DIR="${HOME}/.tools"
+
+RUN mkdir "${NGS_TOOLS_DIR}" \
+    && chown "${NB_USER}" "${NGS_TOOLS_DIR}" \
+    && fix-permissions "${NGS_TOOLS_DIR}"
+
+WORKDIR "${NGS_TOOLS_DIR}"
+
+# bcl2fastq
+RUN wget -q "https://burtonlab.s3.amazonaws.com/software/bcl2fastq2_0v2.20.0.422-2_amd64.deb" \ 
+    && dpkg -i "bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
+    && fix-permissions "${NGS_TOOLS_DIR}" 
+
+# FastQC
+RUN wget -q "http://burtonlab.s3.amazonaws.com/software/fastqc_v0.11.9.zip" \
+    && unzip "fastqc_v0.11.9.zip" \
+    && chmod +x "${NGS_TOOLS_DIR}/FastQC/fastqc" \
+    && ln -s "${NGS_TOOLS_DIR}/FastQC/fastqc" "/usr/local/bin/fastqc"
+
+# PANDAseq
+RUN apt-get update \
+    && apt-get install -y \
+    "build-essential" \
+    "libtool" \
+    "automake" \
+    "zlib1g-dev" \
+    "libbz2-dev" \
+    "pkg-config" \
+    && git clone "https://github.com/neufeld/pandaseq" \
+    && cd pandaseq \
+    && ./autogen.sh \
+    && ./configure \
+    && make \
+    && make install \
+    && ldconfig
+
+# cutadapt
+RUN python3 -m pip install \
+    "cutadapt" \
+    && fix-permissions "${CONDA_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+# sickle
+RUN wget -q "http://burtonlab.s3.amazonaws.com/software/zlib1211.zip" \
+    && unzip zlib1211.zip \ 
+    && cd "${NGS_TOOLS_DIR}/zlib-1.2.11" \
+    && ./configure \
+    && make \
+    && make install \
+    && cd "${NGS_TOOLS_DIR}" \
+    && git clone "https://github.com/najoshi/sickle" \
+    && cd sickle \
+    && make \
+    && ln -s "${NGS_TOOLS_DIR}/sickle/sickle" "/usr/local/bin/sickle" \
+    && fix-permissions "${NGS_TOOLS_DIR}"
+
+# CellRanger
+RUN wget -q "https://burtonlab.s3.amazonaws.com/software/cellranger-7.1.0.tar.gz" \
+    && tar xzvf "cellranger-7.1.0.tar.gz" \
+    && echo 'export "PATH=${NGS_TOOLS_DIR}/cellranger-7.1.0/bin:$PATH"' >> "${HOME}/.bashrc" \
+    && fix-permissions "${NGS_TOOLS_DIR}" 
+
+
+USER ${NB_UID}
+
+WORKDIR "${HOME}"

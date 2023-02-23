@@ -22,32 +22,32 @@ USER root
 # Install all OS dependencies for fully functional notebook server
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \ 
-        # for latex labels
-        cm-super \ 
-        dvipng \ 
-        # for matplotlib anim
-        ffmpeg \ 
-        fonts-liberation \ 
-        git \ 
-        # less is needed to run help in R
-        # see: https://github.com/jupyter/docker-stacks/issues/1588
-        less \ 
-        openssh-client \ 
-        # - pandoc is used to convert notebooks to html files
-        #   it's not present in aarch64 ubuntu image, so we install it here
-        pandoc \
-        # - run-one - a wrapper script that runs no more
-        #   than one unique  instance  of  some  command with a unique set of arguments,
-        #   we use `run-one-constantly` to support `RESTARTABLE` option
-        run-one \ 
-        # nbconvert dependencies
-        # https://nbconvert.readthedocs.io/en/latest/install.html#installing-tex
-        texlive-xetex \ 
-        texlive-fonts-recommended \ 
-        texlive-plain-generic \ 
-        tzdata \ 
-        # Enable clipboard on Linux host systems
-        xclip \ 
+    # for latex labels
+    cm-super \ 
+    dvipng \ 
+    # for matplotlib anim
+    ffmpeg \ 
+    fonts-liberation \ 
+    git \ 
+    # less is needed to run help in R
+    # see: https://github.com/jupyter/docker-stacks/issues/1588
+    less \ 
+    openssh-client \ 
+    # - pandoc is used to convert notebooks to html files
+    #   it's not present in aarch64 ubuntu image, so we install it here
+    pandoc \
+    # - run-one - a wrapper script that runs no more
+    #   than one unique  instance  of  some  command with a unique set of arguments,
+    #   we use `run-one-constantly` to support `RESTARTABLE` option
+    run-one \ 
+    # nbconvert dependencies
+    # https://nbconvert.readthedocs.io/en/latest/install.html#installing-tex
+    texlive-xetex \ 
+    texlive-fonts-recommended \ 
+    texlive-plain-generic \ 
+    tzdata \ 
+    # Enable clipboard on Linux host systems
+    xclip \ 
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
@@ -61,9 +61,9 @@ USER ${NB_UID}
 # files across image layers when the permissions change
 WORKDIR /tmp
 RUN mamba install --quiet --yes \
-        'notebook' \
-        'jupyterhub' \
-        'jupyterlab' \
+    'notebook' \
+    'jupyterhub' \
+    'jupyterlab' \
     && jupyter notebook --generate-config \
     && mamba clean --all -f -y \
     && npm cache clean --force \
@@ -109,51 +109,51 @@ COPY --chown=${NB_UID}:${NB_GID} Rprofile.site /opt/conda/lib/R/etc/
 
 # Install Python 3 packages
 RUN mamba install --quiet --yes \
-        'altair' \
-        'beautifulsoup4' \
-        'black' \
-        'bokeh' \
-        'bottleneck' \
-        'cloudpickle' \
-        'conda-forge::blas=*=openblas' \
-        'cython' \
-        'dask' \
-        'dill' \
-        'h5py' \
-        'ipympl'\
-        'ipywidgets' \
-        # Temporary fix for: https://github.com/jupyter/docker-stacks/issues/1851
-        'jupyter_server>=2.0.0' \
-        'matplotlib-base' \
-        'natsort' \
-        'numba' \
-        'numexpr' \
-        'openpyxl' \
-        'pandas' \
-        'patsy' \
-        'protobuf' \
-        'pytables' \
-        'scikit-bio' \
-        'scikit-image' \
-        'scikit-learn' \
-        'scipy' \
-        'seaborn' \
-        'sqlalchemy' \
-        'statsmodels' \
-        'sympy' \
-        'widgetsnbextension'\
-        'xlrd' \
+    'altair' \
+    'beautifulsoup4' \
+    'black' \
+    'bokeh' \
+    'bottleneck' \
+    'cloudpickle' \
+    'conda-forge::blas=*=openblas' \
+    'cython' \
+    'dask' \
+    'dill' \
+    'h5py' \
+    'ipympl'\
+    'ipywidgets' \
+    # Temporary fix for: https://github.com/jupyter/docker-stacks/issues/1851
+    'jupyter_server>=2.0.0' \
+    'matplotlib-base' \
+    'natsort' \
+    'numba' \
+    'numexpr' \
+    'openpyxl' \
+    'pandas' \
+    'patsy' \
+    'protobuf' \
+    'pytables' \
+    'scikit-bio' \
+    'scikit-image' \
+    'scikit-learn' \
+    'scipy' \
+    'seaborn' \
+    'sqlalchemy' \
+    'statsmodels' \
+    'sympy' \
+    'widgetsnbextension'\
+    'xlrd' \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
 RUN python3 -m pip install \
-   'jupyterlab-code-formatter' \
-   'jupyterlab-git' \
-   # 'jupyterlab-fasta' \
-   # 'jupyterlab-system-monitor' \
-   # 'jupyterlab_tensorboard' \
-   'nbdime'
+    'jupyterlab-code-formatter' \
+    'jupyterlab-git' \
+    # 'jupyterlab-fasta' \
+    # 'jupyterlab-system-monitor' \
+    # 'jupyterlab_tensorboard' \
+    'nbdime'
 
 # Install facets which does not have a pip or conda package at the moment
 WORKDIR /tmp
