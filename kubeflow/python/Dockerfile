@@ -134,7 +134,7 @@ RUN mamba install --yes \
    'patsy' \
    'protobuf' \
    'pytables' \
-   'scikit-bio' \
+   # 'scikit-bio' \
    'scikit-image' \
    'scikit-learn' \
    'scipy' \

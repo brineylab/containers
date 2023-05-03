@@ -178,9 +178,10 @@ RUN mamba install --quiet --yes \
 # ab[x] and dependencies
 RUN python3 -m pip install \
     "anndata" \
-    # "baltic" \
+    "baltic" \
     "biopython" \
     "celery" \
+    "dask[complete]" \
     "dnachisel" \
     "doubletdetection" \
     "ete3" \
@@ -191,12 +192,13 @@ RUN python3 -m pip install \
     "logomaker" \
     "matplotlib" \
     "mnemonic" \
-    "nwalign3" \
+    # "nwalign3" \
     "paramiko" \
+    "parasail" \
     "prettytable" \
-    "pycircos" \
     "pymongo" \
     "pytest" \
+    "python-circos" \
     "python-Levenshtein" \
     "pyyaml" \
     "sample-sheet" \

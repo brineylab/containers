@@ -75,7 +75,7 @@ USER ${NB_UID}
 # ab[x] and dependencies
 RUN python3 -m pip install \
    'anndata' \
-   # 'baltic' \
+   'baltic' \
    'biopython' \
    'celery' \
    'dnachisel' \
@@ -88,13 +88,14 @@ RUN python3 -m pip install \
    'logomaker' \
    'matplotlib' \
    'mnemonic' \
-   'nwalign3' \
+   # 'nwalign3' \
    'paramiko' \
+   'parasail' \
    'prettytable' \
    'pyarrow' \
-   'pycircos' \
    'pymongo' \
    'pytest' \
+   'python-circos' \
    'python-Levenshtein' \
    'pyyaml' \
    'sample-sheet' \
