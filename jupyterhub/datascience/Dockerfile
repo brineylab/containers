@@ -304,13 +304,21 @@ RUN julia -e 'import Pkg; Pkg.update()' \
     && rm -rf "${HOME}/.local" \
     && fix-permissions "${JULIA_PKGDIR}" "${CONDA_DIR}/share/jupyter"
 
+
 #-------------------
 #     NGS TOOLS
 #-------------------
 
+# cutadapt
+RUN python3 -m pip install \
+    "cutadapt" \
+    && fix-permissions "${CONDA_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+
 USER root
 
-ENV NGS_TOOLS_DIR="${HOME}/.tools"
+ENV NGS_TOOLS_DIR="/tools"
 
 RUN mkdir "${NGS_TOOLS_DIR}" \
     && chown "${NB_USER}" "${NGS_TOOLS_DIR}" \
@@ -321,13 +329,15 @@ WORKDIR "${NGS_TOOLS_DIR}"
 # bcl2fastq
 RUN wget -q "https://burtonlab.s3.amazonaws.com/software/bcl2fastq2_0v2.20.0.422-2_amd64.deb" \ 
     && dpkg -i "bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
-    && fix-permissions "${NGS_TOOLS_DIR}" 
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
 
 # FastQC
 RUN wget -q "http://burtonlab.s3.amazonaws.com/software/fastqc_v0.11.9.zip" \
     && unzip "fastqc_v0.11.9.zip" \
     && chmod +x "${NGS_TOOLS_DIR}/FastQC/fastqc" \
-    && ln -s "${NGS_TOOLS_DIR}/FastQC/fastqc" "/usr/local/bin/fastqc"
+    && ln -s "${NGS_TOOLS_DIR}/FastQC/fastqc" "/usr/local/bin/fastqc" \
+    && fix-permissions "/home/${NB_USER}"
 
 # PANDAseq
 RUN apt-get update \
@@ -337,7 +347,7 @@ RUN apt-get update \
     "automake" \
     "zlib1g-dev" \
     "libbz2-dev" \
-    "pkg-config" \
+    "pkg-config" \ 
     && git clone "https://github.com/neufeld/pandaseq" \
     && cd pandaseq \
     && ./autogen.sh \
@@ -345,12 +355,6 @@ RUN apt-get update \
     && make \
     && make install \
     && ldconfig
-
-# cutadapt
-RUN python3 -m pip install \
-    "cutadapt" \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
 
 # sickle
 RUN wget -q "http://burtonlab.s3.amazonaws.com/software/zlib1211.zip" \
@@ -364,15 +368,22 @@ RUN wget -q "http://burtonlab.s3.amazonaws.com/software/zlib1211.zip" \
     && cd sickle \
     && make \
     && ln -s "${NGS_TOOLS_DIR}/sickle/sickle" "/usr/local/bin/sickle" \
-    && fix-permissions "${NGS_TOOLS_DIR}"
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
 
 # CellRanger
 RUN wget -q "https://burtonlab.s3.amazonaws.com/software/cellranger-7.1.0.tar.gz" \
     && tar xzvf "cellranger-7.1.0.tar.gz" \
     && echo 'export "PATH=${NGS_TOOLS_DIR}/cellranger-7.1.0/bin:$PATH"' >> "${HOME}/.bashrc" \
-    && fix-permissions "${NGS_TOOLS_DIR}" 
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
 
 
 USER ${NB_UID}
 
 WORKDIR "${HOME}"
+
+
+
+
+

@@ -150,8 +150,8 @@ RUN mamba install --quiet --yes \
 RUN python3 -m pip install \
     'jupyterlab-code-formatter' \
     'jupyterlab-git' \
-    # 'jupyterlab-fasta' \
-    # 'jupyterlab-system-monitor' \
+    'jupyterlab-fasta' \
+    'jupyterlab-system-monitor' \
     # 'jupyterlab_tensorboard' \
     'nbdime'
 
