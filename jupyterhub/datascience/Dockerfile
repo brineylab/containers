@@ -175,10 +175,17 @@ RUN mamba install --quiet --yes \
 #     ab[x] and R packages
 #-----------------------------
 
+# baltic still has a bug that crashes the pip install from PyPI
+WORKDIR /tmp
+RUN git clone https://github.com/evogytis/baltic \
+    && cd baltic \
+    && python3 -m pip install ./
+WORKDIR "${HOME}"
+
 # ab[x] and dependencies
 RUN python3 -m pip install \
     "anndata" \
-    "baltic" \
+    # "baltic" \
     "biopython" \
     "celery" \
     "dask[complete]" \
@@ -219,6 +226,7 @@ RUN python3 -m pip install \
 
 # find spark and initialize
 RUN python3 -c "import findspark; findspark.init()"
+
 
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
