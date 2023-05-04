@@ -72,10 +72,15 @@ RUN chown -R ${NB_USER}:users /etc/ipython/
 # switch to NB_USER to install python packages
 USER ${NB_UID}
 
+# baltic still has a bug that crashes the pip install from PyPI
+RUN git clone https://github.com/evogytis/baltic \
+   && cd baltic \
+   && python3 -m pip install ./
+
 # ab[x] and dependencies
 RUN python3 -m pip install \
    'anndata' \
-   'baltic' \
+   # 'baltic' \
    'biopython' \
    'celery' \
    'dnachisel' \
@@ -115,6 +120,7 @@ RUN python3 -m pip install \
    'findspark' 
 
 RUN python3 -c "import findspark; findspark.init()"
+
 
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
