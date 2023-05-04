@@ -129,7 +129,7 @@ RUN mamba install --quiet --yes \
     'numba' \
     'numexpr' \
     'openpyxl' \
-    'pandas' \
+    'pandas<2.0.0' \
     'patsy' \
     'protobuf' \
     'pytables' \
