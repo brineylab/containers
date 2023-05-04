@@ -107,18 +107,28 @@ RUN set -x && \
 #    && jupyter lab clean \
 #    && rm -rf ${HOME}/.cache/yarn
 
+# kubeflow
 RUN mamba install --yes \
-   # kubeflow
    'kfp' \
    'kfp-server-api' \
-   # scipy
+   && mamba clean --all -f -y \
+   && fix-permissions "${CONDA_DIR}" \
+   && fix-permissions "/home/${NB_USER}"
+
+# scipy
+RUN mamba install --yes \
+   'conda-forge::blas=*=openblas' \
+   && mamba clean --all -f -y \
+   && fix-permissions "${CONDA_DIR}" \
+   && fix-permissions "/home/${NB_USER}"
+
+RUN mamba install --yes \
    'altair' \
    'beautifulsoup4' \
    'black' \
    'bokeh' \
    'bottleneck' \
    'cloudpickle' \
-   'conda-forge::blas=*=openblas' \
    'cython' \
    'dask' \
    'dill' \
@@ -128,7 +138,7 @@ RUN mamba install --yes \
    'matplotlib-base' \
    'natsort' \
    'numba' \
-   'numexpr' \ 
+   'numexpr' \
    'openpyxl' \
    'pandas' \
    'patsy' \
@@ -143,7 +153,49 @@ RUN mamba install --yes \
    'statsmodels' \
    'sympy' \
    'widgetsnbextension'\
-   'xlrd'
+   'xlrd' \
+   && mamba clean --all -f -y \
+   && fix-permissions "${CONDA_DIR}" \
+   && fix-permissions "/home/${NB_USER}"
+
+
+# RUN mamba install --yes \
+#    # kubeflow
+#    'kfp' \
+#    'kfp-server-api' \
+#    # scipy
+#    'altair' \
+#    'beautifulsoup4' \
+#    'black' \
+#    'bokeh' \
+#    'bottleneck' \
+#    'cloudpickle' \
+#    'conda-forge::blas=*=openblas' \
+#    'cython' \
+#    'dask' \
+#    'dill' \
+#    'h5py' \
+#    'ipympl'\
+#    'ipywidgets' \
+#    'matplotlib-base' \
+#    'natsort' \
+#    'numba' \
+#    'numexpr' \ 
+#    'openpyxl' \
+#    'pandas' \
+#    'patsy' \
+#    'protobuf' \
+#    'pytables' \
+#    # 'scikit-bio' \
+#    'scikit-image' \
+#    'scikit-learn' \
+#    'scipy' \
+#    'seaborn' \
+#    'sqlalchemy' \
+#    'statsmodels' \
+#    'sympy' \
+#    'widgetsnbextension'\
+#    'xlrd'
 
 # RUN python3 -m pip install \
 #    'jupyterlab-code-formatter' \
