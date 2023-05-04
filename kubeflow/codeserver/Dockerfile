@@ -24,6 +24,11 @@ RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_
 # switch to NB_USER to install python packages
 USER ${NB_UID}
 
+# baltic still has a bug that crashes the pip install from PyPI
+RUN git clone https://github.com/evogytis/baltic \
+    && cd baltic \
+    && python3 -m pip install ./
+
 # ab[x] and dependencies
 RUN python3 -m pip install \
     'anndata' \
