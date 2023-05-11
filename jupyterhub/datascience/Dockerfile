@@ -384,9 +384,10 @@ RUN wget -q "http://burtonlab.s3.amazonaws.com/software/zlib1211.zip" \
 # CellRanger
 RUN wget -q "https://burtonlab.s3.amazonaws.com/software/cellranger-7.1.0.tar.gz" \
     && tar xzvf "cellranger-7.1.0.tar.gz" \
-    && echo 'export "PATH=${NGS_TOOLS_DIR}/cellranger-7.1.0/bin:$PATH"' >> "${HOME}/.bashrc" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}"
+
+ENV PATH="${NGS_TOOLS_DIR}/cellranger-7.1.0/bin:$PATH"
 
 
 USER ${NB_UID}
