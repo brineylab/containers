@@ -38,9 +38,13 @@ RUN python3 -m pip install \
 
 # hugging face
 RUN python3 -m pip install \
+    accelerate \
     transformers \
     diffusers \
-    datasets
+    datasets \
+    evaluate \
+    optimum \
+    peft
 
 
 # jupyterlab extensions
