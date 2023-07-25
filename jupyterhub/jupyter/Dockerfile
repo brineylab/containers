@@ -60,10 +60,11 @@ USER ${NB_UID}
 # Do all this in a single RUN command to avoid duplicating all of the
 # files across image layers when the permissions change
 WORKDIR /tmp
-RUN mamba install --quiet --yes \
+RUN mamba install --yes \
     'notebook' \
     'jupyterhub' \
-    'jupyterlab' \
+    'jupyterlab>3.6.0,<4.0.0a1' \
+    'jupyter_server>=2.7.0' \
     && jupyter notebook --generate-config \
     && mamba clean --all -f -y \
     && npm cache clean --force \
@@ -108,7 +109,7 @@ WORKDIR "${HOME}"
 COPY --chown=${NB_UID}:${NB_GID} Rprofile.site /opt/conda/lib/R/etc/
 
 # Install Python 3 packages
-RUN mamba install --quiet --yes \
+RUN mamba install --yes \
     'altair' \
     'beautifulsoup4' \
     'black' \
@@ -123,7 +124,7 @@ RUN mamba install --quiet --yes \
     'ipympl'\
     'ipywidgets' \
     # Temporary fix for: https://github.com/jupyter/docker-stacks/issues/1851
-    'jupyter_server>=2.0.0' \
+    # 'jupyter_server>=2.0.0' \
     'matplotlib-base' \
     'natsort' \
     'numba' \
@@ -151,17 +152,40 @@ RUN python3 -m pip install \
     'jupyterlab-code-formatter' \
     'jupyterlab-git' \
     'jupyterlab-fasta' \
+    'jupyterlab-topbar' \
     'jupyterlab-system-monitor' \
+    'jupyterlab_nvdashboard' \
+    'jupyter_ai_magics' \
+    # 'jupyterlab-collaboration' \
     # 'jupyterlab_tensorboard' \
+    'nbgitpuller' \
     'nbdime'
 
-# Install facets which does not have a pip or conda package at the moment
-WORKDIR /tmp
-RUN git clone https://github.com/PAIR-code/facets.git \
-    && jupyter nbextension install facets/facets-dist/ --sys-prefix \
-    && rm -rf /tmp/facets \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
+
+# RUN jupyter lab clean
+RUN jupyter lab clean \
+    && jupyter lab build --minimize=False
+
+
+# AI packages
+RUN python3 -m pip install \
+    'ai21' \
+    'anthropic' \
+    'cohere' \
+    'huggingface_hub' \
+    'pillow' \
+    'ipywidgets' \
+    'openai' \ 
+    'boto3' 
+
+
+# # Install facets which does not have a pip or conda package at the moment
+# WORKDIR /tmp
+# RUN git clone https://github.com/PAIR-code/facets.git \
+#     && jupyter nbextension install facets/facets-dist/ --sys-prefix \
+#     && rm -rf /tmp/facets \
+#     && fix-permissions "${CONDA_DIR}" \
+#     && fix-permissions "/home/${NB_USER}"
 
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME="/home/${NB_USER}/.cache/"

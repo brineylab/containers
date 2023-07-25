@@ -33,11 +33,18 @@ RUN python3 -m pip install \
     torch==1.13.0+cu117 \
     torchvision==0.14.0+cu117
 
+# gradio
+RUN python3 -m pip install gradio
+
 # hugging face
 RUN python3 -m pip install \
-    transformers \
+    accelerate \
+    datasets \
     diffusers \
-    datasets
+    evaluate \
+    optimum \
+    peft \
+    transformers
 
 # jupyterlab extensions
 RUN python3 -m pip install \
