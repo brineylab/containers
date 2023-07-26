@@ -17,6 +17,8 @@ jobs:
       packages: write
 
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - name: checkout
         uses: actions/checkout@v3
       - name: set up QEMU
@@ -51,6 +53,8 @@ jobs:
       packages: write
 
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - name: checkout
         uses: actions/checkout@v3
       - name: set up QEMU
@@ -85,6 +89,8 @@ jobs:
       packages: write
 
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - name: checkout
         uses: actions/checkout@v3
       - name: set up QEMU
@@ -115,6 +121,8 @@ jobs:
       packages: write
 
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - name: checkout
         uses: actions/checkout@v3
       - name: set up QEMU
@@ -145,6 +153,8 @@ jobs:
       packages: write
 
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - name: checkout
         uses: actions/checkout@v3
       - name: set up QEMU
@@ -179,6 +189,8 @@ jobs:
       packages: write
 
     steps:
+      - name: Delete huge unnecessary tools folder
+        run: rm -rf /opt/hostedtoolcache
       - name: checkout
         uses: actions/checkout@v3
       - name: set up QEMU
