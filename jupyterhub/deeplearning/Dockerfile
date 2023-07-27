@@ -30,8 +30,9 @@ USER ${NB_UID}
 # pytorch
 RUN python3 -m pip install \
     --find-links https://download.pytorch.org/whl/torch_stable.html \
-    torch==1.13.0+cu117 \
-    torchvision==0.14.0+cu117
+    torch==2.0.1+cu117
+# torch==1.13.0+cu117
+# torchvision==0.14.0+cu117
 
 # gradio
 RUN python3 -m pip install gradio
@@ -48,5 +49,5 @@ RUN python3 -m pip install \
 
 # jupyterlab extensions
 RUN python3 -m pip install \
-    jupyterlab_nvdashboard \
+    # jupyterlab_nvdashboard \
     nvitop
