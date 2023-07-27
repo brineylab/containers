@@ -162,23 +162,23 @@ RUN python3 -m pip install \
     'nbgitpuller'
 
 
-RUN jupyter lab clean
-# RUN jupyter lab clean \
-#     && jupyter lab build --minimize=False
+# RUN jupyter lab clean
+RUN jupyter lab clean \
+    && jupyter lab build --minimize=False
 
 
-# AI packages
-RUN python3 -m pip install \
-    # 'jupyter_ai_magics' \ # -> not compatible with jupyterlab >= 4.0
-    # 'jupyter_ai' \ # -> not compatible with jupyterlab >= 4.0
-    'ai21' \
-    'anthropic' \
-    'cohere' \
-    'huggingface_hub' \
-    'pillow' \
-    'ipywidgets' \
-    'openai' \ 
-    'boto3' 
+# # AI packages
+# RUN python3 -m pip install \
+#     # 'jupyter_ai_magics' \ # -> not compatible with jupyterlab >= 4.0
+#     # 'jupyter_ai' \ # -> not compatible with jupyterlab >= 4.0
+#     'ai21' \
+#     'anthropic' \
+#     'cohere' \
+#     'huggingface_hub' \
+#     'pillow' \
+#     'ipywidgets' \
+#     'openai' \ 
+#     'boto3' 
 
 
 # # Install facets which does not have a pip or conda package at the moment
