@@ -103,8 +103,8 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
 USER ${NB_UID}
 
 # Pin python version here, or set it to "default"
-ARG PYTHON_VERSION=3.11
-# ARG PYTHON_VERSION=3.10
+# ARG PYTHON_VERSION=3.11
+ARG PYTHON_VERSION=3.10
 # ARG PYTHON_VERSION=3.9
 
 # Setup work directory for backward-compatibility
