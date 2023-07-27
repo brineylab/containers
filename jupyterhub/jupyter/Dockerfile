@@ -156,7 +156,7 @@ RUN python3 -m pip install \
     'jupyterlab-topbar' \
     'jupyterlab-system-monitor' \
     'jupyterlab_nvdashboard' \
-    'jupyterlab-collaboration' \
+    'jupyter-collaboration' \
     # 'jupyterlab_tensorboard' \
     'nbgitpuller' \
     'nbdime'

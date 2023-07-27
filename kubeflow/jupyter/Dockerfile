@@ -150,7 +150,7 @@ RUN python3 -m pip install \
    'jupyterlab-system-monitor' \
    'jupyterlab_nvdashboard' \
    'jupyter_ai_magics' \
-   # 'jupyterlab-collaboration' \
+   # 'jupyter-collaboration' \
    # 'jupyterlab_tensorboard' \
    'nbgitpuller' \
    'nbdime'
