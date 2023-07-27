@@ -151,33 +151,34 @@ RUN mamba install --yes \
 
 RUN python3 -m pip install \
     'jupyterlab-code-formatter' \
-    'jupyterlab-git' \
+    # 'jupyterlab-git' \
     'jupyterlab-fasta' \
-    'jupyterlab-topbar' \
-    'jupyterlab-system-monitor' \
-    'jupyterlab_nvdashboard' \
+    # 'jupyterlab-topbar' \
+    # 'jupyterlab-system-monitor' \
+    # 'jupyterlab_nvdashboard' \
     'jupyter-collaboration' \
     # 'jupyterlab_tensorboard' \
-    'nbgitpuller' \
-    'nbdime'
+    # 'nbdime' \
+    'nbgitpuller'
 
 
-# RUN jupyter lab clean
-RUN jupyter lab clean \
-    && jupyter lab build --minimize=False
+RUN jupyter lab clean
+# RUN jupyter lab clean \
+#     && jupyter lab build --minimize=False
 
 
 # AI packages
-# RUN python3 -m pip install \
-#     'jupyter_ai_magics' \ # -> not compatible with jupyterlab >= 4.0
-#     'ai21' \
-#     'anthropic' \
-#     'cohere' \
-#     'huggingface_hub' \
-#     'pillow' \
-#     'ipywidgets' \
-#     'openai' \ 
-#     'boto3' 
+RUN python3 -m pip install \
+    # 'jupyter_ai_magics' \ # -> not compatible with jupyterlab >= 4.0
+    # 'jupyter_ai' \ # -> not compatible with jupyterlab >= 4.0
+    'ai21' \
+    'anthropic' \
+    'cohere' \
+    'huggingface_hub' \
+    'pillow' \
+    'ipywidgets' \
+    'openai' \ 
+    'boto3' 
 
 
 # # Install facets which does not have a pip or conda package at the moment
