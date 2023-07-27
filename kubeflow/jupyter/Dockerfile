@@ -145,11 +145,30 @@ RUN mamba install --yes \
 RUN python3 -m pip install \
    'jupyterlab-code-formatter' \
    'jupyterlab-git' \
-   # 'jupyterlab-fasta' \
-   # 'jupyterlab-system-monitor' \
+   'jupyterlab-fasta' \
+   'jupyterlab-topbar' \
+   'jupyterlab-system-monitor' \
+   'jupyterlab_nvdashboard' \
+   'jupyter_ai_magics' \
+   # 'jupyter-collaboration' \
    # 'jupyterlab_tensorboard' \
+   'nbgitpuller' \
    'nbdime'
-# 'elyra[all]'
+
+# RUN jupyter lab clean
+RUN jupyter lab clean \
+   && jupyter lab build --minimize=False
+
+# AI packages
+RUN python3 -m pip install \
+   'ai21' \
+   'anthropic' \
+   'cohere' \
+   'huggingface_hub' \
+   'pillow' \
+   'ipywidgets' \
+   'openai' \ 
+   'boto3' 
 
 # # Install kfserving, which needs pip not mamba
 # RUN python3 -m pip install kfserving
@@ -169,10 +188,10 @@ RUN python3 -m pip install \
 
 
 # Install extensions which do not have pip or conda packages at the moment
-WORKDIR /tmp
-RUN git clone https://github.com/PAIR-code/facets.git && \
-   jupyter nbextension install facets/facets-dist/ --sys-prefix && \
-   rm -rf /tmp/facets
+# WORKDIR /tmp
+# RUN git clone https://github.com/PAIR-code/facets.git && \
+#    jupyter nbextension install facets/facets-dist/ --sys-prefix && \
+#    rm -rf /tmp/facets
 # jupyter labextension install jupyterlab_voyager && \
 # jupyter labextension install nbgather
 

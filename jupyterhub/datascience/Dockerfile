@@ -175,10 +175,17 @@ RUN mamba install --quiet --yes \
 #     ab[x] and R packages
 #-----------------------------
 
+# baltic still has a bug that crashes the pip install from PyPI
+WORKDIR /tmp
+RUN git clone https://github.com/evogytis/baltic \
+    && cd baltic \
+    && python3 -m pip install ./
+WORKDIR "${HOME}"
+
 # ab[x] and dependencies
 RUN python3 -m pip install \
     "anndata" \
-    "baltic" \
+    # "baltic" \
     "biopython" \
     "celery" \
     "dask[complete]" \
@@ -219,6 +226,7 @@ RUN python3 -m pip install \
 
 # find spark and initialize
 RUN python3 -c "import findspark; findspark.init()"
+
 
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
@@ -376,9 +384,10 @@ RUN wget -q "http://burtonlab.s3.amazonaws.com/software/zlib1211.zip" \
 # CellRanger
 RUN wget -q "https://burtonlab.s3.amazonaws.com/software/cellranger-7.1.0.tar.gz" \
     && tar xzvf "cellranger-7.1.0.tar.gz" \
-    && echo 'export "PATH=${NGS_TOOLS_DIR}/cellranger-7.1.0/bin:$PATH"' >> "${HOME}/.bashrc" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}"
+
+ENV PATH="${NGS_TOOLS_DIR}/cellranger-7.1.0/bin:$PATH"
 
 
 USER ${NB_UID}
