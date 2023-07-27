@@ -63,7 +63,8 @@ WORKDIR /tmp
 RUN mamba install --yes \
     'notebook' \
     'jupyterhub' \
-    'jupyterlab>3.6.0,<4.0.0a1' \
+    # 'jupyterlab>3.6.0,<4.0.0a1' \
+    'jupyterlab>=4.0.0' \
     'jupyter_server>=2.7.0' \
     && jupyter notebook --generate-config \
     && mamba clean --all -f -y \
@@ -155,8 +156,7 @@ RUN python3 -m pip install \
     'jupyterlab-topbar' \
     'jupyterlab-system-monitor' \
     'jupyterlab_nvdashboard' \
-    'jupyter_ai_magics' \
-    # 'jupyterlab-collaboration' \
+    'jupyterlab-collaboration' \
     # 'jupyterlab_tensorboard' \
     'nbgitpuller' \
     'nbdime'
@@ -168,15 +168,16 @@ RUN jupyter lab clean \
 
 
 # AI packages
-RUN python3 -m pip install \
-    'ai21' \
-    'anthropic' \
-    'cohere' \
-    'huggingface_hub' \
-    'pillow' \
-    'ipywidgets' \
-    'openai' \ 
-    'boto3' 
+# RUN python3 -m pip install \
+#     'jupyter_ai_magics' \ # -> not compatible with jupyterlab >= 4.0
+#     'ai21' \
+#     'anthropic' \
+#     'cohere' \
+#     'huggingface_hub' \
+#     'pillow' \
+#     'ipywidgets' \
+#     'openai' \ 
+#     'boto3' 
 
 
 # # Install facets which does not have a pip or conda package at the moment
