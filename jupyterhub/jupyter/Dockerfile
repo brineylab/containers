@@ -61,10 +61,10 @@ USER ${NB_UID}
 # files across image layers when the permissions change
 WORKDIR /tmp
 RUN mamba install --yes \
-    'notebook' \
+    'notebook>=7.0.2' \
     'jupyterhub' \
-    'jupyterlab>3.6.0,<4.0.0a1' \
-    # 'jupyterlab>=4.0.0' \
+    # 'jupyterlab>3.6.0,<4.0.0a1' \
+    'jupyterlab>=4.0.0' \
     'jupyter_server>=2.7.0' \
     # 'jupyter_server' \
     && jupyter notebook --generate-config \
@@ -126,8 +126,6 @@ RUN mamba install --yes \
     'h5py' \
     'ipympl'\
     'ipywidgets' \
-    # Temporary fix for: https://github.com/jupyter/docker-stacks/issues/1851
-    # 'jupyter_server>=2.0.0' \
     'matplotlib-base' \
     'natsort' \
     'numba' \
@@ -137,7 +135,6 @@ RUN mamba install --yes \
     'patsy' \
     'protobuf' \
     'pytables' \
-    # 'scikit-bio' \
     'scikit-image' \
     'scikit-learn' \
     'scipy' \
@@ -152,13 +149,13 @@ RUN mamba install --yes \
     && fix-permissions "/home/${NB_USER}"
 
 RUN python3 -m pip install \
-    'jupyterlab-code-formatter' \
-    'jupyterlab-git' \
+    # 'jupyterlab-code-formatter' \
+    # 'jupyterlab-git' \
     # 'jupyterlab-fasta' \
-    'jupyterlab-topbar' \
-    'jupyterlab-system-monitor' \
+    # 'jupyterlab-topbar' \
+    # 'jupyterlab-system-monitor' \
     # 'jupyterlab_nvdashboard' \
-    # 'jupyter-collaboration' \
+    'jupyter-collaboration' \
     # 'jupyterlab_tensorboard' \
     # 'nbdime' \
     'nbgitpuller'
@@ -171,9 +168,10 @@ RUN jupyter lab clean \
 
 # # AI packages
 RUN python3 -m pip install \
-    # 'jupyter_ai_magics' \ # -> not compatible with jupyterlab >= 4.0
-    # 'jupyter_ai' \ # -> not compatible with jupyterlab <= 4.0
-    'jupyter_ai~=1.0' \
+    # -> not compatible with jupyterlab < 4.0
+    'jupyter_ai' \ 
+    # -> not compatible with jupyterlab >= 4.0
+    # 'jupyter_ai~=1.0' \
     'ai21' \
     'anthropic' \
     'cohere' \
