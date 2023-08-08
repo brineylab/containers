@@ -53,7 +53,7 @@ RUN apt-get update --yes \
 
 USER ${NB_UID}
 
-# Install Jupyter Notebook, Lab, and Hub
+# Install Jupyter Server, Lab, and Hub
 # Generate a notebook server config
 # Cleanup temporary files
 # Correct permissions
@@ -63,10 +63,12 @@ WORKDIR /tmp
 RUN mamba install --yes \
     'notebook' \
     'jupyterhub' \
-    # 'jupyterlab>3.6.0,<4.0.0a1' \
-    'jupyterlab>=4.0.0' \
+    'jupyterlab>3.6.0,<4.0.0a1' \
+    # 'jupyterlab>=4.0.0' \
     'jupyter_server>=2.7.0' \
+    # 'jupyter_server' \
     && jupyter notebook --generate-config \
+    # && jupyter lab --generate-config \
     && mamba clean --all -f -y \
     && npm cache clean --force \
     && jupyter lab clean \
@@ -89,10 +91,10 @@ COPY jupyter_server_config.py /etc/jupyter/
 # Fix permissions on /etc/jupyter as root
 USER root
 
-# Legacy for Jupyter Notebook Server, see: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
-RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
-    /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
-    && fix-permissions /etc/jupyter/
+# # Legacy for Jupyter Notebook Server, see: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
+# RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
+#     /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
+#     && fix-permissions /etc/jupyter/
 
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
 # This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
@@ -151,12 +153,12 @@ RUN mamba install --yes \
 
 RUN python3 -m pip install \
     'jupyterlab-code-formatter' \
-    # 'jupyterlab-git' \
-    'jupyterlab-fasta' \
-    # 'jupyterlab-topbar' \
-    # 'jupyterlab-system-monitor' \
+    'jupyterlab-git' \
+    # 'jupyterlab-fasta' \
+    'jupyterlab-topbar' \
+    'jupyterlab-system-monitor' \
     # 'jupyterlab_nvdashboard' \
-    'jupyter-collaboration' \
+    # 'jupyter-collaboration' \
     # 'jupyterlab_tensorboard' \
     # 'nbdime' \
     'nbgitpuller'
@@ -168,17 +170,18 @@ RUN jupyter lab clean \
 
 
 # # AI packages
-# RUN python3 -m pip install \
-#     # 'jupyter_ai_magics' \ # -> not compatible with jupyterlab >= 4.0
-#     # 'jupyter_ai' \ # -> not compatible with jupyterlab >= 4.0
-#     'ai21' \
-#     'anthropic' \
-#     'cohere' \
-#     'huggingface_hub' \
-#     'pillow' \
-#     'ipywidgets' \
-#     'openai' \ 
-#     'boto3' 
+RUN python3 -m pip install \
+    # 'jupyter_ai_magics' \ # -> not compatible with jupyterlab >= 4.0
+    # 'jupyter_ai' \ # -> not compatible with jupyterlab <= 4.0
+    'jupyter_ai~=1.0' \
+    'ai21' \
+    'anthropic' \
+    'cohere' \
+    'huggingface_hub' \
+    'pillow' \
+    'ipywidgets' \
+    'openai' \ 
+    'boto3' 
 
 
 # # Install facets which does not have a pip or conda package at the moment

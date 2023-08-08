@@ -134,15 +134,18 @@ RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_
 # switch to NB_USER to install python packages
 USER ${NB_UID}
 
+# set the home directory
+# ENV CODE_WORKINGDIR="${HOME}/codeserver"
+ENV CODE_WORKINGDIR="${HOME}" \
+    CODE_EXTENSIONSDIR="${HOME}/.vscode_extensions" \
+    CODE_USERDATADIR="${HOME}/.vscode_data"
+
 RUN mamba install --yes \
     "jupyter-server-proxy" \
     "jupyter-vscode-proxy" \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
-
-# set the home directory
-ENV CODE_WORKINGDIR="${HOME}/codeserver"
 
 
 #----------------------
@@ -202,7 +205,9 @@ RUN mamba install --yes \
 # RUN git clone https://github.com/evogytis/baltic \
 #     && cd baltic \
 #     && python3 -m pip install ./
-# WORKDIR "${HOME}"
+
+
+WORKDIR "${HOME}"
 
 # ab[x] and dependencies
 RUN python3 -m pip install \
