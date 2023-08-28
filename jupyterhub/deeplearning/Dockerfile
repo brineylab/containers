@@ -30,7 +30,7 @@ USER ${NB_UID}
 # pytorch
 # COPY ../../requirements/torch_pip.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/torch_pip.txt \
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 
 RUN python3 -m pip install \
@@ -48,7 +48,7 @@ RUN python3 -m pip install gradio
 # hugging face
 # COPY ../../requirements/huggingface_pip.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/huggingface_pip.txt \
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/huggingface_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/huggingface_pip.txt
@@ -57,7 +57,7 @@ RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/huggingface_pip.txt
 # RUN python3 -m pip install \
 #     jupyterlab_nvdashboard \
 #     nvitop
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/nvidia_pip.txt \
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/nvidia_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/nvidia_pip.txt

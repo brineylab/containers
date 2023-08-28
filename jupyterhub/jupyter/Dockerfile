@@ -57,7 +57,7 @@ RUN apt-get update --yes \
 
 USER ${NB_UID}
 
-# Install Jupyter Server, Lab, and Hub
+# Install Jupyter Notebook, Lab, and Hub
 # Generate a notebook server config
 # Cleanup temporary files
 # Correct permissions
@@ -67,12 +67,11 @@ WORKDIR /tmp
 
 # COPY ../../requirements/jupyter_mamba.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/jupyter_mamba.txt \
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
     && fix-permissions "${REQUIREMENTS_DIR}"
 
 RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
     && jupyter notebook --generate-config \
-    # && jupyter lab --generate-config \
     && mamba clean --all -f -y \
     && npm cache clean --force \
     && jupyter lab clean \
@@ -95,10 +94,10 @@ COPY jupyter_server_config.py /etc/jupyter/
 # Fix permissions on /etc/jupyter as root
 USER root
 
-# # Legacy for Jupyter Notebook Server, see: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
-# RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
-#     /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
-#     && fix-permissions /etc/jupyter/
+# Legacy for Jupyter Notebook Server, see: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
+RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
+    /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
+    && fix-permissions /etc/jupyter/
 
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
 # This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
@@ -118,7 +117,7 @@ COPY --chown=${NB_UID}:${NB_GID} Rprofile.site /opt/conda/lib/R/etc/
 # Install Python 3 packages
 # COPY ../../requirements/scipy_mamba.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/scipy_mamba.txt \
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 
 RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
@@ -129,7 +128,7 @@ RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
 # Install jupyterlab extensions
 # COPY ../../requirements/jupyter-extensions_pip.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/jupyter-extensions_pip.txt \
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter-extensions_pip.txt \
     && fix-permissions "${REQUIREMENTS_DIR}"
 
 RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt"

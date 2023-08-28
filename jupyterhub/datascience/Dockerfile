@@ -86,7 +86,7 @@ RUN fix-permissions "/etc/ipython/"
 USER ${NB_UID}
 
 # Install pyarrow
-RUN mamba install --yes \
+RUN mamba install --quiet --yes \
     "pyarrow" \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
@@ -102,50 +102,25 @@ EXPOSE 4040
 
 USER root
 
-ARG CODESERVER_VERSION=v4.15.0
+ARG CODESERVER_VERSION=v4.9.1
 
 # install - code-server
 RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm -f /tmp/code-server.deb
 
-
-# TODO: add code-server extensions
-# # switch to NB_USER to install code-server extensions
-# USER ${NB_UID}
-
-# # install code-server extensions
-# RUN code-server --install-extension ms-python.python \
-#     && code-server --install-extension ms-python.black-formatter \
-#     # ai assistants
-#     && code-server --install-extension github.copilot \
-#     && code-server --install-extension tabnine.tabnine-vscode \
-#     && code-server --install-extension Blackboxapp.blackbox \
-#     # jupyter
-#     && code-server --install-extension ms-toolsai.jupyter \
-#     # themes and appearance
-#     && code-server --install-extension Shan.code-settings-sync \
-#     && code-server --install-extension wayou.vscode-todo-highlight \
-#     && code-server --install-extension zhuangtongfa.Material-theme \
-#     && code-server --install-extension akamud.vscode-theme-onedark \
-#     && code-server --install-extension vscode-icons-team.vscode-icons
-
-
 # switch to NB_USER to install python packages
 USER ${NB_UID}
 
-# set the home directory
-# ENV CODE_WORKINGDIR="${HOME}/codeserver"
-ENV CODE_WORKINGDIR="${HOME}" \
-    CODE_EXTENSIONSDIR="${HOME}/.vscode_extensions" \
-    CODE_USERDATADIR="${HOME}/.vscode_data"
-
-RUN mamba install --yes \
+RUN mamba install --quiet --yes \
     "jupyter-server-proxy" \
     "jupyter-vscode-proxy" \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
+
+# set the home directory
+ENV CODE_WORKINGDIR="${HOME}/codeserver"
 
 
 #----------------------
@@ -189,7 +164,7 @@ RUN python3 -m pip install \
     "jupyter-remote-desktop-proxy"
 
 # install websockify
-RUN mamba install --yes \
+RUN mamba install --quiet --yes \
     "websockify" \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
@@ -210,7 +185,7 @@ RUN mamba install --yes \
 # ab[x] and dependencies
 # COPY ../../requirements/abx_pip.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/abx_pip.txt \
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/abx_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
@@ -221,10 +196,9 @@ RUN python3 -c "import findspark; findspark.init()"
 
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
-
 # COPY ../../requirements/r_mamba.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/r_mamba.txt \
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_mamba.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 
 RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
@@ -242,7 +216,7 @@ USER root
 # Default values can be overridden at build time
 # (ARGS are in lower case to distinguish them from ENV)
 # Check https://julialang.org/downloads/
-ARG julia_version="1.9.2"
+ARG julia_version="1.8.5"
 
 # Julia dependencies
 # install Julia packages in /opt/julia instead of ${HOME}
