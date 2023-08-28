@@ -155,6 +155,8 @@ RUN python3 -m pip install \
     # 'jupyterlab-topbar' \
     # 'jupyterlab-system-monitor' \
     # 'jupyterlab_nvdashboard' \
+    "jupyterlab-theme-toggler" \
+    "jupyter-resource-usage" \
     'jupyter-collaboration' \
     # 'jupyterlab_tensorboard' \
     # 'nbdime' \
