@@ -1,15 +1,15 @@
 jupyterlab-code-formatter
-jupyterlab-git
-jupyterlab-fasta
-jupyterlab-topbar
-jupyterlab-system-monitor
-jupyterlab_nvdashboard
+jupyterlab-github
+# jupyterlab-git
+# jupyterlab-fasta
+# jupyterlab-topbar
+# jupyterlab-system-monitor
+# jupyterlab_nvdashboard
 jupyter-collaboration
 nbgitpuller
-nbdime
+# nbdime
 # jupyter AI magics and dependencies
 # ----------------------------------
-# jupyter_ai_magics # -> not compatible with jupyterlab >= 4.0
 jupyter_ai
 ai21
 anthropic
