@@ -175,54 +175,20 @@ RUN mamba install --quiet --yes \
 #     ab[x] and R packages
 #-----------------------------
 
-# baltic still has a bug that crashes the pip install from PyPI
-WORKDIR /tmp
-RUN git clone https://github.com/evogytis/baltic \
-    && cd baltic \
-    && python3 -m pip install ./
-WORKDIR "${HOME}"
+# # baltic still has a bug that crashes the pip install from PyPI
+# WORKDIR /tmp
+# RUN git clone https://github.com/evogytis/baltic \
+#     && cd baltic \
+#     && python3 -m pip install ./
+# WORKDIR "${HOME}"
 
 # ab[x] and dependencies
-RUN python3 -m pip install \
-    "anndata" \
-    # "baltic" \
-    "biopython" \
-    "celery" \
-    "dask[complete]" \
-    "dnachisel" \
-    "doubletdetection" \
-    "ete3" \
-    "fastcluster" \
-    "harmonypy" \
-    "humanize" \
-    "leidenalg" \
-    "logomaker" \
-    "matplotlib" \
-    "mnemonic" \
-    # "nwalign3" \
-    "paramiko" \
-    "parasail" \
-    "prettytable" \
-    "pymongo" \
-    "pytest" \
-    "python-circos" \
-    "python-Levenshtein" \
-    "pyyaml" \
-    "sample-sheet" \
-    "scanorama" \
-    "scanpy" \
-    "scrublet" \
-    "scvelo" \
-    "smart_open" \
-    "tqdm" \
-    "umap-learn" \
-    # ab[x]
-    "abutils" \
-    "abstar" \
-    "scab" \
-    # pyspark
-    "pyspark" \
-    "findspark" 
+# COPY ../../requirements/abx_pip.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/abx_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+
+RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
 
 # find spark and initialize
 RUN python3 -c "import findspark; findspark.init()"
@@ -230,28 +196,12 @@ RUN python3 -c "import findspark; findspark.init()"
 
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
-RUN mamba install --quiet --yes \
-    'r-base' \
-    'r-caret' \
-    'r-crayon' \
-    'r-devtools' \
-    'r-e1071' \
-    'r-forecast' \
-    'r-hexbin' \
-    'r-htmltools' \
-    'r-htmlwidgets' \
-    'r-irkernel' \
-    'r-nycflights13' \
-    'r-randomforest' \
-    'r-rcurl' \
-    'r-rmarkdown' \
-    'r-rodbc' \
-    'r-rsqlite' \
-    'r-shiny' \
-    'r-tidymodels' \
-    'r-tidyverse' \
-    'rpy2' \
-    'unixodbc' \
+# COPY ../../requirements/r_mamba.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/r_mamba.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+
+RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"

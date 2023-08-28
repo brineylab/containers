@@ -28,25 +28,36 @@ ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 USER ${NB_UID}
 
 # pytorch
+# COPY ../../requirements/torch_pip.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/torch_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+
 RUN python3 -m pip install \
     --find-links https://download.pytorch.org/whl/torch_stable.html \
-    torch==1.13.0+cu117 \
-    torchvision==0.14.0+cu117
+    -r ${REQUIREMENTS_DIR}/torch_pip.txt
+
+# RUN python3 -m pip install \
+#     --find-links https://download.pytorch.org/whl/torch_stable.html \
+#     torch==1.13.0+cu117 \
+#     torchvision==0.14.0+cu117
 
 # gradio
 RUN python3 -m pip install gradio
 
 # hugging face
-RUN python3 -m pip install \
-    accelerate \
-    datasets \
-    diffusers \
-    evaluate \
-    optimum \
-    peft \
-    transformers
+# COPY ../../requirements/huggingface_pip.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/huggingface_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+
+RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/huggingface_pip.txt
 
 # jupyterlab extensions
-RUN python3 -m pip install \
-    jupyterlab_nvdashboard \
-    nvitop
+# RUN python3 -m pip install \
+#     jupyterlab_nvdashboard \
+#     nvitop
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/nvidia_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+
+RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/nvidia_pip.txt
