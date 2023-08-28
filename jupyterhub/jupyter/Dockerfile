@@ -57,7 +57,7 @@ RUN apt-get update --yes \
 
 USER ${NB_UID}
 
-# Install Jupyter Notebook, Lab, and Hub
+# Install Jupyter Server, Lab, and Hub
 # Generate a notebook server config
 # Cleanup temporary files
 # Correct permissions
@@ -72,6 +72,7 @@ RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.
 
 RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
     && jupyter notebook --generate-config \
+    # && jupyter lab --generate-config \
     && mamba clean --all -f -y \
     && npm cache clean --force \
     && jupyter lab clean \
@@ -94,10 +95,10 @@ COPY jupyter_server_config.py /etc/jupyter/
 # Fix permissions on /etc/jupyter as root
 USER root
 
-# Legacy for Jupyter Notebook Server, see: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
-RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
-    /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
-    && fix-permissions /etc/jupyter/
+# # Legacy for Jupyter Notebook Server, see: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
+# RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
+#     /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
+#     && fix-permissions /etc/jupyter/
 
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
 # This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
