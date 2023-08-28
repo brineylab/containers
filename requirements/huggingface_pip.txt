@@ -1,0 +1,7 @@
+accelerate
+datasets
+diffusers
+evaluate
+optimum
+peft
+transformers
