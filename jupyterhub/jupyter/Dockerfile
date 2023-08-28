@@ -67,7 +67,7 @@ WORKDIR /tmp
 
 # COPY ../../requirements/jupyter_mamba.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/jupyter_mamba.txt \
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
     && fix-permissions "${REQUIREMENTS_DIR}"
 
 RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
@@ -117,7 +117,7 @@ COPY --chown=${NB_UID}:${NB_GID} Rprofile.site /opt/conda/lib/R/etc/
 # Install Python 3 packages
 # COPY ../../requirements/scipy_mamba.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/scipy_mamba.txt \
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 
 RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
@@ -128,7 +128,7 @@ RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
 # Install jupyterlab extensions
 # COPY ../../requirements/jupyter-extensions_pip.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/jupyter-extensions_pip.txt \
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter-extensions_pip.txt \
     && fix-permissions "${REQUIREMENTS_DIR}"
 
 RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt"

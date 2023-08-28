@@ -185,7 +185,7 @@ RUN mamba install --quiet --yes \
 # ab[x] and dependencies
 # COPY ../../requirements/abx_pip.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/abx_pip.txt \
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/abx_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
@@ -198,7 +198,7 @@ RUN python3 -c "import findspark; findspark.init()"
 # r-e1071: dependency of the caret R package
 # COPY ../../requirements/r_mamba.txt /tmp
 # RUN fix-permissions /tmp
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/shared-package-install-files/requirements/r_mamba.txt \
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_mamba.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 
 RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
