@@ -21,6 +21,7 @@ pytest
 python-circos
 python-Levenshtein
 pyyaml
+s3cmd
 sample-sheet
 scanorama
 scanpy
