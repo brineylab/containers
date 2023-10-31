@@ -5,7 +5,7 @@ jupyterlab-github
 # jupyterlab-topbar
 # jupyterlab-system-monitor
 # jupyterlab_nvdashboard
-jupyter-collaboration
+# jupyter-collaboration
 nbgitpuller
 # nbdime
 # jupyter AI magics and dependencies
