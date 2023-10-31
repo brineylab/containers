@@ -1,3 +1,4 @@
+# huggingface
 accelerate
 datasets
 diffusers
@@ -5,3 +6,5 @@ evaluate
 optimum
 peft
 transformers
+# other AI/ML
+wandb
