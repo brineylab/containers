@@ -51,25 +51,25 @@ RUN apt-get update --yes \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
-# Spark installation
-WORKDIR /tmp
+# # Spark installation
+# WORKDIR /tmp
 
-# You need to use https://archive.apache.org/dist/ website if you want to download old Spark versions
-# But it seems to be slower, that's why we use recommended site for download
-RUN wget -qO "spark.tgz" "https://archive.apache.org/dist/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" \
-    && echo "${SPARK_CHECKSUM} *spark.tgz" | sha512sum -c - \
-    && tar xzf "spark.tgz" -C /usr/local --owner root --group root --no-same-owner \
-    && rm "spark.tgz"
+# # You need to use https://archive.apache.org/dist/ website if you want to download old Spark versions
+# # But it seems to be slower, that's why we use recommended site for download
+# RUN wget -qO "spark.tgz" "https://archive.apache.org/dist/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" \
+#     && echo "${SPARK_CHECKSUM} *spark.tgz" | sha512sum -c - \
+#     && tar xzf "spark.tgz" -C /usr/local --owner root --group root --no-same-owner \
+#     && rm "spark.tgz"
 
-# Configure Spark
-ENV SPARK_HOME=/usr/local/spark
-ENV SPARK_OPTS="--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info" \
-    PATH="${PATH}:${SPARK_HOME}/bin"
+# # Configure Spark
+# ENV SPARK_HOME=/usr/local/spark
+# ENV SPARK_OPTS="--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info" \
+#     PATH="${PATH}:${SPARK_HOME}/bin"
 
-RUN ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" "${SPARK_HOME}" \
-    # Add a link in the before_notebook hook in order to source automatically PYTHONPATH && \
-    && mkdir -p /usr/local/bin/before-notebook.d \
-    && ln -s "${SPARK_HOME}/sbin/spark-config.sh" /usr/local/bin/before-notebook.d/spark-config.sh
+# RUN ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" "${SPARK_HOME}" \
+#     # Add a link in the before_notebook hook in order to source automatically PYTHONPATH && \
+#     && mkdir -p /usr/local/bin/before-notebook.d \
+#     && ln -s "${SPARK_HOME}/sbin/spark-config.sh" /usr/local/bin/before-notebook.d/spark-config.sh
 
 # Configure IPython system-wide
 COPY ipython_kernel_config.py "/etc/ipython/"
@@ -192,8 +192,8 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
 
-# find spark and initialize
-RUN python3 -c "import findspark; findspark.init()"
+# # find spark and initialize
+# RUN python3 -c "import findspark; findspark.init()"
 
 
 # R packages including IRKernel which gets installed globally.
