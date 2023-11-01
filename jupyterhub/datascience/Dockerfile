@@ -32,21 +32,21 @@ RUN apt-get update --yes \
 #     SPARK
 #-----------------
 
-# Spark dependencies
-# Default values can be overridden at build time
-# (ARGS are in lower case to distinguish them from ENV)
-ARG spark_version="3.3.3"
-ARG hadoop_version="3"
-ARG scala_version
-ARG spark_checksum="ebf79c7861f3120d5ed9465fdd8d5302a734ff30713a0454b714bbded7ab9f218b3108dc46a5de4cc2102c86e7be53908f84d2c7a19e59bc75880766eeefeef9"
-ARG openjdk_version="17"
+# # Spark dependencies
+# # Default values can be overridden at build time
+# # (ARGS are in lower case to distinguish them from ENV)
+# ARG spark_version="3.3.3"
+# ARG hadoop_version="3"
+# ARG scala_version
+# ARG spark_checksum="ebf79c7861f3120d5ed9465fdd8d5302a734ff30713a0454b714bbded7ab9f218b3108dc46a5de4cc2102c86e7be53908f84d2c7a19e59bc75880766eeefeef9"
+# ARG openjdk_version="17"
 
-ENV APACHE_SPARK_VERSION="${spark_version}" \
-    HADOOP_VERSION="${hadoop_version}"
+# ENV APACHE_SPARK_VERSION="${spark_version}" \
+#     HADOOP_VERSION="${hadoop_version}"
 
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \
-    "openjdk-${openjdk_version}-jre-headless" \
+    "openjdk-${OPENJDK_VERSION}-jre-headless" \
     ca-certificates-java \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
@@ -56,12 +56,8 @@ WORKDIR /tmp
 
 # You need to use https://archive.apache.org/dist/ website if you want to download old Spark versions
 # But it seems to be slower, that's why we use recommended site for download
-RUN if [ -z "${scala_version}" ]; then \
-    wget -qO "spark.tgz" "https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"; \
-    else \
-    wget -qO "spark.tgz" "https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}-scala${scala_version}.tgz"; \
-    fi \
-    && echo "${spark_checksum} *spark.tgz" | sha512sum -c - \
+RUN wget -qO "spark.tgz" "https://archive.apache.org/dist/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" \
+    && echo "${SPARK_CHECKSUM} *spark.tgz" | sha512sum -c - \
     && tar xzf "spark.tgz" -C /usr/local --owner root --group root --no-same-owner \
     && rm "spark.tgz"
 
@@ -70,11 +66,7 @@ ENV SPARK_HOME=/usr/local/spark
 ENV SPARK_OPTS="--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info" \
     PATH="${PATH}:${SPARK_HOME}/bin"
 
-RUN if [ -z "${scala_version}" ]; then \
-    ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" "${SPARK_HOME}"; \
-    else \
-    ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}-scala${scala_version}" "${SPARK_HOME}"; \
-    fi \
+RUN ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" "${SPARK_HOME}" \
     # Add a link in the before_notebook hook in order to source automatically PYTHONPATH && \
     && mkdir -p /usr/local/bin/before-notebook.d \
     && ln -s "${SPARK_HOME}/sbin/spark-config.sh" /usr/local/bin/before-notebook.d/spark-config.sh
@@ -102,17 +94,27 @@ EXPOSE 4040
 
 USER root
 
-ARG CODESERVER_VERSION=v4.9.1
+# ARG CODESERVER_VERSION=v4.9.1
 
 # install - code-server
 RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm -f /tmp/code-server.deb
 
-# switch to NB_USER to install python packages
 USER ${NB_UID}
 
-RUN mamba install --quiet --yes \
+# code-server extensions
+RUN code-server --install-extension ms-python.black-formatter
+RUN code-server --install-extension ms-python.python
+RUN code-server --install-extension ms-toolsai.jupyter
+RUN code-server --install-extension redhat.vscode-yaml
+RUN code-server --install-extension redhat.vscode-xml
+RUN code-server --install-extension zhuangtongfa.material-theme
+
+# # switch to NB_USER to install python packages
+# USER ${NB_UID}
+
+RUN mamba install --yes \
     "jupyter-server-proxy" \
     "jupyter-vscode-proxy" \
     && mamba clean --all -f -y \
