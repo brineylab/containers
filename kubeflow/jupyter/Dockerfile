@@ -92,15 +92,32 @@ USER ${NB_UID}
 #    mamba clean --all -f -y
 
 # jupyter
-RUN mamba install --yes \
-   'ipykernel' \
-   'jupyterlab' \
-   'notebook' \
-   && jupyter lab --generate-config \
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
+   && fix-permissions "${REQUIREMENTS_DIR}"
+
+RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
+   && jupyter notebook --generate-config \
    && mamba clean --all -f -y \
    && npm cache clean --force \
    && jupyter lab clean \
-   && rm -rf ${HOME}/.cache/yarn
+   && rm -rf "/home/${NB_USER}/.cache/yarn" \
+   && fix-permissions "${CONDA_DIR}" \
+   && fix-permissions "/home/${NB_USER}"
+
+ENV JUPYTER_PORT=8888
+EXPOSE $JUPYTER_PORT
+
+
+
+# RUN mamba install --yes \
+#    'ipykernel' \
+#    'jupyterlab' \
+#    'notebook' \
+#    && jupyter lab --generate-config \
+#    && mamba clean --all -f -y \
+#    && npm cache clean --force \
+#    && jupyter lab clean \
+#    && rm -rf ${HOME}/.cache/yarn
 
 # RUN mamba install --quiet --yes \
 #    # kubeflow
@@ -142,33 +159,46 @@ RUN mamba install --yes \
 
 # RUN python3 -m pip install jsonschema[format-nongpl]
 
-RUN python3 -m pip install \
-   'jupyterlab-code-formatter' \
-   'jupyterlab-git' \
-   'jupyterlab-fasta' \
-   'jupyterlab-topbar' \
-   'jupyterlab-system-monitor' \
-   'jupyterlab_nvdashboard' \
-   'jupyter_ai_magics' \
-   # 'jupyter-collaboration' \
-   # 'jupyterlab_tensorboard' \
-   'nbgitpuller' \
-   'nbdime'
+# Install jupyterlab extensions
+# COPY ../../requirements/jupyter-extensions_pip.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter-extensions_pip.txt \
+   && fix-permissions "${REQUIREMENTS_DIR}"
+
+RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt"
+
 
 # RUN jupyter lab clean
 RUN jupyter lab clean \
    && jupyter lab build --minimize=False
 
-# AI packages
-RUN python3 -m pip install \
-   'ai21' \
-   'anthropic' \
-   'cohere' \
-   'huggingface_hub' \
-   'pillow' \
-   'ipywidgets' \
-   'openai' \ 
-   'boto3' 
+# RUN python3 -m pip install \
+#    'jupyterlab-code-formatter' \
+#    'jupyterlab-git' \
+#    'jupyterlab-fasta' \
+#    'jupyterlab-topbar' \
+#    'jupyterlab-system-monitor' \
+#    'jupyterlab_nvdashboard' \
+#    'jupyter_ai_magics' \
+#    # 'jupyter-collaboration' \
+#    # 'jupyterlab_tensorboard' \
+#    'nbgitpuller' \
+#    'nbdime'
+
+# # RUN jupyter lab clean
+# RUN jupyter lab clean \
+#    && jupyter lab build --minimize=False
+
+# # AI packages
+# RUN python3 -m pip install \
+#    'ai21' \
+#    'anthropic' \
+#    'cohere' \
+#    'huggingface_hub' \
+#    'pillow' \
+#    'ipywidgets' \
+#    'openai' \ 
+#    'boto3' 
 
 # # Install kfserving, which needs pip not mamba
 # RUN python3 -m pip install kfserving
@@ -215,6 +245,6 @@ USER ${NB_UID}
 
 WORKDIR ${HOME}
 
-EXPOSE 8888
+# EXPOSE 8888
 
 ENTRYPOINT ["/init"]

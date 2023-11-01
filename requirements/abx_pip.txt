@@ -5,6 +5,7 @@ celery
 dask[complete]
 dnachisel
 doubletdetection
+duckdb
 ete3
 fastcluster
 harmonypy
@@ -15,6 +16,7 @@ matplotlib
 mnemonic
 paramiko
 parasail
+plottable
 prettytable
 pymongo
 pytest
