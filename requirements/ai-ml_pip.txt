@@ -8,3 +8,8 @@ peft
 transformers
 # other AI/ML
 wandb
+equinox
+flax
+gradio
+haliax
+levanter
