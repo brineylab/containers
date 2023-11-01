@@ -19,6 +19,7 @@ openpyxl
 pandas <2.0.0
 patsy
 protobuf
+pyarrow
 pytables
 scikit-image
 scikit-learn

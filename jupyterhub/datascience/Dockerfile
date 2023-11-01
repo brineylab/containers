@@ -77,12 +77,12 @@ RUN fix-permissions "/etc/ipython/"
 
 USER ${NB_UID}
 
-# Install pyarrow
-RUN mamba install --quiet --yes \
-    "pyarrow" \
-    && mamba clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
+# # Install pyarrow
+# RUN mamba install --quiet --yes \
+#     "pyarrow" \
+#     && mamba clean --all -f -y \
+#     && fix-permissions "${CONDA_DIR}" \
+#     && fix-permissions "/home/${NB_USER}"
 
 WORKDIR "${HOME}"
 EXPOSE 4040
