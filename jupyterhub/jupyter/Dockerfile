@@ -19,9 +19,9 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 
-ENV REQUIREMENTS_DIR="${HOME}/.requirements"
-RUN mkdir -p ${REQUIREMENTS_DIR} \
-    && fix-permissions ${REQUIREMENTS_DIR}
+# ENV REQUIREMENTS_DIR="${HOME}/.requirements"
+# RUN mkdir -p ${REQUIREMENTS_DIR} \
+#     && fix-permissions ${REQUIREMENTS_DIR}
 
 # Install all OS dependencies for fully functional notebook server
 RUN apt-get update --yes \
