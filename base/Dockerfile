@@ -20,6 +20,29 @@ ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
 
+
+# VERSIONS
+# --------
+# python
+ARG PYTHON_VERSION=3.11
+#codeserver
+# ARG codeserver_version=v4.9.1
+ARG codeserver_version=v4.18.0
+ENV CODESERVER_VERSION="${codeserver_version}"
+# Spark and dependencies
+# (ARGS are in lower case to distinguish them from ENV)
+ARG spark_version="3.3.1"
+ENV APACHE_SPARK_VERSION="${spark_version}"
+ARG spark_checksum="769db39a560a95fd88b58ed3e9e7d1e92fb68ee406689fb4d30c033cb5911e05c1942dcc70e5ec4585df84e80aabbc272b9386a208debda89522efff1335c8ff"
+ENV SPARK_CHECKSUM="${spark_checksum}"
+ARG openjdk_version="17"
+ENV OPENJDK_VERSION="${openjdk_version}"
+ARG hadoop_version="3"
+ENV HADOOP_VERSION="${hadoop_version}"
+# julia
+ARG julia_version="1.8.5"
+ENV JULIA_VERSION="${julia_version}"
+
 # Fix: https://github.com/hadolint/hadolint/wiki/DL4006
 # Fix: https://github.com/koalaman/shellcheck/wiki/SC3014
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
@@ -98,10 +121,7 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
 
 USER ${NB_UID}
 
-# Pin python version here, or set it to "default"
-ARG PYTHON_VERSION=3.11
-# ARG PYTHON_VERSION=3.10
-# ARG PYTHON_VERSION=3.9
+
 
 # Setup work directory for backward-compatibility
 # RUN mkdir "/home/${NB_USER}/work" \
@@ -146,6 +166,13 @@ RUN set -x && \
     mamba clean --all -f -y && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
+
+# make requirements directory
+USER root
+
+ENV REQUIREMENTS_DIR="${HOME}/.requirements"
+RUN mkdir -p ${REQUIREMENTS_DIR} \
+    && fix-permissions ${REQUIREMENTS_DIR}
 
 # Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
