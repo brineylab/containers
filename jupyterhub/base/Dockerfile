@@ -7,10 +7,10 @@
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
-ARG BASE_IMG=$OWNER/base
-FROM $BASE_IMG
-
 ARG OWNER=brineylab
+ARG BASE_IMG=$OWNER/base
+
+FROM $BASE_IMG
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 # ARG NB_USER="jovyan"

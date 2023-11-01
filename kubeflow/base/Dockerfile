@@ -2,10 +2,10 @@
 # https://github.com/kubeflow/kubeflow/tree/master/components/example-notebook-servers
 # and were subsequently modified by the Briney lab.
 
-ARG BASE_IMG=$OWNER/base
-FROM $BASE_IMG
-
 ARG OWNER=brineylab
+ARG BASE_IMG=$OWNER/base
+
+FROM $BASE_IMG
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 # # args
