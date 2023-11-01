@@ -16,6 +16,7 @@ matplotlib
 mnemonic
 paramiko
 parasail
+plottable
 prettytable
 pymongo
 pytest
