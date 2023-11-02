@@ -151,6 +151,13 @@ jobs:
             packages: write
 
         steps:
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 35000
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                remove-android: 'true'
             - name: Delete unnecessary stuff to free up space
               run: | 
                 rm -rf /opt/hostedtoolcache
@@ -268,6 +275,13 @@ jobs:
             packages: write
 
         steps:
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 35000
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                remove-android: 'true'
             - name: Delete huge unnecessary tools folder
               run: | 
                 rm -rf /opt/hostedtoolcache
@@ -381,6 +395,13 @@ jobs:
             packages: write
 
         steps:
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 35000
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                remove-android: 'true'
             - name: Delete huge unnecessary tools folder
               run: | 
                 rm -rf /opt/hostedtoolcache
