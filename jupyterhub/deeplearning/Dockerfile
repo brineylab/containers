@@ -52,7 +52,7 @@ RUN python3 -m pip install \
 # AI/ML packages (including 🤗)
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/ai-ml_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
-RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/aiml_pip.txt
+RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/ai-ml_pip.txt
 
 # jupyterlab extensions
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/nvidia_pip.txt \
