@@ -235,11 +235,12 @@ USER root
 # s6 - copy scripts
 COPY s6/ /etc
 RUN chown -R ${NB_USER}:users /etc/s6
+RUN chmod -R 755 /etc/s6
 
 # # s6 - 01-copy-tmp-home
-# RUN mkdir -p /tmp_home \
-#    && cp -r ${HOME} /tmp_home \
-#    && chown -R ${NB_USER}:users /tmp_home
+RUN mkdir -p /tmp_home \
+   && cp -r ${HOME} /tmp_home \
+   && chown -R ${NB_USER}:users /tmp_home
 
 USER ${NB_UID}
 
