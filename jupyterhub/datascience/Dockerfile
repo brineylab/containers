@@ -94,8 +94,6 @@ EXPOSE 4040
 
 USER root
 
-# ARG CODESERVER_VERSION=v4.9.1
-
 # install - code-server
 RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
     && dpkg -i /tmp/code-server.deb \
@@ -110,9 +108,6 @@ RUN code-server --install-extension ms-toolsai.jupyter
 RUN code-server --install-extension redhat.vscode-yaml
 RUN code-server --install-extension redhat.vscode-xml
 RUN code-server --install-extension zhuangtongfa.material-theme
-
-# # switch to NB_USER to install python packages
-# USER ${NB_UID}
 
 RUN mamba install --yes \
     "jupyter-server-proxy" \
@@ -151,13 +146,6 @@ RUN apt-get update --yes \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
-# # upgrade to xfce 4.18
-# RUN add-apt-repository ppa:xubuntu-dev/staging \
-#     && apt-get update \
-#     && apt-get upgrade --yes \
-#     && apt-get clean \ 
-#     && rm -rf /var/lib/apt/lists/*
-
 USER ${NB_UID}
 
 # install plugin for accessing the desktop
@@ -177,19 +165,9 @@ RUN mamba install --quiet --yes \
 #     ab[x] and R packages
 #-----------------------------
 
-# # baltic still has a bug that crashes the pip install from PyPI
-# WORKDIR /tmp
-# RUN git clone https://github.com/evogytis/baltic \
-#     && cd baltic \
-#     && python3 -m pip install ./
-# WORKDIR "${HOME}"
-
 # ab[x] and dependencies
-# COPY ../../requirements/abx_pip.txt /tmp
-# RUN fix-permissions /tmp
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/abx_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
-
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
 
 # # find spark and initialize
@@ -198,11 +176,8 @@ RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
 
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
-# COPY ../../requirements/r_mamba.txt /tmp
-# RUN fix-permissions /tmp
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_mamba.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
-
 RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
@@ -276,7 +251,6 @@ RUN python3 -m pip install \
     "cutadapt" \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
-
 
 USER root
 

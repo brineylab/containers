@@ -121,13 +121,6 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
 
 USER ${NB_UID}
 
-
-
-# Setup work directory for backward-compatibility
-# RUN mkdir "/home/${NB_USER}/work" \
-#     && mkdir "/home/${NB_USER}/codeserver" \
-#     && fix-permissions "/home/${NB_USER}"
-
 # Download and install Micromamba, and initialize Conda prefix.
 #   <https://github.com/mamba-org/mamba#micromamba>
 #   Similar projects using Micromamba:
