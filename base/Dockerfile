@@ -48,8 +48,6 @@ ENV JULIA_VERSION="${julia_version}"
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
-RUN usermod -aG sudo "${NB_USER}" \
-    && echo "brineylab" | passwd --stdin "${NB_USER}"
 
 # Install all OS dependencies for notebook server that starts but lacks all
 # features (e.g., download as all possible file formats)
@@ -172,6 +170,11 @@ RUN set -x && \
 # make requirements directory
 USER root
 
+# grant sudo and add password for NB_USER
+RUN usermod -aG sudo ${NB_USER} \
+    && echo "${NB_USER}:brineylab" | chpasswd
+
+# make requirements directory
 ENV REQUIREMENTS_DIR="${HOME}/.requirements"
 RUN mkdir -p ${REQUIREMENTS_DIR} \
     && fix-permissions ${REQUIREMENTS_DIR}
