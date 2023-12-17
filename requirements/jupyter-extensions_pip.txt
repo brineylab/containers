@@ -4,8 +4,8 @@ jupyterlab-github
 # jupyterlab-fasta
 # jupyterlab-topbar
 # jupyterlab-system-monitor
-jupyterlab-theme-toggle >= 1.0.0
-jupyterlab-logout >= 1.0.0
+# jupyterlab-theme-toggle
+# jupyterlab-logout
 jupyterlab_nvdashboard
 # jupyter-collaboration
 nbgitpuller
