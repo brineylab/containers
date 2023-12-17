@@ -24,16 +24,6 @@ RUN apt-get update --yes \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
-# # scipy
-# RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
-#     && chown -R ${NB_USER}:users ${REQUIREMENTS_DIR}
-# RUN conda install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
-#     && conda clean --all -f -y \
-#     # && fix-permissions "${CONDA_DIR}" \
-#     # && fix-permissions "/home/${NB_USER}"
-#     && chown -R ${NB_USER}:users "${CONDA_DIR}" \
-#     && chown -R ${NB_USER}:users "/home/${NB_USER}"
-
 # download requirements files
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
     && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/abx_pip.txt \
