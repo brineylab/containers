@@ -48,6 +48,8 @@ ENV JULIA_VERSION="${julia_version}"
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
+RUN usermod -aG sudo "${NB_USER}" \
+    && echo "brineylab" | passwd --stdin "${NB_USER}"
 
 # Install all OS dependencies for notebook server that starts but lacks all
 # features (e.g., download as all possible file formats)
