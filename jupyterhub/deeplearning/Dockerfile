@@ -34,14 +34,6 @@ RUN python3 -m pip install \
     --find-links https://download.pytorch.org/whl/torch_stable.html \
     -r ${REQUIREMENTS_DIR}/torch_pip.txt
 
-# RUN python3 -m pip install \
-#     --find-links https://download.pytorch.org/whl/torch_stable.html \
-#     torch==1.13.0+cu117 \
-#     torchvision==0.14.0+cu117
-
-# # gradio
-# RUN python3 -m pip install gradio
-
 # jax
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}

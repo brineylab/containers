@@ -19,10 +19,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 
-# ENV REQUIREMENTS_DIR="${HOME}/.requirements"
-# RUN mkdir -p ${REQUIREMENTS_DIR} \
-#     && fix-permissions ${REQUIREMENTS_DIR}
-
 # Install all OS dependencies for fully functional notebook server
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \ 
@@ -57,12 +53,6 @@ RUN apt-get update --yes \
 
 USER ${NB_UID}
 
-# Install Jupyter Notebook, Lab, and Hub
-# Generate a notebook server config
-# Cleanup temporary files
-# Correct permissions
-# Do all this in a single RUN command to avoid duplicating all of the
-# files across image layers when the permissions change
 WORKDIR /tmp
 
 # COPY ../../requirements/jupyter_mamba.txt /tmp
@@ -106,7 +96,6 @@ HEALTHCHECK  --interval=5s --timeout=3s --start-period=5s --retries=3 \
     CMD wget -O- --no-verbose --tries=1 --no-check-certificate \
     http${GEN_CERT:+s}://localhost:${JUPYTER_PORT}${JUPYTERHUB_SERVICE_PREFIX:-/}api || exit 1
 
-
 USER ${NB_UID}
 
 WORKDIR "${HOME}"
@@ -114,38 +103,22 @@ WORKDIR "${HOME}"
 # Add R mimetype option to specify how the plot returns from R to the browser
 COPY --chown=${NB_UID}:${NB_GID} Rprofile.site /opt/conda/lib/R/etc/
 
-# Install Python 3 packages
-# COPY ../../requirements/scipy_mamba.txt /tmp
-# RUN fix-permissions /tmp
+# scipy packages
 RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
-
 RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
-# Install jupyterlab extensions
-# COPY ../../requirements/jupyter-extensions_pip.txt /tmp
-# RUN fix-permissions /tmp
+# jupyterlab extensions
 RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter-extensions_pip.txt \
     && fix-permissions "${REQUIREMENTS_DIR}"
-
 RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt"
 
-
-# RUN jupyter lab clean
+# jupyter lab clean
 RUN jupyter lab clean \
     && jupyter lab build --minimize=False
-
-
-# # Install facets which does not have a pip or conda package at the moment
-# WORKDIR /tmp
-# RUN git clone https://github.com/PAIR-code/facets.git \
-#     && jupyter nbextension install facets/facets-dist/ --sys-prefix \
-#     && rm -rf /tmp/facets \
-#     && fix-permissions "${CONDA_DIR}" \
-#     && fix-permissions "/home/${NB_USER}"
 
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME="/home/${NB_USER}/.cache/"
