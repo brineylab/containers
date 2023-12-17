@@ -1,3 +1,11 @@
+lightning
+deepspeed
+wandb
+equinox
+flax
+# gradio # requires pydantic>=2, which conflicts with jupyter-ai. We can re-include once juptyer-ai is updated to support pydantic>=2
+haliax
+levanter
 # huggingface
 accelerate
 datasets
@@ -6,10 +14,3 @@ evaluate
 optimum
 peft
 transformers
-# other AI/ML
-wandb
-equinox
-flax
-# gradio # requires pydantic>=2, which conflicts with jupyter-ai. We can re-include once juptyer-ai is updated to support pydantic>=2
-haliax
-levanter
