@@ -30,26 +30,26 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 #    && rm -rf /var/lib/apt/lists/*
 
 
-# setup environment for conda
-# ENV CONDA_DIR=/opt/conda
-# ENV PATH="${CONDA_DIR}/bin:${PATH}"
-RUN mkdir -p ${CONDA_DIR} \
-   && echo ". /opt/conda/etc/profile.d/conda.sh" >> ${HOME}/.bashrc \
-   && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
-   && echo "conda activate base" >> ${HOME}/.bashrc \
-   && echo "conda activate base" >> /etc/profile \
-   && chown -R ${NB_USER}:users ${CONDA_DIR} \
-   && chown -R ${NB_USER}:users ${HOME}
+# # setup environment for conda
+# # ENV CONDA_DIR=/opt/conda
+# # ENV PATH="${CONDA_DIR}/bin:${PATH}"
+# RUN mkdir -p ${CONDA_DIR} \
+#    && echo ". /opt/conda/etc/profile.d/conda.sh" >> ${HOME}/.bashrc \
+#    && echo ". /opt/conda/etc/profile.d/conda.sh" >> /etc/profile \
+#    && echo "conda activate base" >> ${HOME}/.bashrc \
+#    && echo "conda activate base" >> /etc/profile \
+#    && chown -R ${NB_USER}:users ${CONDA_DIR} \
+#    && chown -R ${NB_USER}:users ${HOME}
 
-COPY initial-condarc "${CONDA_DIR}/.condarc"
-RUN chown -R ${NB_USER}:users "${CONDA_DIR}/.condarc"
+# COPY initial-condarc "${CONDA_DIR}/.condarc"
+# RUN chown -R ${NB_USER}:users "${CONDA_DIR}/.condarc"
 
 # switch to NB_UID for installs
 USER ${NB_UID}
 
-# Pin python version here, or set it to "default"
-ARG PYTHON_VERSION=3.9
-ARG PIP_VERSION="default"
+# # Pin python version here, or set it to "default"
+# ARG PYTHON_VERSION=3.9
+# ARG PIP_VERSION="default"
 
 # Download and install Micromamba, and initialize Conda prefix.
 #   <https://github.com/mamba-org/mamba#micromamba>
@@ -66,35 +66,35 @@ ARG PIP_VERSION="default"
 # RUN chown -R ${NB_USER}:users "${CONDA_DIR}/.condarc"
 
 WORKDIR /tmp
-RUN set -x && \
-   arch=$(uname -m) && \
-   if [ "${arch}" = "x86_64" ]; then \
-   # Should be simpler, see <https://github.com/mamba-org/mamba/issues/1437>
-   arch="64"; \
-   fi && \
-   wget -qO /tmp/micromamba.tar.bz2 \
-   "https://micromamba.snakepit.net/api/micromamba/linux-${arch}/latest" && \
-   tar -xvjf /tmp/micromamba.tar.bz2 --strip-components=1 bin/micromamba && \
-   rm /tmp/micromamba.tar.bz2 && \
-   PYTHON_SPECIFIER="python=${PYTHON_VERSION}" && \
-   if [[ "${PYTHON_VERSION}" == "default" ]]; then PYTHON_SPECIFIER="python"; fi && \
-   echo "installing ${PYTHON_SPECIFIER}" && \
-   PIP_SPECIFIER="pip=${PIP_VERSION}" && \
-   if [[ "${PIP_VERSION}" == "default" ]]; then PIP_SPECIFIER="pip"; fi && \
-   echo "installing ${PIP_SPECIFIER}" && \
-   # Install the packages
-   ./micromamba install \
-   --root-prefix="${CONDA_DIR}" \
-   --prefix="${CONDA_DIR}" \
-   --yes \
-   "${PYTHON_SPECIFIER}" \
-   "${PIP_SPECIFIER}" \
-   'mamba' \
-   'jupyter_core' && \
-   rm micromamba && \
-   # Pin major.minor version of python
-   mamba list python | grep '^python ' | tr -s ' ' | cut -d ' ' -f 1,2 >> "${CONDA_DIR}/conda-meta/pinned" && \
-   mamba clean --all -f -y
+# RUN set -x && \
+#    arch=$(uname -m) && \
+#    if [ "${arch}" = "x86_64" ]; then \
+#    # Should be simpler, see <https://github.com/mamba-org/mamba/issues/1437>
+#    arch="64"; \
+#    fi && \
+#    wget -qO /tmp/micromamba.tar.bz2 \
+#    "https://micromamba.snakepit.net/api/micromamba/linux-${arch}/latest" && \
+#    tar -xvjf /tmp/micromamba.tar.bz2 --strip-components=1 bin/micromamba && \
+#    rm /tmp/micromamba.tar.bz2 && \
+#    PYTHON_SPECIFIER="python=${PYTHON_VERSION}" && \
+#    if [[ "${PYTHON_VERSION}" == "default" ]]; then PYTHON_SPECIFIER="python"; fi && \
+#    echo "installing ${PYTHON_SPECIFIER}" && \
+#    PIP_SPECIFIER="pip=${PIP_VERSION}" && \
+#    if [[ "${PIP_VERSION}" == "default" ]]; then PIP_SPECIFIER="pip"; fi && \
+#    echo "installing ${PIP_SPECIFIER}" && \
+#    # Install the packages
+#    ./micromamba install \
+#    --root-prefix="${CONDA_DIR}" \
+#    --prefix="${CONDA_DIR}" \
+#    --yes \
+#    "${PYTHON_SPECIFIER}" \
+#    "${PIP_SPECIFIER}" \
+#    'mamba' \
+#    'jupyter_core' && \
+#    rm micromamba && \
+#    # Pin major.minor version of python
+#    mamba list python | grep '^python ' | tr -s ' ' | cut -d ' ' -f 1,2 >> "${CONDA_DIR}/conda-meta/pinned" && \
+#    mamba clean --all -f -y
 
 # # jupyter
 # RUN mamba install --quiet --yes \
@@ -115,48 +115,59 @@ RUN mamba install --yes \
    && fix-permissions "${CONDA_DIR}" \
    && fix-permissions "/home/${NB_USER}"
 
+# # blas
+# RUN mamba install --yes \
+#    'conda-forge::blas=*=openblas' \
+#    && mamba clean --all -f -y \
+#    && fix-permissions "${CONDA_DIR}" \
+#    && fix-permissions "/home/${NB_USER}"
+
 # scipy
-RUN mamba install --yes \
-   'conda-forge::blas=*=openblas' \
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
+   && fix-permissions ${REQUIREMENTS_DIR}
+
+RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
    && mamba clean --all -f -y \
    && fix-permissions "${CONDA_DIR}" \
    && fix-permissions "/home/${NB_USER}"
 
-RUN mamba install --yes \
-   'altair' \
-   'beautifulsoup4' \
-   'black' \
-   'bokeh' \
-   'bottleneck' \
-   'cloudpickle' \
-   'cython' \
-   'dask' \
-   'dill' \
-   'h5py' \
-   'ipympl'\
-   'ipywidgets' \
-   'matplotlib-base' \
-   'natsort' \
-   'numba' \
-   'numexpr' \
-   'openpyxl' \
-   'pandas<2.0.0' \
-   'patsy' \
-   'protobuf' \
-   'pytables' \
-   # 'scikit-bio' \
-   'scikit-image' \
-   'scikit-learn' \
-   'scipy' \
-   'seaborn' \
-   'sqlalchemy' \
-   'statsmodels' \
-   'sympy' \
-   'widgetsnbextension'\
-   'xlrd' \
-   && mamba clean --all -f -y \
-   && fix-permissions "${CONDA_DIR}" \
-   && fix-permissions "/home/${NB_USER}"
+
+
+# RUN mamba install --yes \
+#    'altair' \
+#    'beautifulsoup4' \
+#    'black' \
+#    'bokeh' \
+#    'bottleneck' \
+#    'cloudpickle' \
+#    'cython' \
+#    'dask' \
+#    'dill' \
+#    'h5py' \
+#    'ipympl'\
+#    'ipywidgets' \
+#    'matplotlib-base' \
+#    'natsort' \
+#    'numba' \
+#    'numexpr' \
+#    'openpyxl' \
+#    'pandas<2.0.0' \
+#    'patsy' \
+#    'protobuf' \
+#    'pytables' \
+#    # 'scikit-bio' \
+#    'scikit-image' \
+#    'scikit-learn' \
+#    'scipy' \
+#    'seaborn' \
+#    'sqlalchemy' \
+#    'statsmodels' \
+#    'sympy' \
+#    'widgetsnbextension'\
+#    'xlrd' \
+#    && mamba clean --all -f -y \
+#    && fix-permissions "${CONDA_DIR}" \
+#    && fix-permissions "/home/${NB_USER}"
 
 
 # RUN mamba install --yes \
@@ -226,13 +237,16 @@ USER root
 # s6 - copy scripts
 COPY s6/ /etc
 RUN chown -R ${NB_USER}:users /etc/s6
+RUN chmod -R 755 /etc/s6
+# RUN ls -lh /etc
+# COPY --chown=${NB_USER}:users --chmod=755 s6/ /etc
 
 # s6 - 01-copy-tmp-home
 RUN mkdir -p /tmp_home \
    && cp -r ${HOME} /tmp_home \
    && chown -R ${NB_USER}:users /tmp_home
 
-# USER ${NB_UID}
+USER ${NB_UID}
 
 # WORKDIR ${HOME}
 

@@ -28,25 +28,33 @@ ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 USER ${NB_UID}
 
 # pytorch
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install \
     --find-links https://download.pytorch.org/whl/torch_stable.html \
-    torch==1.13.0+cu117 \
-    torchvision==0.14.0+cu117
+    -r ${REQUIREMENTS_DIR}/torch_pip.txt
 
-# gradio
-RUN python3 -m pip install gradio
+# RUN python3 -m pip install \
+#     --find-links https://download.pytorch.org/whl/torch_stable.html \
+#     torch==1.13.0+cu117 \
+#     torchvision==0.14.0+cu117
 
-# hugging face
+# # gradio
+# RUN python3 -m pip install gradio
+
+# jax
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install \
-    accelerate \
-    datasets \
-    diffusers \
-    evaluate \
-    optimum \
-    peft \
-    transformers
+    --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html \
+    -r ${REQUIREMENTS_DIR}/jax_pip.txt
+
+# AI/ML packages (including 🤗)
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/ai-ml_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/ai-ml_pip.txt
 
 # jupyterlab extensions
-RUN python3 -m pip install \
-    jupyterlab_nvdashboard \
-    nvitop
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/nvidia_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/nvidia_pip.txt

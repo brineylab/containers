@@ -1,0 +1,446 @@
+name: build and push BrineyLab Docker images
+
+on:
+    release:
+        types: [published]
+
+jobs:
+
+    # ------------------
+    #       BASE
+    # ------------------
+    base:
+        runs-on: ubuntu-latest
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: rm -rf /opt/hostedtoolcache
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./base
+                push: true
+                tags: |
+                    brineylab/base:latest
+                    brineylab/base:${{ github.event.release.tag_name }}
+
+    # ------------------
+    #    CODESERVER
+    # ------------------
+    # codeserver depends on python and needs to wait to be built
+    kubeflow-codeserver:
+      runs-on: ubuntu-latest
+
+      permissions:
+          contents: read
+          packages: write
+
+      steps:
+          - name: Maximize build space
+            uses: easimon/maximize-build-space@master
+            with:
+              root-reserve-mb: 35000
+              swap-size-mb: 1024
+              remove-dotnet: 'true'
+              remove-android: 'true'
+          - name: Delete huge unnecessary tools folder
+            run: | 
+              rm -rf /opt/hostedtoolcache
+              sudo rm -rf /usr/share/dotnet
+              sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+              sudo apt install aptitude -y >/dev/null 2>&1
+              sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+                esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+                google-cloud-sdk imagemagick \
+                libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+                mercurial apt-transport-https mono-complete libmysqlclient \
+                unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+                libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+                snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+                sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+                -y -f >/dev/null 2>&1
+              sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+              sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+              sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+          - name: checkout
+            uses: actions/checkout@v3
+          - name: set up QEMU
+            uses: docker/setup-qemu-action@v2
+          - name: set up docker buildx
+            uses: docker/setup-buildx-action@v2
+          - name: login to Docker Hub
+            uses: docker/login-action@v2
+            with:
+              username: ${{ secrets.DOCKERHUB_USERNAME }}
+              password: ${{ secrets.DOCKERHUB_TOKEN }}
+          - name: build and push
+            uses: docker/build-push-action@v3
+            with:
+              context: ./kubeflow/codeserver
+              push: true
+              tags: |
+                  brineylab/kubeflow-codeserver:latest
+                  brineylab/kubeflow-codeserver:${{ github.event.release.tag_name }}
+    
+    # ------------------
+    #    JUPYTERHUB
+    # ------------------
+    jupyterhub-base:
+        runs-on: ubuntu-latest
+        needs: [base]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: rm -rf /opt/hostedtoolcache
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./jupyterhub/base
+                push: true
+                tags: |
+                    brineylab/jupyterhub-base:latest
+                    brineylab/jupyterhub-base:${{ github.event.release.tag_name }}
+
+    # jupyter depends on base and needs to wait to be built
+    jupyterhub-jupyter:
+        runs-on: ubuntu-latest
+        needs: [jupyterhub-base]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: rm -rf /opt/hostedtoolcache
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./jupyterhub/jupyter
+                push: true
+                tags: |
+                    brineylab/jupyterhub-jupyter:latest
+                    brineylab/jupyterhub-jupyter:${{ github.event.release.tag_name }}
+                    brineylab/jupyter:latest
+                    brineylab/jupyter:${{ github.event.release.tag_name }}
+
+    # datascience image depends on jupyter
+    jupyterhub-datascience:
+        runs-on: ubuntu-latest
+        needs: [jupyterhub-jupyter]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: rm -rf /opt/hostedtoolcache
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./jupyterhub/datascience
+                push: true
+                tags: |
+                    brineylab/jupyterhub-datascience:latest
+                    brineylab/jupyterhub-datascience:${{ github.event.release.tag_name }}
+                    brineylab/datascience:latest
+                    brineylab/datascience:${{ github.event.release.tag_name }}
+        
+    # deeplearning image depends on datascience
+    jupyterhub-deeplearning:
+        runs-on: ubuntu-latest
+        needs: [jupyterhub-datascience]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 35000
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                remove-android: 'true'
+            - name: Delete unnecessary stuff to free up space
+              run: | 
+                rm -rf /opt/hostedtoolcache
+                sudo rm -rf /usr/share/dotnet
+                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+                sudo apt install aptitude -y >/dev/null 2>&1
+                sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+                  esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+                  google-cloud-sdk imagemagick \
+                  libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+                  mercurial apt-transport-https mono-complete libmysqlclient \
+                  unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+                  libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+                  snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+                  sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+                  -y -f >/dev/null 2>&1
+                sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+                sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+                sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./jupyterhub/deeplearning
+                push: true
+                tags: |
+                    brineylab/jupyterhub-deeplearning:latest
+                    brineylab/jupyterhub-deeplearning:${{ github.event.release.tag_name }}
+                    brineylab/deeplearning:latest
+                    brineylab/deeplearning:${{ github.event.release.tag_name }}
+
+    # ------------------
+    #     KUBEFLOW
+    # ------------------
+    kubeflow-base:
+        runs-on: ubuntu-latest
+        needs: [base]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: rm -rf /opt/hostedtoolcache
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./kubeflow/base
+                push: true
+                tags: |
+                    brineylab/kubeflow-base:latest
+                    brineylab/kubeflow-base:${{ github.event.release.tag_name }}
+
+    # python depends on base and needs to wait to be built
+    kubeflow-python:
+        runs-on: ubuntu-latest
+        needs: [kubeflow-base]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: rm -rf /opt/hostedtoolcache
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./kubeflow/python
+                push: true
+                tags: |
+                    brineylab/kubeflow-python:latest
+                    brineylab/kubeflow-python:${{ github.event.release.tag_name }}
+
+    # jupyter depends on python and needs to wait to be built
+    kubeflow-jupyter:
+        runs-on: ubuntu-latest
+        needs: [kubeflow-python]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: rm -rf /opt/hostedtoolcache
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./kubeflow/jupyter
+                push: true
+                tags: |
+                    brineylab/kubeflow-jupyter:latest
+                    brineylab/kubeflow-jupyter:${{ github.event.release.tag_name }}
+
+    # datascience image depends on jupyter
+    kubeflow-datascience:
+        runs-on: ubuntu-latest
+        needs: [kubeflow-jupyter]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: rm -rf /opt/hostedtoolcache
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./kubeflow/datascience
+                push: true
+                tags: |
+                    brineylab/kubeflow-datascience:latest
+                    brineylab/kubeflow-datascience:${{ github.event.release.tag_name }}
+        
+    # deeplearning image depends on datascience
+    kubeflow-deeplearning:
+        runs-on: ubuntu-latest
+        needs: [kubeflow-datascience]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 35000
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                remove-android: 'true'
+            - name: Delete huge unnecessary tools folder
+              run: | 
+                rm -rf /opt/hostedtoolcache
+                sudo rm -rf /usr/share/dotnet
+                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+                sudo apt install aptitude -y >/dev/null 2>&1
+                sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+                  esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+                  google-cloud-sdk imagemagick \
+                  libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+                  mercurial apt-transport-https mono-complete libmysqlclient \
+                  unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+                  libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+                  snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+                  sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+                  -y -f >/dev/null 2>&1
+                sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+                sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+                sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            - name: checkout
+              uses: actions/checkout@v3
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v2
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v2
+            - name: login to Docker Hub
+              uses: docker/login-action@v2
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v3
+              with:
+                context: ./kubeflow/deeplearning
+                push: true
+                tags: |
+                    brineylab/kubeflow-deeplearning:latest
+                    brineylab/kubeflow-deeplearning:${{ github.event.release.tag_name }}
+        
+

@@ -21,49 +21,41 @@ RUN apt update --yes \
    gfortran \
    && apt clean && rm -rf /var/lib/apt/lists/*
 
-# Spark dependencies
-# Default values can be overridden at build time
-# (ARGS are in lower case to distinguish them from ENV)
-ARG spark_version="3.3.1"
-ARG hadoop_version="3"
-ARG scala_version
-ARG spark_checksum="769db39a560a95fd88b58ed3e9e7d1e92fb68ee406689fb4d30c033cb5911e05c1942dcc70e5ec4585df84e80aabbc272b9386a208debda89522efff1335c8ff"
-ARG openjdk_version="17"
+# # Spark dependencies
+# # Default values can be overridden at build time
+# # (ARGS are in lower case to distinguish them from ENV)
+# ARG spark_version="3.3.1"
+# ARG hadoop_version="3"
+# ARG scala_version
+# ARG spark_checksum="769db39a560a95fd88b58ed3e9e7d1e92fb68ee406689fb4d30c033cb5911e05c1942dcc70e5ec4585df84e80aabbc272b9386a208debda89522efff1335c8ff"
+# ARG openjdk_version="17"
 
-ENV APACHE_SPARK_VERSION="${spark_version}" \
-   HADOOP_VERSION="${hadoop_version}"
+# ENV APACHE_SPARK_VERSION="${spark_version}" \
+#    HADOOP_VERSION="${hadoop_version}"
 
 RUN apt update --yes \
    && apt install --yes --no-install-recommends \
-   "openjdk-${openjdk_version}-jre-headless" \
+   "openjdk-${OPENJDK_VERSION}-jre-headless" \
    ca-certificates-java \
    && apt clean && rm -rf /var/lib/apt/lists/*
 
-# Spark installation
-WORKDIR /tmp
+# # Spark installation
+# WORKDIR /tmp
 
-RUN if [ -z "${scala_version}" ]; then \
-   wget -qO "spark.tgz" "https://archive.apache.org/dist/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"; \
-   else \
-   wget -qO "spark.tgz" "https://archive.apache.org/dist/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}-scala${scala_version}.tgz"; \
-   fi \
-   && echo "${spark_checksum} *spark.tgz" | sha512sum -c - \
-   && tar xzf "spark.tgz" -C /usr/local --owner root --group root --no-same-owner \
-   && rm "spark.tgz"
+# RUN wget -qO "spark.tgz" "https://archive.apache.org/dist/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" \
+#    && echo "${SPARK_CHECKSUM} *spark.tgz" | sha512sum -c - \
+#    && tar xzf "spark.tgz" -C /usr/local --owner root --group root --no-same-owner \
+#    && rm "spark.tgz"
 
-# Configure Spark
-ENV SPARK_HOME=/usr/local/spark
-ENV SPARK_OPTS="--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info" \
-   PATH="${PATH}:${SPARK_HOME}/bin"
+# # Configure Spark
+# ENV SPARK_HOME=/usr/local/spark
+# ENV SPARK_OPTS="--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info" \
+#    PATH="${PATH}:${SPARK_HOME}/bin"
 
-RUN if [ -z "${scala_version}" ]; then \
-   ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" "${SPARK_HOME}"; \
-   else \
-   ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}-scala${scala_version}" "${SPARK_HOME}"; \
-   fi \
-   # Add a link in the before_notebook hook in order to source automatically PYTHONPATH && \
-   && mkdir -p /usr/local/bin/before-notebook.d \
-   && ln -s "${SPARK_HOME}/sbin/spark-config.sh" /usr/local/bin/before-notebook.d/spark-config.sh
+# RUN ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" "${SPARK_HOME}" \
+#    # Add a link in the before_notebook hook in order to source automatically PYTHONPATH && \
+#    && mkdir -p /usr/local/bin/before-notebook.d \
+#    && ln -s "${SPARK_HOME}/sbin/spark-config.sh" /usr/local/bin/before-notebook.d/spark-config.sh
 
 # Configure IPython system-wide
 COPY ipython_kernel_config.py "/etc/ipython/"
@@ -72,79 +64,102 @@ RUN chown -R ${NB_USER}:users /etc/ipython/
 # switch to NB_USER to install python packages
 USER ${NB_UID}
 
-# baltic still has a bug that crashes the pip install from PyPI
-RUN git clone https://github.com/evogytis/baltic \
-   && cd baltic \
-   && python3 -m pip install ./
 
 # ab[x] and dependencies
-RUN python3 -m pip install \
-   'anndata' \
-   # 'baltic' \
-   'biopython' \
-   'celery' \
-   'dnachisel' \
-   'doubletdetection' \
-   'ete3' \
-   'fastcluster' \
-   'harmonypy' \
-   'humanize' \
-   'leidenalg' \
-   'logomaker' \
-   'matplotlib' \
-   'mnemonic' \
-   # 'nwalign3' \
-   'paramiko' \
-   'parasail' \
-   'prettytable' \
-   'pyarrow' \
-   'pymongo' \
-   'pytest' \
-   'python-circos' \
-   'python-Levenshtein' \
-   'pyyaml' \
-   'sample-sheet' \
-   'scanorama' \
-   'scanpy' \
-   'scrublet' \
-   'scvelo' \
-   'smart_open' \
-   'tqdm' \
-   'umap-learn' \
-   # ab[x]
-   'abutils' \
-   'abstar' \
-   'scab' \
-   # pyspark
-   'pyspark' \
-   'findspark' 
+# COPY ../../requirements/abx_pip.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/abx_pip.txt \
+   && fix-permissions ${REQUIREMENTS_DIR}
 
-RUN python3 -c "import findspark; findspark.init()"
+RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
+
+# # baltic still has a bug that crashes the pip install from PyPI
+# RUN git clone https://github.com/evogytis/baltic \
+#    && cd baltic \
+#    && python3 -m pip install ./
+
+# # ab[x] and dependencies
+# RUN python3 -m pip install \
+#    'anndata' \
+#    # 'baltic' \
+#    'biopython' \
+#    'celery' \
+#    'dnachisel' \
+#    'doubletdetection' \
+#    'ete3' \
+#    'fastcluster' \
+#    'harmonypy' \
+#    'humanize' \
+#    'leidenalg' \
+#    'logomaker' \
+#    'matplotlib' \
+#    'mnemonic' \
+#    # 'nwalign3' \
+#    'paramiko' \
+#    'parasail' \
+#    'prettytable' \
+#    'pyarrow' \
+#    'pymongo' \
+#    'pytest' \
+#    'python-circos' \
+#    'python-Levenshtein' \
+#    'pyyaml' \
+#    'sample-sheet' \
+#    'scanorama' \
+#    'scanpy' \
+#    'scrublet' \
+#    'scvelo' \
+#    'smart_open' \
+#    'tqdm' \
+#    'umap-learn' \
+#    # ab[x]
+#    'abutils' \
+#    'abstar' \
+#    'scab' \
+#    # pyspark
+#    'pyspark' \
+#    'findspark' 
+
+# RUN python3 -c "import findspark; findspark.init()"
+
 
 
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
-RUN mamba install --quiet --yes \
-   'r-base' \
-   'r-caret' \
-   'r-crayon' \
-   'r-devtools' \
-   'r-e1071' \
-   'r-forecast' \
-   'r-hexbin' \
-   'r-htmltools' \
-   'r-htmlwidgets' \
-   'r-irkernel' \
-   'r-nycflights13' \
-   'r-randomforest' \
-   'r-rcurl' \
-   'r-rmarkdown' \
-   'r-rodbc' \
-   'r-rsqlite' \
-   'r-shiny' \
-   'r-tidyverse' \
-   'unixodbc' && \
-   mamba clean --all -f -y
+# COPY ../../requirements/r_mamba.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_mamba.txt \
+   && fix-permissions ${REQUIREMENTS_DIR}
+
+RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
+   && mamba clean --all -f -y \
+   && fix-permissions "${CONDA_DIR}" \
+   && fix-permissions "/home/${NB_USER}"
+
+
+# # R packages including IRKernel which gets installed globally.
+# # r-e1071: dependency of the caret R package
+# RUN mamba install --quiet --yes \
+#    'r-base' \
+#    'r-caret' \
+#    'r-crayon' \
+#    'r-devtools' \
+#    'r-e1071' \
+#    'r-forecast' \
+#    'r-hexbin' \
+#    'r-htmltools' \
+#    'r-htmlwidgets' \
+#    'r-irkernel' \
+#    'r-nycflights13' \
+#    'r-randomforest' \
+#    'r-rcurl' \
+#    'r-rmarkdown' \
+#    'r-rodbc' \
+#    'r-rsqlite' \
+#    'r-shiny' \
+#    'r-tidyverse' \
+#    'unixodbc' && \
+#    mamba clean --all -f -y
 
 
 

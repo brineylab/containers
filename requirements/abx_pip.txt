@@ -1,0 +1,43 @@
+anndata
+baltic
+biopython
+celery
+dask[complete]
+dnachisel
+doubletdetection
+duckdb
+ete3
+fastcluster
+harmonypy
+humanize
+leidenalg
+logomaker
+matplotlib
+mnemonic
+paramiko
+parasail
+plottable
+prettytable
+pymongo
+pytest
+python-circos
+python-Levenshtein
+pyyaml
+s3cmd
+sample-sheet
+scanorama
+scanpy
+scrublet
+scvelo
+smart_open
+tqdm
+umap-learn
+# ab[x]
+# -----
+abutils
+abstar
+scab
+# pyspark
+# -------
+# pyspark
+# findspark 

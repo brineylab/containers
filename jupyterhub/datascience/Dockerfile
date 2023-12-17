@@ -32,52 +32,44 @@ RUN apt-get update --yes \
 #     SPARK
 #-----------------
 
-# Spark dependencies
-# Default values can be overridden at build time
-# (ARGS are in lower case to distinguish them from ENV)
-ARG spark_version="3.3.2"
-ARG hadoop_version="3"
-ARG scala_version
-ARG spark_checksum="4cd2396069fbe0f8efde2af4fd301bf46f8c6317e9dea1dd42a405de6a38380635d49b17972cb92c619431acece2c3af4c23bfdf193cedb3ea913ed69ded23a1"
-ARG openjdk_version="17"
+# # Spark dependencies
+# # Default values can be overridden at build time
+# # (ARGS are in lower case to distinguish them from ENV)
+# ARG spark_version="3.3.3"
+# ARG hadoop_version="3"
+# ARG scala_version
+# ARG spark_checksum="ebf79c7861f3120d5ed9465fdd8d5302a734ff30713a0454b714bbded7ab9f218b3108dc46a5de4cc2102c86e7be53908f84d2c7a19e59bc75880766eeefeef9"
+# ARG openjdk_version="17"
 
-ENV APACHE_SPARK_VERSION="${spark_version}" \
-    HADOOP_VERSION="${hadoop_version}"
+# ENV APACHE_SPARK_VERSION="${spark_version}" \
+#     HADOOP_VERSION="${hadoop_version}"
 
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \
-    "openjdk-${openjdk_version}-jre-headless" \
+    "openjdk-${OPENJDK_VERSION}-jre-headless" \
     ca-certificates-java \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
-# Spark installation
-WORKDIR /tmp
+# # Spark installation
+# WORKDIR /tmp
 
-# You need to use https://archive.apache.org/dist/ website if you want to download old Spark versions
-# But it seems to be slower, that's why we use recommended site for download
-RUN if [ -z "${scala_version}" ]; then \
-    wget -qO "spark.tgz" "https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz"; \
-    else \
-    wget -qO "spark.tgz" "https://dlcdn.apache.org/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}-scala${scala_version}.tgz"; \
-    fi && \
-    echo "${spark_checksum} *spark.tgz" | sha512sum -c - \
-    && tar xzf "spark.tgz" -C /usr/local --owner root --group root --no-same-owner \
-    && rm "spark.tgz"
+# # You need to use https://archive.apache.org/dist/ website if you want to download old Spark versions
+# # But it seems to be slower, that's why we use recommended site for download
+# RUN wget -qO "spark.tgz" "https://archive.apache.org/dist/spark/spark-${APACHE_SPARK_VERSION}/spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}.tgz" \
+#     && echo "${SPARK_CHECKSUM} *spark.tgz" | sha512sum -c - \
+#     && tar xzf "spark.tgz" -C /usr/local --owner root --group root --no-same-owner \
+#     && rm "spark.tgz"
 
-# Configure Spark
-ENV SPARK_HOME=/usr/local/spark
-ENV SPARK_OPTS="--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info" \
-    PATH="${PATH}:${SPARK_HOME}/bin"
+# # Configure Spark
+# ENV SPARK_HOME=/usr/local/spark
+# ENV SPARK_OPTS="--driver-java-options=-Xms1024M --driver-java-options=-Xmx4096M --driver-java-options=-Dlog4j.logLevel=info" \
+#     PATH="${PATH}:${SPARK_HOME}/bin"
 
-RUN if [ -z "${scala_version}" ]; then \
-    ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" "${SPARK_HOME}"; \
-    else \
-    ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}-scala${scala_version}" "${SPARK_HOME}"; \
-    fi \
-    # Add a link in the before_notebook hook in order to source automatically PYTHONPATH && \
-    && mkdir -p /usr/local/bin/before-notebook.d \
-    && ln -s "${SPARK_HOME}/sbin/spark-config.sh" /usr/local/bin/before-notebook.d/spark-config.sh
+# RUN ln -s "spark-${APACHE_SPARK_VERSION}-bin-hadoop${HADOOP_VERSION}" "${SPARK_HOME}" \
+#     # Add a link in the before_notebook hook in order to source automatically PYTHONPATH && \
+#     && mkdir -p /usr/local/bin/before-notebook.d \
+#     && ln -s "${SPARK_HOME}/sbin/spark-config.sh" /usr/local/bin/before-notebook.d/spark-config.sh
 
 # Configure IPython system-wide
 COPY ipython_kernel_config.py "/etc/ipython/"
@@ -102,17 +94,27 @@ EXPOSE 4040
 
 USER root
 
-ARG CODESERVER_VERSION=v4.9.1
+# ARG CODESERVER_VERSION=v4.9.1
 
 # install - code-server
 RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm -f /tmp/code-server.deb
 
-# switch to NB_USER to install python packages
 USER ${NB_UID}
 
-RUN mamba install --quiet --yes \
+# code-server extensions
+RUN code-server --install-extension ms-python.black-formatter
+RUN code-server --install-extension ms-python.python
+RUN code-server --install-extension ms-toolsai.jupyter
+RUN code-server --install-extension redhat.vscode-yaml
+RUN code-server --install-extension redhat.vscode-xml
+RUN code-server --install-extension zhuangtongfa.material-theme
+
+# # switch to NB_USER to install python packages
+# USER ${NB_UID}
+
+RUN mamba install --yes \
     "jupyter-server-proxy" \
     "jupyter-vscode-proxy" \
     && mamba clean --all -f -y \
@@ -175,83 +177,33 @@ RUN mamba install --quiet --yes \
 #     ab[x] and R packages
 #-----------------------------
 
-# baltic still has a bug that crashes the pip install from PyPI
-WORKDIR /tmp
-RUN git clone https://github.com/evogytis/baltic \
-    && cd baltic \
-    && python3 -m pip install ./
-WORKDIR "${HOME}"
+# # baltic still has a bug that crashes the pip install from PyPI
+# WORKDIR /tmp
+# RUN git clone https://github.com/evogytis/baltic \
+#     && cd baltic \
+#     && python3 -m pip install ./
+# WORKDIR "${HOME}"
 
 # ab[x] and dependencies
-RUN python3 -m pip install \
-    "anndata" \
-    # "baltic" \
-    "biopython" \
-    "celery" \
-    "dask[complete]" \
-    "dnachisel" \
-    "doubletdetection" \
-    "ete3" \
-    "fastcluster" \
-    "harmonypy" \
-    "humanize" \
-    "leidenalg" \
-    "logomaker" \
-    "matplotlib" \
-    "mnemonic" \
-    # "nwalign3" \
-    "paramiko" \
-    "parasail" \
-    "prettytable" \
-    "pymongo" \
-    "pytest" \
-    "python-circos" \
-    "python-Levenshtein" \
-    "pyyaml" \
-    "sample-sheet" \
-    "scanorama" \
-    "scanpy" \
-    "scrublet" \
-    "scvelo" \
-    "smart_open" \
-    "tqdm" \
-    "umap-learn" \
-    # ab[x]
-    "abutils" \
-    "abstar" \
-    "scab" \
-    # pyspark
-    "pyspark" \
-    "findspark" 
+# COPY ../../requirements/abx_pip.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/abx_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
 
-# find spark and initialize
-RUN python3 -c "import findspark; findspark.init()"
+RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
+
+# # find spark and initialize
+# RUN python3 -c "import findspark; findspark.init()"
 
 
 # R packages including IRKernel which gets installed globally.
 # r-e1071: dependency of the caret R package
-RUN mamba install --quiet --yes \
-    'r-base' \
-    'r-caret' \
-    'r-crayon' \
-    'r-devtools' \
-    'r-e1071' \
-    'r-forecast' \
-    'r-hexbin' \
-    'r-htmltools' \
-    'r-htmlwidgets' \
-    'r-irkernel' \
-    'r-nycflights13' \
-    'r-randomforest' \
-    'r-rcurl' \
-    'r-rmarkdown' \
-    'r-rodbc' \
-    'r-rsqlite' \
-    'r-shiny' \
-    'r-tidymodels' \
-    'r-tidyverse' \
-    'rpy2' \
-    'unixodbc' \
+# COPY ../../requirements/r_mamba.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_mamba.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+
+RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"

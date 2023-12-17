@@ -1,0 +1,32 @@
+altair
+beautifulsoup4
+black
+bokeh
+bottleneck
+cloudpickle
+conda-forge::blas=*=openblas
+cython
+dask
+dill
+h5py
+ipympl
+ipywidgets
+matplotlib-base
+natsort
+numba
+numexpr
+openpyxl
+pandas <2.0.0
+patsy
+protobuf
+# pyarrow
+pytables
+scikit-image
+scikit-learn
+scipy
+seaborn
+sqlalchemy
+statsmodels
+sympy
+widgetsnbextension
+xlrd

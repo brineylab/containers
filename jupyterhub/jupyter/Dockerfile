@@ -19,6 +19,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 
+# ENV REQUIREMENTS_DIR="${HOME}/.requirements"
+# RUN mkdir -p ${REQUIREMENTS_DIR} \
+#     && fix-permissions ${REQUIREMENTS_DIR}
+
 # Install all OS dependencies for fully functional notebook server
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \ 
@@ -60,12 +64,13 @@ USER ${NB_UID}
 # Do all this in a single RUN command to avoid duplicating all of the
 # files across image layers when the permissions change
 WORKDIR /tmp
-RUN mamba install --yes \
-    'notebook' \
-    'jupyterhub' \
-    # 'jupyterlab>3.6.0,<4.0.0a1' \
-    'jupyterlab>=4.0.0' \
-    'jupyter_server>=2.7.0' \
+
+# COPY ../../requirements/jupyter_mamba.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
+    && fix-permissions "${REQUIREMENTS_DIR}"
+
+RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
     && jupyter notebook --generate-config \
     && mamba clean --all -f -y \
     && npm cache clean --force \
@@ -110,74 +115,28 @@ WORKDIR "${HOME}"
 COPY --chown=${NB_UID}:${NB_GID} Rprofile.site /opt/conda/lib/R/etc/
 
 # Install Python 3 packages
-RUN mamba install --yes \
-    'altair' \
-    'beautifulsoup4' \
-    'black' \
-    'bokeh' \
-    'bottleneck' \
-    'cloudpickle' \
-    'conda-forge::blas=*=openblas' \
-    'cython' \
-    'dask' \
-    'dill' \
-    'h5py' \
-    'ipympl'\
-    'ipywidgets' \
-    # Temporary fix for: https://github.com/jupyter/docker-stacks/issues/1851
-    # 'jupyter_server>=2.0.0' \
-    'matplotlib-base' \
-    'natsort' \
-    'numba' \
-    'numexpr' \
-    'openpyxl' \
-    'pandas<2.0.0' \
-    'patsy' \
-    'protobuf' \
-    'pytables' \
-    # 'scikit-bio' \
-    'scikit-image' \
-    'scikit-learn' \
-    'scipy' \
-    'seaborn' \
-    'sqlalchemy' \
-    'statsmodels' \
-    'sympy' \
-    'widgetsnbextension'\
-    'xlrd' \
+# COPY ../../requirements/scipy_mamba.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+
+RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
-RUN python3 -m pip install \
-    'jupyterlab-code-formatter' \
-    'jupyterlab-git' \
-    'jupyterlab-fasta' \
-    'jupyterlab-topbar' \
-    'jupyterlab-system-monitor' \
-    'jupyterlab_nvdashboard' \
-    'jupyter-collaboration' \
-    # 'jupyterlab_tensorboard' \
-    'nbgitpuller' \
-    'nbdime'
+# Install jupyterlab extensions
+# COPY ../../requirements/jupyter-extensions_pip.txt /tmp
+# RUN fix-permissions /tmp
+RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter-extensions_pip.txt \
+    && fix-permissions "${REQUIREMENTS_DIR}"
+
+RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt"
 
 
 # RUN jupyter lab clean
 RUN jupyter lab clean \
     && jupyter lab build --minimize=False
-
-
-# AI packages
-# RUN python3 -m pip install \
-#     'jupyter_ai_magics' \ # -> not compatible with jupyterlab >= 4.0
-#     'ai21' \
-#     'anthropic' \
-#     'cohere' \
-#     'huggingface_hub' \
-#     'pillow' \
-#     'ipywidgets' \
-#     'openai' \ 
-#     'boto3' 
 
 
 # # Install facets which does not have a pip or conda package at the moment

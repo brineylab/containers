@@ -1,0 +1,21 @@
+jupyterlab-code-formatter
+jupyterlab-github
+# jupyterlab-git
+# jupyterlab-fasta
+# jupyterlab-topbar
+# jupyterlab-system-monitor
+jupyterlab_nvdashboard
+# jupyter-collaboration
+nbgitpuller
+# nbdime
+# jupyter AI magics and dependencies
+# ----------------------------------
+jupyter_ai
+ai21
+anthropic
+cohere
+huggingface_hub
+pillow
+ipywidgets
+openai 
+boto3
