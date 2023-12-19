@@ -54,10 +54,13 @@ jobs:
           - name: Maximize build space
             uses: easimon/maximize-build-space@master
             with:
-              root-reserve-mb: 35000
+              root-reserve-mb: 50000
               swap-size-mb: 1024
               remove-dotnet: 'true'
               remove-android: 'true'
+              remove-haskell: 'true'
+              remove-codeql: 'true'
+              remove-docker-images: 'true'
           - name: Delete huge unnecessary tools folder
             run: | 
               rm -rf /opt/hostedtoolcache
@@ -212,10 +215,13 @@ jobs:
             - name: Maximize build space
               uses: easimon/maximize-build-space@master
               with:
-                root-reserve-mb: 35000
+                root-reserve-mb: 45000
                 swap-size-mb: 1024
                 remove-dotnet: 'true'
                 remove-android: 'true'
+                remove-haskell: 'true'
+                remove-codeql: 'true'
+                remove-docker-images: 'true'
             - name: Delete unnecessary stuff to free up space
               run: | 
                 rm -rf /opt/hostedtoolcache
@@ -400,10 +406,13 @@ jobs:
             - name: Maximize build space
               uses: easimon/maximize-build-space@master
               with:
-                root-reserve-mb: 35000
+                root-reserve-mb: 45000
                 swap-size-mb: 1024
                 remove-dotnet: 'true'
                 remove-android: 'true'
+                remove-haskell: 'true'
+                remove-codeql: 'true'
+                remove-docker-images: 'true'
             - name: Delete huge unnecessary tools folder
               run: | 
                 rm -rf /opt/hostedtoolcache
