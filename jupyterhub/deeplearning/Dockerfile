@@ -50,3 +50,7 @@ RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/ai-ml_pip.txt
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/nvidia_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/nvidia_pip.txt
+
+# jupyter lab clean
+RUN jupyter lab clean \
+    && jupyter lab build --minimize=False
