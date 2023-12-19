@@ -19,7 +19,7 @@ ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 USER ${NB_UID}
 
 # pytorch
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_gpu_pip.txt \
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install \
     --find-links https://download.pytorch.org/whl/torch_stable.html \
