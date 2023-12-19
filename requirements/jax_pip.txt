@@ -1,1 +1,1 @@
-jax[cuda11_pip]
+# jax[cuda11_pip]  # removed to save space
