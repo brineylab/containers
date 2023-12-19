@@ -6,7 +6,7 @@ jupyterlab-github
 # jupyterlab-system-monitor
 # jupyterlab-theme-toggle
 # jupyterlab-logout
-jupyterlab_nvdashboard
+# jupyterlab_nvdashboard  # added to ai-ml_pip.txt
 # jupyter-collaboration
 nbgitpuller
 # nbdime
