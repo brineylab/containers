@@ -172,7 +172,6 @@ USER root
 
 # grant sudo and add password for NB_USER
 RUN usermod -aG sudo ${NB_USER} \
-    # && echo "${NB_USER}:brineylab" | chpasswd
     && echo "${NB_USER}  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${NB_USER}
 
 # make requirements directory
