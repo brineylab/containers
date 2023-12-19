@@ -54,7 +54,7 @@ jobs:
           - name: Maximize build space
             uses: easimon/maximize-build-space@master
             with:
-              root-reserve-mb: 50000
+              root-reserve-mb: 45000
               swap-size-mb: 1024
               remove-dotnet: 'true'
               remove-android: 'true'
@@ -178,8 +178,35 @@ jobs:
             packages: write
 
         steps:
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 45000
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                remove-android: 'true'
+                remove-haskell: 'true'
+                remove-codeql: 'true'
+                remove-docker-images: 'true'
             - name: Delete huge unnecessary tools folder
-              run: rm -rf /opt/hostedtoolcache
+              run: | 
+                rm -rf /opt/hostedtoolcache
+                sudo rm -rf /usr/share/dotnet
+                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+                sudo apt install aptitude -y >/dev/null 2>&1
+                sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+                  esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+                  google-cloud-sdk imagemagick \
+                  libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+                  mercurial apt-transport-https mono-complete libmysqlclient \
+                  unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+                  libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+                  snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+                  sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+                  -y -f >/dev/null 2>&1
+                sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+                sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+                sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
             - name: checkout
               uses: actions/checkout@v3
             - name: set up QEMU
