@@ -71,16 +71,6 @@ jobs:
               sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
               echo "Disk space after uninstalling unnecessary software"
               sudo df -h
-          - name: Maximize build space
-            uses: easimon/maximize-build-space@master
-            with:
-              root-reserve-mb: 45000
-              swap-size-mb: 1024
-              remove-dotnet: 'true'
-              remove-android: 'true'
-              remove-haskell: 'true'
-              remove-codeql: 'true'
-              remove-docker-images: 'true'
           - name: Delete huge unnecessary tools folder
             run: | 
               echo "Disk space before deleting huge unnecessary tools folder:"
@@ -90,6 +80,16 @@ jobs:
               sudo rm -rf "$AGENT_TOOLSDIRECTORY"
               echo "Disk space after deleting huge unnecessary tools folder:"
               sudo df -h
+          - name: Maximize build space
+            uses: easimon/maximize-build-space@master
+            with:
+              root-reserve-mb: 48000
+              swap-size-mb: 1024
+              remove-dotnet: 'true'
+              remove-android: 'true'
+              remove-haskell: 'true'
+              remove-codeql: 'true'
+              remove-docker-images: 'true'
           - name: checkout
             uses: actions/checkout@v3
           - name: set up QEMU
