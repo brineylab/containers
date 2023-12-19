@@ -88,37 +88,37 @@ ENV CODE_WORKINGDIR="${HOME}/codeserver"
 #      DESKTOP
 #----------------------
 
-USER root
+# USER root
 
-# install ubuntu desktop GUI
-RUN apt-get update --yes \
-    && apt-get install --yes --no-install-recommends \
-    # "ubuntu-desktop" \
-    "dbus-x11" \ 
-    "libgl1-mesa-glx" \
-    "xorg" \ 
-    "xfce4" \
-    "xfce4-panel" \ 
-    "xfce4-session" \ 
-    "xfce4-settings" \ 
-    "xubuntu-icon-theme" \ 
-    && apt-get remove --yes --quiet light-locker \
-    && apt-get clean \ 
-    && rm -rf /var/lib/apt/lists/*
+# # install ubuntu desktop GUI
+# RUN apt-get update --yes \
+#     && apt-get install --yes --no-install-recommends \
+#     # "ubuntu-desktop" \
+#     "dbus-x11" \ 
+#     "libgl1-mesa-glx" \
+#     "xorg" \ 
+#     "xfce4" \
+#     "xfce4-panel" \ 
+#     "xfce4-session" \ 
+#     "xfce4-settings" \ 
+#     "xubuntu-icon-theme" \ 
+#     && apt-get remove --yes --quiet light-locker \
+#     && apt-get clean \ 
+#     && rm -rf /var/lib/apt/lists/*
 
-USER ${NB_UID}
+# USER ${NB_UID}
 
-# install plugin for accessing the desktop
-# from inside JupyterHub
-RUN python3 -m pip install \
-    "jupyter-remote-desktop-proxy"
+# # install plugin for accessing the desktop
+# # from inside JupyterHub
+# RUN python3 -m pip install \
+#     "jupyter-remote-desktop-proxy"
 
-# install websockify
-RUN mamba install --quiet --yes \
-    "websockify" \
-    && mamba clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
+# # install websockify
+# RUN mamba install --quiet --yes \
+#     "websockify" \
+#     && mamba clean --all -f -y \
+#     && fix-permissions "${CONDA_DIR}" \
+#     && fix-permissions "/home/${NB_USER}"
 
 
 #-----------------------------
