@@ -1,0 +1,2 @@
+# jupyter extensions
+jupyterlab_nvdashboard
