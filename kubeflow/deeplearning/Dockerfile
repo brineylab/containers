@@ -24,7 +24,7 @@ USER ${NB_UID}
 # RUN python3 -m pip install \
 #     --find-links https://download.pytorch.org/whl/torch_stable.html \
 #     -r ${REQUIREMENTS_DIR}/torch_pip.txt
-RUN python3 pip install torch --index-url https://download.pytorch.org/whl/cu118
+RUN python3 -m pip install torch --index-url https://download.pytorch.org/whl/cu118
 
 
 # jax
