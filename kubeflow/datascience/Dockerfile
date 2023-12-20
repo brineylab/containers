@@ -39,14 +39,14 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
    && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
 
-# R packages including IRKernel which gets installed globally.
-# r-e1071: dependency of the caret R package
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_mamba.txt \
-   && fix-permissions ${REQUIREMENTS_DIR}
-RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
-   && mamba clean --all -f -y \
-   && fix-permissions "${CONDA_DIR}" \
-   && fix-permissions "/home/${NB_USER}"
+# # R packages including IRKernel which gets installed globally.
+# # r-e1071: dependency of the caret R package
+# RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_mamba.txt \
+#    && fix-permissions ${REQUIREMENTS_DIR}
+# RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
+#    && mamba clean --all -f -y \
+#    && fix-permissions "${CONDA_DIR}" \
+#    && fix-permissions "/home/${NB_USER}"
 
 # # Julia installation
 # # Default values can be overridden at build time
