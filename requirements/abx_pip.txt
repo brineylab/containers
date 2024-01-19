@@ -17,6 +17,7 @@ mnemonic
 paramiko
 parasail
 plottable
+polars
 prettytable
 pymongo
 pytest
