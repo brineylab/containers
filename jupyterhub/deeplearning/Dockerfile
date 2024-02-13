@@ -28,7 +28,9 @@ ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 USER ${NB_UID}
 
 # pytorch
-RUN python3 -m pip install pip
+RUN python3 -m pip install \
+    --find-links https://download.pytorch.org/whl/torch_stable.html \
+    -r ${REQUIREMENTS_DIR}/torch_pip.txt
 
 # jax
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
