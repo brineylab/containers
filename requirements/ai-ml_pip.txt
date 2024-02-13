@@ -1,8 +1,8 @@
-# lightning  # removed to save space
+lightning  # removed to save space
 deepspeed
 wandb
 # equinox  # removed to save space
-# flax  # removed to save space
+flax  # removed to save space
 # haliax  # removed to save space
 # levanter  # removed to save space
 # gradio # requires pydantic>=2, which conflicts with jupyter-ai. We can re-include once juptyer-ai is updated to support pydantic>=2
