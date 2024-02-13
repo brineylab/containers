@@ -36,11 +36,12 @@ RUN python3 -m pip install \
 RUN python3 -m pip cache purge
 
 # jax
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
-    && fix-permissions ${REQUIREMENTS_DIR}
-RUN python3 -m pip install \
-    --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html \
-    -r ${REQUIREMENTS_DIR}/jax_pip.txt
+RUN python3 -m pip install jax jaxlib
+# RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
+#     && fix-permissions ${REQUIREMENTS_DIR}
+# RUN python3 -m pip install \
+#     --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html \
+#     -r ${REQUIREMENTS_DIR}/jax_pip.txt
 RUN python3 -m pip cache purge
 
 # AI/ML packages (including 🤗)
