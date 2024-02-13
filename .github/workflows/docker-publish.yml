@@ -69,6 +69,10 @@ jobs:
               sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
               sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
               sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+              removePackages=`apt list --manual-installed | awk '{print $1}' | sed 's|\(.*\)/.*|\1|' | grep -E -v 'base*|bash|binutils|bsdutils|bzip2|ca-certificates|coreutils|curl|dbus|diffutils|dpkg*|file|findutils|git*|grep|gzip|hostname|init|iproute2|iputils-ping|keyutils|lib*|linux-headers*|linux-image*|lld*|locales|login|lsb-release|make|net-tools|openssh-*|openssl|patchelf|rpm|rsync|session-manager-plugin|shellcheck|ssh|sudo|sysvinit-utils|tar|tcl*|time|tk|tzdata|ubuntu-*|unzip|upx-ucl|walinuxagent|wget|xz-utils|zip*|zsync|apt|dash|ncurses-bin|shim-signed|grub-efi-*|mokutil|sbsigntool|secureboot-db|docker-*|containerd.io' | tr '\n' ' '`
+              echo "Removing following userinstalled packages: $removePackages"
+              sudo apt-get purge -y $removePackages
+              sudo apt-get clean && sudo apt-get autoremove --purge -y $(dpkg -l | grep '^rc' | awk '{print $2}') && sudo rm -rf /var/lib/apt/lists/* 
               echo "Disk space after uninstalling unnecessary software"
               sudo df -h
           - name: Delete huge unnecessary tools folder
@@ -122,7 +126,7 @@ jobs:
           - name: Maximize build space
             uses: easimon/maximize-build-space@master
             with:
-              root-reserve-mb: 49152
+              root-reserve-mb: 51200
               swap-size-mb: 1024
               remove-dotnet: 'true'
               remove-android: 'true'
@@ -247,16 +251,6 @@ jobs:
                 sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
                 echo "Disk space after uninstalling unnecessary software"
                 sudo df -h
-            - name: Maximize build space
-              uses: easimon/maximize-build-space@master
-              with:
-                root-reserve-mb: 49152
-                swap-size-mb: 1024
-                remove-dotnet: 'true'
-                remove-android: 'true'
-                remove-haskell: 'true'
-                remove-codeql: 'true'
-                remove-docker-images: 'true'
             - name: Delete huge unnecessary tools folder
               run: | 
                 echo "Disk space before deleting huge unnecessary tools folder:"
@@ -305,6 +299,16 @@ jobs:
                 sudo rm -rf "$AGENT_TOOLSDIRECTORY"
                 echo "Disk space after deleting huge unnecessary tools folder:"
                 sudo df -h
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 51200
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                remove-android: 'true'
+                remove-haskell: 'true'
+                remove-codeql: 'true'
+                remove-docker-images: 'true'
             - name: checkout
               uses: actions/checkout@v4
             - name: set up QEMU
@@ -367,16 +371,6 @@ jobs:
                 echo "some packages purged"
                 echo "Disk space after uninstalling unnecessary software"
                 sudo df -h
-            - name: Maximize build space
-              uses: easimon/maximize-build-space@master
-              with:
-                root-reserve-mb: 49152
-                swap-size-mb: 1024
-                remove-dotnet: 'true'
-                remove-android: 'true'
-                remove-haskell: 'true'
-                remove-codeql: 'true'
-                remove-docker-images: 'true'
             - name: Delete huge unnecessary tools folder
               run: | 
                 echo "Disk space before deleting huge unnecessary tools folder:"
@@ -426,6 +420,16 @@ jobs:
                 sudo rm -rf "$AGENT_TOOLSDIRECTORY"
                 echo "Disk space after deleting huge unnecessary tools folder:"
                 sudo df -h
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 51200
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                remove-android: 'true'
+                remove-haskell: 'true'
+                remove-codeql: 'true'
+                remove-docker-images: 'true'
             - name: checkout
               uses: actions/checkout@v4
             - name: set up QEMU
@@ -628,7 +632,7 @@ jobs:
             - name: Maximize build space
               uses: easimon/maximize-build-space@master
               with:
-                root-reserve-mb: 49152
+                root-reserve-mb: 51200
                 swap-size-mb: 1024
                 remove-dotnet: 'true'
                 remove-android: 'true'
@@ -694,16 +698,6 @@ jobs:
                 sudo apt-get autoclean -y >/dev/null 2>&1
                 echo "Disk space after uninstalling unnecessary software"
                 sudo df -h
-            - name: Maximize build space
-              uses: easimon/maximize-build-space@master
-              with:
-                root-reserve-mb: 49152
-                swap-size-mb: 1024
-                remove-dotnet: 'true'
-                remove-android: 'true'
-                remove-haskell: 'true'
-                remove-codeql: 'true'
-                remove-docker-images: 'true'
             - name: Delete huge unnecessary tools folder
               run: | 
                 echo "Disk space before deleting huge unnecessary tools folder:"
@@ -753,6 +747,16 @@ jobs:
                 sudo rm -rf "$AGENT_TOOLSDIRECTORY"
                 echo "Disk space after deleting huge unnecessary tools folder:"
                 sudo df -h
+            - name: Maximize build space
+              uses: easimon/maximize-build-space@master
+              with:
+                root-reserve-mb: 51200
+                swap-size-mb: 1024
+                remove-dotnet: 'true'
+                remove-android: 'true'
+                remove-haskell: 'true'
+                remove-codeql: 'true'
+                remove-docker-images: 'true'
             - name: checkout
               uses: actions/checkout@v4
             - name: set up QEMU
