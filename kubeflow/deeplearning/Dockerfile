@@ -24,6 +24,7 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 RUN python3 -m pip install \
     --find-links https://download.pytorch.org/whl/torch_stable.html \
     -r ${REQUIREMENTS_DIR}/torch_pip.txt
+RUN python3 -m pip cache purge
 # RUN python3 -m pip install torch --index-url https://download.pytorch.org/whl/cu118
 
 
@@ -33,16 +34,19 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 RUN python3 -m pip install \
     --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html \
     -r ${REQUIREMENTS_DIR}/jax_pip.txt
+RUN python3 -m pip cache purge
 
 # AI/ML packages (including 🤗)
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/ai-ml_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/ai-ml_pip.txt
+RUN python3 -m pip cache purge
 
 # jupyterlab extensions
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/nvidia_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/nvidia_pip.txt
+RUN python3 -m pip cache purge
 
 # jupyter lab clean
 RUN jupyter lab clean \

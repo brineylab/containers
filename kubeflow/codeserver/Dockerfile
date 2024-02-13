@@ -44,19 +44,23 @@ USER $NB_UID
 
 # ab[x] and dependencies
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
+RUN python3 -m pip cache purge
 
 # pytorch
 RUN python3 -m pip install \
     --find-links https://download.pytorch.org/whl/torch_stable.html \
     -r ${REQUIREMENTS_DIR}/torch_pip.txt
+RUN python3 -m pip cache purge
 
 # jax
 RUN python3 -m pip install \
     --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html \
     -r ${REQUIREMENTS_DIR}/jax_pip.txt
+RUN python3 -m pip cache purge
 
 # AI/ML packages (including 🤗)
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/ai-ml_pip.txt
+RUN python3 -m pip cache purge
 
 # code-server extensions
 RUN code-server --install-extension ms-python.black-formatter --force \
