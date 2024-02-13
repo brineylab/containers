@@ -129,6 +129,7 @@ ENV CODE_WORKINGDIR="${HOME}/codeserver"
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/abx_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
+RUN python3 -m pip cache purge
 
 
 # R packages including IRKernel which gets installed globally.
