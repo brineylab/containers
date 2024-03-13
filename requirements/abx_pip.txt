@@ -19,6 +19,7 @@ parasail
 plottable
 polars
 prettytable
+pyfamsa
 pymongo
 pytest
 python-circos
