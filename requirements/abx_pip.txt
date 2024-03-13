@@ -39,6 +39,10 @@ umap-learn
 abutils
 abstar
 scab
+# other utils
+# -----------
+dm-tree
+ml-collections
 # pyspark
 # -------
 # pyspark
