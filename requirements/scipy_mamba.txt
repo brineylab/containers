@@ -13,6 +13,7 @@ h5py
 ipympl
 ipywidgets
 matplotlib-base
+modelcif
 natsort
 numba
 numexpr
