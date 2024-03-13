@@ -75,6 +75,7 @@ RUN apt-get update --yes \
     nfs-common \ 
     openssh-server \ 
     pigz \ 
+    screen \
     tmux \ 
     traceroute \ 
     unzip \ 
