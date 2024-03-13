@@ -209,6 +209,7 @@ RUN python3 -m pip install \
     "cutadapt" \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
+RUN python3 -m pip cache purge
 
 
 USER root
@@ -274,6 +275,18 @@ RUN wget -q "https://burtonlab.s3.amazonaws.com/software/cellranger-7.1.0.tar.gz
 RUN rm -rf "cellranger-7.1.0.tar.gz"
 
 ENV PATH="${NGS_TOOLS_DIR}/cellranger-7.1.0/bin:$PATH"
+
+# Parse pipeline
+RUN wget -q "https://brineylab.s3.amazonaws.com/tools/parse-pipeline-1.2.0.tar.gz" \
+    && tar xzvf "parse-pipeline-1.2.0.tar.gz" \
+    && cd "${NGS_TOOLS_DIR}/parse-pipeline-1.2.0" \
+    && bash ./install_dependencies_conda.sh -i -y \
+    && bash ./install_TCR.sh -i -y \
+    && python3 -m pip install . --no-cache-dir \
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+ENV PATH="${NGS_TOOLS_DIR}/parse-pipeline-1.2.0:$PATH"
 
 
 USER ${NB_UID}
