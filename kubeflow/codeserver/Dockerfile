@@ -21,6 +21,9 @@ RUN apt-get update --yes \
     gfortran \
     gcc \
     g++ \
+    # terminal 
+    tmux \
+    screen \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
@@ -33,6 +36,11 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
     && chown -R ${NB_USER}:users ${REQUIREMENTS_DIR}
 
 USER $NB_UID
+
+# CUDA toolkit
+RUN conda install --yes cudatoolkit-dev \
+    && conda clean --all -f -y
+    
 
 # scipy
 RUN conda install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
