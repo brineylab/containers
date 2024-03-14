@@ -8,7 +8,7 @@ conda-forge::blas=*=openblas
 cython
 dask
 dill
-bioconda::fastp
+# bioconda::fastp
 h5py
 ipympl
 ipywidgets
