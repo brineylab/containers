@@ -10,7 +10,7 @@
 # The default base image is Ubuntu 22.04 (jammy)
 # https://hub.docker.com/_/ubuntu/tags?page=1&name=jammy
 
-ARG BASE_IMG=ubuntu:22.04
+ARG BASE_IMG=nvidia/cuda:12.4.1-base-ubuntu22.04
 FROM $BASE_IMG
 
 ARG OWNER=brineylab
