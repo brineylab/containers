@@ -1,6 +1,6 @@
 jupyterlab-code-formatter
 jupyterlab-github
-# jupyterlab-git
+jupyterlab-git
 # jupyterlab-fasta
 # jupyterlab-topbar
 # jupyterlab-system-monitor
