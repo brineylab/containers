@@ -37,10 +37,10 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 
 USER $NB_UID
 
+
 # CUDA toolkit
 RUN conda install --yes cudatoolkit-dev \
     && conda clean --all -f -y
-    
 
 # scipy
 RUN conda install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
