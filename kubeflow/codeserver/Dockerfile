@@ -38,9 +38,10 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 USER $NB_UID
 
 # CUDA toolkit
-RUN conda install --yes cudatoolkit-dev \
+RUN conda update --force conda
+RUN conda install --yes nvidia/label/cuda-12.2.2::cuda-toolkit \
+    && conda install --yes gxx=11.4 \
     && conda clean --all -f -y
-    
 
 # scipy
 RUN conda install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \

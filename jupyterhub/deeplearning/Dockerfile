@@ -24,6 +24,15 @@ ENV NVIDIA_VISIBLE_DEVICES='all'
 ENV NVIDIA_DRIVER_CAPABILITIES='compute,utility'
 ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 
+# CUDA toolkit
+RUN conda config --remove channels defaults
+RUN conda update --force conda
+RUN conda install --yes nvidia/label/cuda-12.2.2::cuda-toolkit \
+    && conda install --yes gxx=11.4 \
+    && conda clean --all -f -y \
+    && fix-permissions "${CONDA_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
 # switch to NB_USER to install python packages
 USER ${NB_UID}
 
