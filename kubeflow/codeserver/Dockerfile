@@ -37,6 +37,7 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 
 USER $NB_UID
 
+
 # CUDA toolkit
 RUN conda update --force conda
 RUN conda install --yes nvidia/label/cuda-12.2.2::cuda-toolkit \
