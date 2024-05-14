@@ -175,13 +175,13 @@ USER root
 # Default values can be overridden at build time
 # (ARGS are in lower case to distinguish them from ENV)
 # Check https://julialang.org/downloads/
-ARG julia_version="1.8.5"
+# ARG julia_version="1.8.5"  # moved to base
 
 # Julia dependencies
 # install Julia packages in /opt/julia instead of ${HOME}
 ENV JULIA_DEPOT_PATH=/opt/julia \
-    JULIA_PKGDIR=/opt/julia \
-    JULIA_VERSION="${julia_version}"
+    JULIA_PKGDIR=/opt/julia
+    # JULIA_VERSION="${julia_version}"  # moved to base
 
 WORKDIR /tmp
 
@@ -244,11 +244,19 @@ RUN mkdir "${NGS_TOOLS_DIR}" \
     && chown "${NB_USER}" "${NGS_TOOLS_DIR}" \
     && fix-permissions "${NGS_TOOLS_DIR}"
 
+ENV PATH="${NGS_TOOLS_DIR}:$PATH"
+
 WORKDIR "${NGS_TOOLS_DIR}"
 
 # bcl2fastq
 RUN wget -q "https://burtonlab.s3.amazonaws.com/software/bcl2fastq2_0v2.20.0.422-2_amd64.deb" \ 
     && dpkg -i "bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+# bases2fastq
+RUN wget -q "https://brineylab.s3.amazonaws.com/tools/bases2fastq-1.4.0.tar.gz" \
+    && tar xzvf "bases2fastq-1.4.0.tar.gz" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
@@ -316,13 +324,17 @@ ENV PATH="${NGS_TOOLS_DIR}/parse-pipeline-1.2.0:$PATH"
 RUN cd "${NGS_TOOLS_DIR}" \
     && git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
     && cd igdiscover22 \
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+USER ${NB_UID}
+
+RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && conda env create -f environment.yml -n igdiscover \
     && source activate igdiscover \
     && python3 -m pip install --no-deps -e . \
     && python3 -m pip install networkx==2.1 \
-    && conda deactivate \
-    && fix-permissions "${NGS_TOOLS_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
+    && conda deactivate
 
 
 USER ${NB_UID}
