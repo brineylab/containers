@@ -29,7 +29,7 @@ RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key ad
    ffmpeg \
    && apt clean \
    && rm -rf /var/lib/apt/lists/*
-
+   
 # switch to NB_UID for installs
 USER ${NB_UID}
 

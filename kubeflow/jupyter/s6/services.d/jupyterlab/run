@@ -1,4 +1,8 @@
 #!/usr/bin/with-contenv bash
+
+# set umask
+umask 0000
+
 cd "${HOME}"
 exec /opt/conda/bin/jupyter lab \
   --notebook-dir="${HOME}" \
@@ -10,4 +14,4 @@ exec /opt/conda/bin/jupyter lab \
   --ServerApp.password="" \
   --ServerApp.allow_origin="*" \
   --ServerApp.base_url="${NB_PREFIX}" \
-  --ServerApp.authenticate_prometheus=False
+  --ServerApp.authenticate_prometheus=False \
