@@ -1,1 +1,2 @@
-jax[cuda11_pip]  # removed to save space
+jax==0.4.28
+jaxlib==0.4.28+cuda12.cudnn89

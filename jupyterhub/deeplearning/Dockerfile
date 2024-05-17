@@ -43,12 +43,11 @@ RUN python3 -m pip install \
 RUN python3 -m pip cache purge
 
 # jax
-RUN python3 -m pip install jax jaxlib
-# RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
-#     && fix-permissions ${REQUIREMENTS_DIR}
-# RUN python3 -m pip install \
-#     --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html \
-#     -r ${REQUIREMENTS_DIR}/jax_pip.txt
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
+RUN python3 -m pip install \
+    --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html \
+    -r ${REQUIREMENTS_DIR}/jax_pip.txt
 RUN python3 -m pip cache purge
 
 # AI/ML packages (including 🤗)
@@ -56,8 +55,6 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
     && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/ai-ml_pip.txt
 RUN python3 -m pip cache purge
-
-# jupyterlab extensions
 
 # the stable version of jupyterlab_nvdashboard doesn't work with jupyterlab 4.0 yet, so we need to install the pre-release version
 RUN python3 -m pip install --extra-index-url https://pypi.anaconda.org/rapidsai-wheels-nightly/simple --pre jupyterlab_nvdashboard

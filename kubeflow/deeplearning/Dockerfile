@@ -30,7 +30,6 @@ RUN python3 -m pip install \
     --find-links https://download.pytorch.org/whl/torch_stable.html \
     -r ${REQUIREMENTS_DIR}/torch_pip.txt
 RUN python3 -m pip cache purge
-# RUN python3 -m pip install torch --index-url https://download.pytorch.org/whl/cu118
 
 # jax
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
