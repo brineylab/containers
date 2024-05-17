@@ -15,16 +15,13 @@ ENV NVIDIA_VISIBLE_DEVICES='all'
 ENV NVIDIA_DRIVER_CAPABILITIES='compute,utility'
 ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 
-# CUDA toolkit
-RUN conda update --force conda
-RUN conda install --yes nvidia/label/cuda-12.2.2::cuda-toolkit \
-    && conda install --yes gxx=11.4 \
-    && conda clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
-
 # switch to NB_USER to install python packages
 USER ${NB_UID}
+
+# CUDA toolkit
+RUN conda update --force conda
+RUN conda install --yes cuda -c nvidia \
+    && conda clean --all -f -y
 
 # pytorch
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_pip.txt \
