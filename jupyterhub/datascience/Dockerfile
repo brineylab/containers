@@ -337,6 +337,22 @@ RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && conda deactivate
 
 
+# ANARCI
+USER ${NB_UID}
+
+RUN cd "${NGS_TOOLS_DIR}" \
+    && git clone "https://github.com/oxpig/ANARCI" \
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+    
+RUN mamba install -c conda-forge biopython -y \
+    && mamba install -c bioconda hmmer=3.3.2 -y \
+    && cd "${NGS_TOOLS_DIR}/ANARCI" \
+    && python3 setup.py install \
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+
 USER ${NB_UID}
 
 WORKDIR "${HOME}"
