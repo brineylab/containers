@@ -319,6 +319,7 @@ RUN wget -q "http://burtonlab.s3.amazonaws.com/software/zlib1211.zip" \
 # CellRanger
 RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
     && tar xvf "cellranger-8.0.1.tar" \
+    && sudo chmod -R 777 "${NGS_TOOLS_DIR}/cellranger-8.0.1" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}" 
 RUN rm -rf "cellranger-8.0.1.tar"
