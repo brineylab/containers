@@ -34,7 +34,7 @@ USER ${NB_UID}
 # RUN conda install --yes cuda -c nvidia \
 #     && conda clean --all -f -y
 
-RUN conda config --remove channels defaults
+# RUN conda config --remove channels defaults
 # RUN conda update --force conda
 RUN mamba install --yes cuda -c nvidia \
     && mamba clean --all -f -y
