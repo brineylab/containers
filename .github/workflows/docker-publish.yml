@@ -51,88 +51,88 @@ jobs:
           packages: write
 
       steps:
-          - name: Uninstall unnecessary software
-            run: | 
-              echo "Disk space before uninstalling unnecessary software:"
-              sudo df -h 
-              sudo apt install aptitude -y >/dev/null 2>&1
-              sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
-                esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
-                google-cloud-sdk google-cloud-cli imagemagick \
-                libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
-                mercurial apt-transport-https mono-complete libmysqlclient \
-                unixodbc-dev yarn chrpath libssl-dev libxft-dev \
-                libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
-                snmp pollinate libpq-dev postgresql-client powershell ruby-full \
-                sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
-                -y -f >/dev/null 2>&1
-              sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
-              sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-              sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-              removePackages=`apt list --manual-installed | awk '{print $1}' | sed 's|\(.*\)/.*|\1|' | grep -E -v 'base*|bash|binutils|bsdutils|bzip2|ca-certificates|coreutils|curl|dbus|diffutils|dpkg*|file|findutils|git*|grep|gzip|hostname|init|iproute2|iputils-ping|keyutils|lib*|linux-headers*|linux-image*|lld*|locales|login|lsb-release|make|net-tools|openssh-*|openssl|patchelf|rpm|rsync|session-manager-plugin|shellcheck|ssh|sudo|sysvinit-utils|tar|tcl*|time|tk|tzdata|ubuntu-*|unzip|upx-ucl|walinuxagent|wget|xz-utils|zip*|zsync|apt|dash|ncurses-bin|shim-signed|grub-efi-*|mokutil|sbsigntool|secureboot-db|docker-*|containerd.io' | tr '\n' ' '`
-              echo "Removing following userinstalled packages: $removePackages"
-              sudo apt-get purge -y $removePackages
-              sudo apt-get clean && sudo apt-get autoremove --purge -y $(dpkg -l | grep '^rc' | awk '{print $2}') && sudo rm -rf /var/lib/apt/lists/* 
-              echo "Disk space after uninstalling unnecessary software"
-              sudo df -h
+          # - name: Uninstall unnecessary software
+          #   run: | 
+          #     echo "Disk space before uninstalling unnecessary software:"
+          #     sudo df -h 
+          #     sudo apt install aptitude -y >/dev/null 2>&1
+          #     sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+          #       esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+          #       google-cloud-sdk google-cloud-cli imagemagick \
+          #       libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+          #       mercurial apt-transport-https mono-complete libmysqlclient \
+          #       unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+          #       libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+          #       snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+          #       sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+          #       -y -f >/dev/null 2>&1
+          #     sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+          #     sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+          #     sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+          #     removePackages=`apt list --manual-installed | awk '{print $1}' | sed 's|\(.*\)/.*|\1|' | grep -E -v 'base*|bash|binutils|bsdutils|bzip2|ca-certificates|coreutils|curl|dbus|diffutils|dpkg*|file|findutils|git*|grep|gzip|hostname|init|iproute2|iputils-ping|keyutils|lib*|linux-headers*|linux-image*|lld*|locales|login|lsb-release|make|net-tools|openssh-*|openssl|patchelf|rpm|rsync|session-manager-plugin|shellcheck|ssh|sudo|sysvinit-utils|tar|tcl*|time|tk|tzdata|ubuntu-*|unzip|upx-ucl|walinuxagent|wget|xz-utils|zip*|zsync|apt|dash|ncurses-bin|shim-signed|grub-efi-*|mokutil|sbsigntool|secureboot-db|docker-*|containerd.io' | tr '\n' ' '`
+          #     echo "Removing following userinstalled packages: $removePackages"
+          #     sudo apt-get purge -y $removePackages
+          #     sudo apt-get clean && sudo apt-get autoremove --purge -y $(dpkg -l | grep '^rc' | awk '{print $2}') && sudo rm -rf /var/lib/apt/lists/* 
+          #     echo "Disk space after uninstalling unnecessary software"
+          #     sudo df -h
           - name: Delete huge unnecessary tools folder
             run: | 
               echo "Disk space before deleting huge unnecessary tools folder:"
               sudo df -h
               rm -rf /opt/hostedtoolcache
-              sudo rm -rf /usr/share/dotnet
-              sudo rm -rf /usr/local/games
-              sudo rm -rf /usr/local/sqlpackage
-              sudo rm -rf /usr/local/.ghcup
-              sudo rm -rf /usr/local/share/powershell
-              sudo rm -rf /usr/local/share/edge_driver
-              sudo rm -rf /usr/local/share/gecko_driver
-              sudo rm -rf /usr/local/share/chromium
-              sudo rm -rf /usr/local/share/chromedriver-linux64
-              sudo rm -rf /usr/local/share/vcpkg
-              sudo rm -rf /usr/local/lib/node_modules
-              sudo rm -rf /usr/local/julia*
-              sudo rm -rf /opt/mssql-tools
-              sudo rm -rf /etc/skel
-              sudo rm -rf /usr/share/vim
-              sudo rm -rf /usr/share/postgresql
-              sudo rm -rf /usr/share/man
-              sudo rm -rf /usr/share/apache-maven-*
-              sudo rm -rf /usr/share/R
-              sudo rm -rf /usr/share/alsa
-              sudo rm -rf /usr/share/miniconda
-              sudo rm -rf /usr/share/grub
-              sudo rm -rf /usr/share/gradle-*
-              sudo rm -rf /usr/share/locale
-              sudo rm -rf /usr/share/texinfo
-              sudo rm -rf /usr/share/kotlinc
-              sudo rm -rf /usr/share/swift
-              sudo rm -rf /usr/share/doc
-              sudo rm -rf /usr/share/az_9.3.0
-              sudo rm -rf /usr/share/sbt
-              sudo rm -rf /usr/share/ri
-              sudo rm -rf /usr/share/icons
-              sudo rm -rf /usr/share/java
-              sudo rm -rf /usr/share/fonts
-              sudo rm -rf /usr/lib/google-cloud-sdk
-              sudo rm -rf /usr/lib/jvm
-              sudo rm -rf /usr/lib/mono
-              sudo rm -rf /usr/lib/R
-              sudo rm -rf /usr/lib/postgresql
-              sudo rm -rf /usr/lib/heroku
-              sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-              echo "Disk space after deleting huge unnecessary tools folder:"
-              sudo df -h
-          - name: Maximize build space
-            uses: easimon/maximize-build-space@master
-            with:
-              root-reserve-mb: 59392
-              swap-size-mb: 1024
-              remove-dotnet: 'true'
-              remove-android: 'true'
-              remove-haskell: 'true'
-              remove-codeql: 'true'
-              remove-docker-images: 'true'
+          #     sudo rm -rf /usr/share/dotnet
+          #     sudo rm -rf /usr/local/games
+          #     sudo rm -rf /usr/local/sqlpackage
+          #     sudo rm -rf /usr/local/.ghcup
+          #     sudo rm -rf /usr/local/share/powershell
+          #     sudo rm -rf /usr/local/share/edge_driver
+          #     sudo rm -rf /usr/local/share/gecko_driver
+          #     sudo rm -rf /usr/local/share/chromium
+          #     sudo rm -rf /usr/local/share/chromedriver-linux64
+          #     sudo rm -rf /usr/local/share/vcpkg
+          #     sudo rm -rf /usr/local/lib/node_modules
+          #     sudo rm -rf /usr/local/julia*
+          #     sudo rm -rf /opt/mssql-tools
+          #     sudo rm -rf /etc/skel
+          #     sudo rm -rf /usr/share/vim
+          #     sudo rm -rf /usr/share/postgresql
+          #     sudo rm -rf /usr/share/man
+          #     sudo rm -rf /usr/share/apache-maven-*
+          #     sudo rm -rf /usr/share/R
+          #     sudo rm -rf /usr/share/alsa
+          #     sudo rm -rf /usr/share/miniconda
+          #     sudo rm -rf /usr/share/grub
+          #     sudo rm -rf /usr/share/gradle-*
+          #     sudo rm -rf /usr/share/locale
+          #     sudo rm -rf /usr/share/texinfo
+          #     sudo rm -rf /usr/share/kotlinc
+          #     sudo rm -rf /usr/share/swift
+          #     sudo rm -rf /usr/share/doc
+          #     sudo rm -rf /usr/share/az_9.3.0
+          #     sudo rm -rf /usr/share/sbt
+          #     sudo rm -rf /usr/share/ri
+          #     sudo rm -rf /usr/share/icons
+          #     sudo rm -rf /usr/share/java
+          #     sudo rm -rf /usr/share/fonts
+          #     sudo rm -rf /usr/lib/google-cloud-sdk
+          #     sudo rm -rf /usr/lib/jvm
+          #     sudo rm -rf /usr/lib/mono
+          #     sudo rm -rf /usr/lib/R
+          #     sudo rm -rf /usr/lib/postgresql
+          #     sudo rm -rf /usr/lib/heroku
+          #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          #     echo "Disk space after deleting huge unnecessary tools folder:"
+          #     sudo df -h
+          # - name: Maximize build space
+          #   uses: easimon/maximize-build-space@master
+          #   with:
+          #     root-reserve-mb: 59392
+          #     swap-size-mb: 1024
+          #     remove-dotnet: 'true'
+          #     remove-android: 'true'
+          #     remove-haskell: 'true'
+          #     remove-codeql: 'true'
+          #     remove-docker-images: 'true'
           - name: checkout
             uses: actions/checkout@v4
           - name: set up QEMU
@@ -231,84 +231,84 @@ jobs:
             packages: write
 
         steps:
-            - name: Uninstall unnecessary software
-              run: | 
-                echo "Disk space before uninstalling unnecessary software:"
-                sudo df -h 
-                sudo apt install aptitude -y >/dev/null 2>&1
-                sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
-                  esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
-                  google-cloud-sdk google-cloud-cli imagemagick \
-                  libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
-                  mercurial apt-transport-https mono-complete libmysqlclient \
-                  unixodbc-dev yarn chrpath libssl-dev libxft-dev \
-                  libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
-                  snmp pollinate libpq-dev postgresql-client powershell ruby-full \
-                  sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
-                  -y -f >/dev/null 2>&1
-                sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
-                sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-                sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-                echo "Disk space after uninstalling unnecessary software"
-                sudo df -h
+            # - name: Uninstall unnecessary software
+            #   run: | 
+            #     echo "Disk space before uninstalling unnecessary software:"
+            #     sudo df -h 
+            #     sudo apt install aptitude -y >/dev/null 2>&1
+            #     sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+            #       esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+            #       google-cloud-sdk google-cloud-cli imagemagick \
+            #       libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+            #       mercurial apt-transport-https mono-complete libmysqlclient \
+            #       unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+            #       libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+            #       snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+            #       sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+            #       -y -f >/dev/null 2>&1
+            #     sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+            #     sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            #     sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            #     echo "Disk space after uninstalling unnecessary software"
+            #     sudo df -h
             - name: Delete huge unnecessary tools folder
               run: | 
                 echo "Disk space before deleting huge unnecessary tools folder:"
                 sudo df -h
                 rm -rf /opt/hostedtoolcache
-                sudo rm -rf /usr/share/dotnet
-                sudo rm -rf /usr/local/games
-                sudo rm -rf /usr/local/sqlpackage
-                sudo rm -rf /usr/local/.ghcup
-                sudo rm -rf /usr/local/share/powershell
-                sudo rm -rf /usr/local/share/edge_driver
-                sudo rm -rf /usr/local/share/gecko_driver
-                sudo rm -rf /usr/local/share/chromium
-                sudo rm -rf /usr/local/share/chromedriver-linux64
-                sudo rm -rf /usr/local/share/vcpkg
-                sudo rm -rf /usr/local/lib/node_modules
-                sudo rm -rf /usr/local/julia*
-                sudo rm -rf /opt/mssql-tools
-                sudo rm -rf /etc/skel
-                sudo rm -rf /usr/share/vim
-                sudo rm -rf /usr/share/postgresql
-                sudo rm -rf /usr/share/man
-                sudo rm -rf /usr/share/apache-maven-*
-                sudo rm -rf /usr/share/R
-                sudo rm -rf /usr/share/alsa
-                sudo rm -rf /usr/share/miniconda
-                sudo rm -rf /usr/share/grub
-                sudo rm -rf /usr/share/gradle-*
-                sudo rm -rf /usr/share/locale
-                sudo rm -rf /usr/share/texinfo
-                sudo rm -rf /usr/share/kotlinc
-                sudo rm -rf /usr/share/swift
-                sudo rm -rf /usr/share/doc
-                sudo rm -rf /usr/share/az_9.3.0
-                sudo rm -rf /usr/share/sbt
-                sudo rm -rf /usr/share/ri
-                sudo rm -rf /usr/share/icons
-                sudo rm -rf /usr/share/java
-                sudo rm -rf /usr/share/fonts
-                sudo rm -rf /usr/lib/google-cloud-sdk
-                sudo rm -rf /usr/lib/jvm
-                sudo rm -rf /usr/lib/mono
-                sudo rm -rf /usr/lib/R
-                sudo rm -rf /usr/lib/postgresql
-                sudo rm -rf /usr/lib/heroku
-                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-                echo "Disk space after deleting huge unnecessary tools folder:"
-                sudo df -h
-            - name: Maximize build space
-              uses: easimon/maximize-build-space@master
-              with:
-                root-reserve-mb: 59392
-                swap-size-mb: 1024
-                remove-dotnet: 'true'
-                remove-android: 'true'
-                remove-haskell: 'true'
-                remove-codeql: 'true'
-                remove-docker-images: 'true'
+            #     sudo rm -rf /usr/share/dotnet
+            #     sudo rm -rf /usr/local/games
+            #     sudo rm -rf /usr/local/sqlpackage
+            #     sudo rm -rf /usr/local/.ghcup
+            #     sudo rm -rf /usr/local/share/powershell
+            #     sudo rm -rf /usr/local/share/edge_driver
+            #     sudo rm -rf /usr/local/share/gecko_driver
+            #     sudo rm -rf /usr/local/share/chromium
+            #     sudo rm -rf /usr/local/share/chromedriver-linux64
+            #     sudo rm -rf /usr/local/share/vcpkg
+            #     sudo rm -rf /usr/local/lib/node_modules
+            #     sudo rm -rf /usr/local/julia*
+            #     sudo rm -rf /opt/mssql-tools
+            #     sudo rm -rf /etc/skel
+            #     sudo rm -rf /usr/share/vim
+            #     sudo rm -rf /usr/share/postgresql
+            #     sudo rm -rf /usr/share/man
+            #     sudo rm -rf /usr/share/apache-maven-*
+            #     sudo rm -rf /usr/share/R
+            #     sudo rm -rf /usr/share/alsa
+            #     sudo rm -rf /usr/share/miniconda
+            #     sudo rm -rf /usr/share/grub
+            #     sudo rm -rf /usr/share/gradle-*
+            #     sudo rm -rf /usr/share/locale
+            #     sudo rm -rf /usr/share/texinfo
+            #     sudo rm -rf /usr/share/kotlinc
+            #     sudo rm -rf /usr/share/swift
+            #     sudo rm -rf /usr/share/doc
+            #     sudo rm -rf /usr/share/az_9.3.0
+            #     sudo rm -rf /usr/share/sbt
+            #     sudo rm -rf /usr/share/ri
+            #     sudo rm -rf /usr/share/icons
+            #     sudo rm -rf /usr/share/java
+            #     sudo rm -rf /usr/share/fonts
+            #     sudo rm -rf /usr/lib/google-cloud-sdk
+            #     sudo rm -rf /usr/lib/jvm
+            #     sudo rm -rf /usr/lib/mono
+            #     sudo rm -rf /usr/lib/R
+            #     sudo rm -rf /usr/lib/postgresql
+            #     sudo rm -rf /usr/lib/heroku
+            #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+            #     echo "Disk space after deleting huge unnecessary tools folder:"
+            #     sudo df -h
+            # - name: Maximize build space
+            #   uses: easimon/maximize-build-space@master
+            #   with:
+            #     root-reserve-mb: 59392
+            #     swap-size-mb: 1024
+            #     remove-dotnet: 'true'
+            #     remove-android: 'true'
+            #     remove-haskell: 'true'
+            #     remove-codeql: 'true'
+            #     remove-docker-images: 'true'
             - name: checkout
               uses: actions/checkout@v4
             - name: set up QEMU
@@ -341,95 +341,95 @@ jobs:
             packages: write
 
         steps:
-            - name: Uninstall unnecessary software
-              run: | 
-                echo "Disk space before uninstalling unnecessary software:"
-                sudo df -h 
-                sudo rm -rf \
-                  /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-                  /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
-                  /usr/lib/jvm || true
-                sudo apt install aptitude -y >/dev/null 2>&1
-                sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
-                  esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
-                  google-cloud-sdk google-cloud-cli imagemagick \
-                  libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
-                  mercurial apt-transport-https mono-complete libmysqlclient \
-                  unixodbc-dev yarn chrpath libssl-dev libxft-dev \
-                  libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
-                  snmp pollinate libpq-dev postgresql-client powershell ruby-full \
-                  sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
-                  -y -f >/dev/null 2>&1
-                sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
-                sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-                sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-                sudo aptitude purge '~n ^mysql' -f -y >/dev/null 2>&1
-                sudo aptitude purge '~n ^php' -f -y >/dev/null 2>&1
-                sudo aptitude purge '~n ^dotnet' -f -y >/dev/null 2>&1
-                sudo apt-get autoremove -y >/dev/null 2>&1
-                sudo apt-get autoclean -y >/dev/null 2>&1
-                echo "some packages purged"
-                echo "Disk space after uninstalling unnecessary software"
-                sudo df -h
+            # - name: Uninstall unnecessary software
+            #   run: | 
+            #     echo "Disk space before uninstalling unnecessary software:"
+            #     sudo df -h 
+            #     sudo rm -rf \
+            #       /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            #       /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
+            #       /usr/lib/jvm || true
+            #     sudo apt install aptitude -y >/dev/null 2>&1
+            #     sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+            #       esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+            #       google-cloud-sdk google-cloud-cli imagemagick \
+            #       libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+            #       mercurial apt-transport-https mono-complete libmysqlclient \
+            #       unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+            #       libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+            #       snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+            #       sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+            #       -y -f >/dev/null 2>&1
+            #     sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+            #     sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            #     sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            #     sudo aptitude purge '~n ^mysql' -f -y >/dev/null 2>&1
+            #     sudo aptitude purge '~n ^php' -f -y >/dev/null 2>&1
+            #     sudo aptitude purge '~n ^dotnet' -f -y >/dev/null 2>&1
+            #     sudo apt-get autoremove -y >/dev/null 2>&1
+            #     sudo apt-get autoclean -y >/dev/null 2>&1
+            #     echo "some packages purged"
+            #     echo "Disk space after uninstalling unnecessary software"
+            #     sudo df -h
             - name: Delete huge unnecessary tools folder
               run: | 
                 echo "Disk space before deleting huge unnecessary tools folder:"
                 sudo df -h
                 rm -rf /opt/hostedtoolcache
-                sudo rm -rf /usr/share/dotnet
-                sudo rm -rf /usr/local/games
-                sudo rm -rf /usr/local/sqlpackage
-                sudo rm -rf /usr/local/.ghcup
-                sudo rm -rf /usr/local/share/powershell
-                sudo rm -rf /usr/local/share/edge_driver
-                sudo rm -rf /usr/local/share/gecko_driver
-                sudo rm -rf /usr/local/share/chromium
-                sudo rm -rf /usr/local/share/chromedriver-linux64
-                sudo rm -rf /usr/local/share/vcpkg
-                sudo rm -rf /usr/local/lib/python*
-                sudo rm -rf /usr/local/lib/node_modules
-                sudo rm -rf /usr/local/julia*
-                sudo rm -rf /opt/mssql-tools
-                sudo rm -rf /etc/skel
-                sudo rm -rf /usr/share/vim
-                sudo rm -rf /usr/share/postgresql
-                sudo rm -rf /usr/share/man
-                sudo rm -rf /usr/share/apache-maven-*
-                sudo rm -rf /usr/share/R
-                sudo rm -rf /usr/share/alsa
-                sudo rm -rf /usr/share/miniconda
-                sudo rm -rf /usr/share/grub
-                sudo rm -rf /usr/share/gradle-*
-                sudo rm -rf /usr/share/locale
-                sudo rm -rf /usr/share/texinfo
-                sudo rm -rf /usr/share/kotlinc
-                sudo rm -rf /usr/share/swift
-                sudo rm -rf /usr/share/doc
-                sudo rm -rf /usr/share/az_9.3.0
-                sudo rm -rf /usr/share/sbt
-                sudo rm -rf /usr/share/ri
-                sudo rm -rf /usr/share/icons
-                sudo rm -rf /usr/share/java
-                sudo rm -rf /usr/share/fonts
-                sudo rm -rf /usr/lib/google-cloud-sdk
-                sudo rm -rf /usr/lib/jvm
-                sudo rm -rf /usr/lib/mono
-                sudo rm -rf /usr/lib/R
-                sudo rm -rf /usr/lib/postgresql
-                sudo rm -rf /usr/lib/heroku
-                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-                echo "Disk space after deleting huge unnecessary tools folder:"
-                sudo df -h
-            - name: Maximize build space
-              uses: easimon/maximize-build-space@master
-              with:
-                root-reserve-mb: 59392
-                swap-size-mb: 1024
-                remove-dotnet: 'true'
-                remove-android: 'true'
-                remove-haskell: 'true'
-                remove-codeql: 'true'
-                remove-docker-images: 'true'
+            #     sudo rm -rf /usr/share/dotnet
+            #     sudo rm -rf /usr/local/games
+            #     sudo rm -rf /usr/local/sqlpackage
+            #     sudo rm -rf /usr/local/.ghcup
+            #     sudo rm -rf /usr/local/share/powershell
+            #     sudo rm -rf /usr/local/share/edge_driver
+            #     sudo rm -rf /usr/local/share/gecko_driver
+            #     sudo rm -rf /usr/local/share/chromium
+            #     sudo rm -rf /usr/local/share/chromedriver-linux64
+            #     sudo rm -rf /usr/local/share/vcpkg
+            #     sudo rm -rf /usr/local/lib/python*
+            #     sudo rm -rf /usr/local/lib/node_modules
+            #     sudo rm -rf /usr/local/julia*
+            #     sudo rm -rf /opt/mssql-tools
+            #     sudo rm -rf /etc/skel
+            #     sudo rm -rf /usr/share/vim
+            #     sudo rm -rf /usr/share/postgresql
+            #     sudo rm -rf /usr/share/man
+            #     sudo rm -rf /usr/share/apache-maven-*
+            #     sudo rm -rf /usr/share/R
+            #     sudo rm -rf /usr/share/alsa
+            #     sudo rm -rf /usr/share/miniconda
+            #     sudo rm -rf /usr/share/grub
+            #     sudo rm -rf /usr/share/gradle-*
+            #     sudo rm -rf /usr/share/locale
+            #     sudo rm -rf /usr/share/texinfo
+            #     sudo rm -rf /usr/share/kotlinc
+            #     sudo rm -rf /usr/share/swift
+            #     sudo rm -rf /usr/share/doc
+            #     sudo rm -rf /usr/share/az_9.3.0
+            #     sudo rm -rf /usr/share/sbt
+            #     sudo rm -rf /usr/share/ri
+            #     sudo rm -rf /usr/share/icons
+            #     sudo rm -rf /usr/share/java
+            #     sudo rm -rf /usr/share/fonts
+            #     sudo rm -rf /usr/lib/google-cloud-sdk
+            #     sudo rm -rf /usr/lib/jvm
+            #     sudo rm -rf /usr/lib/mono
+            #     sudo rm -rf /usr/lib/R
+            #     sudo rm -rf /usr/lib/postgresql
+            #     sudo rm -rf /usr/lib/heroku
+            #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+            #     echo "Disk space after deleting huge unnecessary tools folder:"
+            #     sudo df -h
+            # - name: Maximize build space
+            #   uses: easimon/maximize-build-space@master
+            #   with:
+            #     root-reserve-mb: 59392
+            #     swap-size-mb: 1024
+            #     remove-dotnet: 'true'
+            #     remove-android: 'true'
+            #     remove-haskell: 'true'
+            #     remove-codeql: 'true'
+            #     remove-docker-images: 'true'
             - name: checkout
               uses: actions/checkout@v4
             - name: set up QEMU
@@ -560,85 +560,85 @@ jobs:
             packages: write
 
         steps:
-            - name: Uninstall unnecessary software
-              run: | 
-                echo "Disk space before uninstalling unnecessary software:"
-                sudo df -h 
-                sudo apt install aptitude -y >/dev/null 2>&1
-                sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
-                  esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
-                  google-cloud-sdk google-cloud-cli imagemagick \
-                  libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
-                  mercurial apt-transport-https mono-complete libmysqlclient \
-                  unixodbc-dev yarn chrpath libssl-dev libxft-dev \
-                  libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
-                  snmp pollinate libpq-dev postgresql-client powershell ruby-full \
-                  sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
-                  -y -f >/dev/null 2>&1
-                sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
-                sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-                sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-                echo "Disk space after uninstalling unnecessary software"
-                sudo df -h
+            # - name: Uninstall unnecessary software
+            #   run: | 
+            #     echo "Disk space before uninstalling unnecessary software:"
+            #     sudo df -h 
+            #     sudo apt install aptitude -y >/dev/null 2>&1
+            #     sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+            #       esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+            #       google-cloud-sdk google-cloud-cli imagemagick \
+            #       libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+            #       mercurial apt-transport-https mono-complete libmysqlclient \
+            #       unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+            #       libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+            #       snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+            #       sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+            #       -y -f >/dev/null 2>&1
+            #     sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+            #     sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            #     sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            #     echo "Disk space after uninstalling unnecessary software"
+            #     sudo df -h
             - name: Delete huge unnecessary tools folder
               run: | 
                 echo "Disk space before deleting huge unnecessary tools folder:"
                 sudo df -h
                 rm -rf /opt/hostedtoolcache
-                sudo rm -rf /usr/share/dotnet
-                sudo rm -rf /usr/local/games
-                sudo rm -rf /usr/local/sqlpackage
-                sudo rm -rf /usr/local/.ghcup
-                sudo rm -rf /usr/local/share/powershell
-                sudo rm -rf /usr/local/share/edge_driver
-                sudo rm -rf /usr/local/share/gecko_driver
-                sudo rm -rf /usr/local/share/chromium
-                sudo rm -rf /usr/local/share/chromedriver-linux64
-                sudo rm -rf /usr/local/share/vcpkg
-                sudo rm -rf /usr/local/lib/python*
-                sudo rm -rf /usr/local/lib/node_modules
-                sudo rm -rf /usr/local/julia*
-                sudo rm -rf /opt/mssql-tools
-                sudo rm -rf /etc/skel
-                sudo rm -rf /usr/share/vim
-                sudo rm -rf /usr/share/postgresql
-                sudo rm -rf /usr/share/man
-                sudo rm -rf /usr/share/apache-maven-*
-                sudo rm -rf /usr/share/R
-                sudo rm -rf /usr/share/alsa
-                sudo rm -rf /usr/share/miniconda
-                sudo rm -rf /usr/share/grub
-                sudo rm -rf /usr/share/gradle-*
-                sudo rm -rf /usr/share/locale
-                sudo rm -rf /usr/share/texinfo
-                sudo rm -rf /usr/share/kotlinc
-                sudo rm -rf /usr/share/swift
-                sudo rm -rf /usr/share/doc
-                sudo rm -rf /usr/share/az_9.3.0
-                sudo rm -rf /usr/share/sbt
-                sudo rm -rf /usr/share/ri
-                sudo rm -rf /usr/share/icons
-                sudo rm -rf /usr/share/java
-                sudo rm -rf /usr/share/fonts
-                sudo rm -rf /usr/lib/google-cloud-sdk
-                sudo rm -rf /usr/lib/jvm
-                sudo rm -rf /usr/lib/mono
-                sudo rm -rf /usr/lib/R
-                sudo rm -rf /usr/lib/postgresql
-                sudo rm -rf /usr/lib/heroku
-                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-                echo "Disk space after deleting huge unnecessary tools folder:"
-                sudo df -h
-            - name: Maximize build space
-              uses: easimon/maximize-build-space@master
-              with:
-                root-reserve-mb: 59392
-                swap-size-mb: 1024
-                remove-dotnet: 'true'
-                remove-android: 'true'
-                remove-haskell: 'true'
-                remove-codeql: 'true'
-                remove-docker-images: 'true'
+            #     sudo rm -rf /usr/share/dotnet
+            #     sudo rm -rf /usr/local/games
+            #     sudo rm -rf /usr/local/sqlpackage
+            #     sudo rm -rf /usr/local/.ghcup
+            #     sudo rm -rf /usr/local/share/powershell
+            #     sudo rm -rf /usr/local/share/edge_driver
+            #     sudo rm -rf /usr/local/share/gecko_driver
+            #     sudo rm -rf /usr/local/share/chromium
+            #     sudo rm -rf /usr/local/share/chromedriver-linux64
+            #     sudo rm -rf /usr/local/share/vcpkg
+            #     sudo rm -rf /usr/local/lib/python*
+            #     sudo rm -rf /usr/local/lib/node_modules
+            #     sudo rm -rf /usr/local/julia*
+            #     sudo rm -rf /opt/mssql-tools
+            #     sudo rm -rf /etc/skel
+            #     sudo rm -rf /usr/share/vim
+            #     sudo rm -rf /usr/share/postgresql
+            #     sudo rm -rf /usr/share/man
+            #     sudo rm -rf /usr/share/apache-maven-*
+            #     sudo rm -rf /usr/share/R
+            #     sudo rm -rf /usr/share/alsa
+            #     sudo rm -rf /usr/share/miniconda
+            #     sudo rm -rf /usr/share/grub
+            #     sudo rm -rf /usr/share/gradle-*
+            #     sudo rm -rf /usr/share/locale
+            #     sudo rm -rf /usr/share/texinfo
+            #     sudo rm -rf /usr/share/kotlinc
+            #     sudo rm -rf /usr/share/swift
+            #     sudo rm -rf /usr/share/doc
+            #     sudo rm -rf /usr/share/az_9.3.0
+            #     sudo rm -rf /usr/share/sbt
+            #     sudo rm -rf /usr/share/ri
+            #     sudo rm -rf /usr/share/icons
+            #     sudo rm -rf /usr/share/java
+            #     sudo rm -rf /usr/share/fonts
+            #     sudo rm -rf /usr/lib/google-cloud-sdk
+            #     sudo rm -rf /usr/lib/jvm
+            #     sudo rm -rf /usr/lib/mono
+            #     sudo rm -rf /usr/lib/R
+            #     sudo rm -rf /usr/lib/postgresql
+            #     sudo rm -rf /usr/lib/heroku
+            #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+            #     echo "Disk space after deleting huge unnecessary tools folder:"
+            #     sudo df -h
+            # - name: Maximize build space
+            #   uses: easimon/maximize-build-space@master
+            #   with:
+            #     root-reserve-mb: 59392
+            #     swap-size-mb: 1024
+            #     remove-dotnet: 'true'
+            #     remove-android: 'true'
+            #     remove-haskell: 'true'
+            #     remove-codeql: 'true'
+            #     remove-docker-images: 'true'
             - name: checkout
               uses: actions/checkout@v4
             - name: set up QEMU
@@ -669,94 +669,94 @@ jobs:
             packages: write
 
         steps:
-            - name: Uninstall unnecessary software
-              run: | 
-                echo "Disk space before uninstalling unnecessary software:"
-                sudo df -h 
-                sudo rm -rf \
-                  /usr/share/dotnet /usr/local/lib/android /opt/ghc \
-                  /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
-                  /usr/lib/jvm || true
-                sudo apt install aptitude -y >/dev/null 2>&1
-                sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
-                  esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
-                  google-cloud-sdk google-cloud-cli imagemagick \
-                  libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
-                  mercurial apt-transport-https mono-complete libmysqlclient \
-                  unixodbc-dev yarn chrpath libssl-dev libxft-dev \
-                  libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
-                  snmp pollinate libpq-dev postgresql-client powershell ruby-full \
-                  sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
-                  -y -f >/dev/null 2>&1
-                sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
-                sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-                sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
-                sudo aptitude purge '~n ^mysql' -f -y >/dev/null 2>&1
-                sudo aptitude purge '~n ^php' -f -y >/dev/null 2>&1
-                sudo aptitude purge '~n ^dotnet' -f -y >/dev/null 2>&1
-                sudo apt-get autoremove -y >/dev/null 2>&1
-                sudo apt-get autoclean -y >/dev/null 2>&1
-                echo "Disk space after uninstalling unnecessary software"
-                sudo df -h
+            # - name: Uninstall unnecessary software
+            #   run: | 
+            #     echo "Disk space before uninstalling unnecessary software:"
+            #     sudo df -h 
+            #     sudo rm -rf \
+            #       /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+            #       /usr/local/share/powershell /usr/share/swift /usr/local/.ghcup \
+            #       /usr/lib/jvm || true
+            #     sudo apt install aptitude -y >/dev/null 2>&1
+            #     sudo aptitude purge aria2 ansible azure-cli shellcheck rpm xorriso zsync \
+            #       esl-erlang firefox gfortran-8 gfortran-9 google-chrome-stable \
+            #       google-cloud-sdk google-cloud-cli imagemagick \
+            #       libmagickcore-dev libmagickwand-dev libmagic-dev ant ant-optional kubectl \
+            #       mercurial apt-transport-https mono-complete libmysqlclient \
+            #       unixodbc-dev yarn chrpath libssl-dev libxft-dev \
+            #       libfreetype6 libfreetype6-dev libfontconfig1 libfontconfig1-dev \
+            #       snmp pollinate libpq-dev postgresql-client powershell ruby-full \
+            #       sphinxsearch subversion mongodb-org azure-cli microsoft-edge-stable \
+            #       -y -f >/dev/null 2>&1
+            #     sudo aptitude purge google-cloud-sdk -f -y >/dev/null 2>&1
+            #     sudo aptitude purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            #     sudo apt purge microsoft-edge-stable -f -y >/dev/null 2>&1 || true
+            #     sudo aptitude purge '~n ^mysql' -f -y >/dev/null 2>&1
+            #     sudo aptitude purge '~n ^php' -f -y >/dev/null 2>&1
+            #     sudo aptitude purge '~n ^dotnet' -f -y >/dev/null 2>&1
+            #     sudo apt-get autoremove -y >/dev/null 2>&1
+            #     sudo apt-get autoclean -y >/dev/null 2>&1
+            #     echo "Disk space after uninstalling unnecessary software"
+            #     sudo df -h
             - name: Delete huge unnecessary tools folder
               run: | 
                 echo "Disk space before deleting huge unnecessary tools folder:"
                 sudo df -h
                 rm -rf /opt/hostedtoolcache
-                sudo rm -rf /usr/share/dotnet
-                sudo rm -rf /usr/local/games
-                sudo rm -rf /usr/local/sqlpackage
-                sudo rm -rf /usr/local/.ghcup
-                sudo rm -rf /usr/local/share/powershell
-                sudo rm -rf /usr/local/share/edge_driver
-                sudo rm -rf /usr/local/share/gecko_driver
-                sudo rm -rf /usr/local/share/chromium
-                sudo rm -rf /usr/local/share/chromedriver-linux64
-                sudo rm -rf /usr/local/share/vcpkg
-                sudo rm -rf /usr/local/lib/python*
-                sudo rm -rf /usr/local/lib/node_modules
-                sudo rm -rf /usr/local/julia*
-                sudo rm -rf /opt/mssql-tools
-                sudo rm -rf /etc/skel
-                sudo rm -rf /usr/share/vim
-                sudo rm -rf /usr/share/postgresql
-                sudo rm -rf /usr/share/man
-                sudo rm -rf /usr/share/apache-maven-*
-                sudo rm -rf /usr/share/R
-                sudo rm -rf /usr/share/alsa
-                sudo rm -rf /usr/share/miniconda
-                sudo rm -rf /usr/share/grub
-                sudo rm -rf /usr/share/gradle-*
-                sudo rm -rf /usr/share/locale
-                sudo rm -rf /usr/share/texinfo
-                sudo rm -rf /usr/share/kotlinc
-                sudo rm -rf /usr/share/swift
-                sudo rm -rf /usr/share/doc
-                sudo rm -rf /usr/share/az_9.3.0
-                sudo rm -rf /usr/share/sbt
-                sudo rm -rf /usr/share/ri
-                sudo rm -rf /usr/share/icons
-                sudo rm -rf /usr/share/java
-                sudo rm -rf /usr/share/fonts
-                sudo rm -rf /usr/lib/google-cloud-sdk
-                sudo rm -rf /usr/lib/jvm
-                sudo rm -rf /usr/lib/mono
-                sudo rm -rf /usr/lib/R
-                sudo rm -rf /usr/lib/postgresql
-                sudo rm -rf /usr/lib/heroku
-                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-                echo "Disk space after deleting huge unnecessary tools folder:"
-                sudo df -h
-            - name: Maximize build space
-              uses: easimon/maximize-build-space@master
-              with:
-                root-reserve-mb: 59392
-                swap-size-mb: 1024
-                remove-dotnet: 'true'
-                remove-android: 'true'
-                remove-haskell: 'true'
-                remove-codeql: 'true'
-                remove-docker-images: 'true'
+            #     sudo rm -rf /usr/share/dotnet
+            #     sudo rm -rf /usr/local/games
+            #     sudo rm -rf /usr/local/sqlpackage
+            #     sudo rm -rf /usr/local/.ghcup
+            #     sudo rm -rf /usr/local/share/powershell
+            #     sudo rm -rf /usr/local/share/edge_driver
+            #     sudo rm -rf /usr/local/share/gecko_driver
+            #     sudo rm -rf /usr/local/share/chromium
+            #     sudo rm -rf /usr/local/share/chromedriver-linux64
+            #     sudo rm -rf /usr/local/share/vcpkg
+            #     sudo rm -rf /usr/local/lib/python*
+            #     sudo rm -rf /usr/local/lib/node_modules
+            #     sudo rm -rf /usr/local/julia*
+            #     sudo rm -rf /opt/mssql-tools
+            #     sudo rm -rf /etc/skel
+            #     sudo rm -rf /usr/share/vim
+            #     sudo rm -rf /usr/share/postgresql
+            #     sudo rm -rf /usr/share/man
+            #     sudo rm -rf /usr/share/apache-maven-*
+            #     sudo rm -rf /usr/share/R
+            #     sudo rm -rf /usr/share/alsa
+            #     sudo rm -rf /usr/share/miniconda
+            #     sudo rm -rf /usr/share/grub
+            #     sudo rm -rf /usr/share/gradle-*
+            #     sudo rm -rf /usr/share/locale
+            #     sudo rm -rf /usr/share/texinfo
+            #     sudo rm -rf /usr/share/kotlinc
+            #     sudo rm -rf /usr/share/swift
+            #     sudo rm -rf /usr/share/doc
+            #     sudo rm -rf /usr/share/az_9.3.0
+            #     sudo rm -rf /usr/share/sbt
+            #     sudo rm -rf /usr/share/ri
+            #     sudo rm -rf /usr/share/icons
+            #     sudo rm -rf /usr/share/java
+            #     sudo rm -rf /usr/share/fonts
+            #     sudo rm -rf /usr/lib/google-cloud-sdk
+            #     sudo rm -rf /usr/lib/jvm
+            #     sudo rm -rf /usr/lib/mono
+            #     sudo rm -rf /usr/lib/R
+            #     sudo rm -rf /usr/lib/postgresql
+            #     sudo rm -rf /usr/lib/heroku
+            #     sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+            #     echo "Disk space after deleting huge unnecessary tools folder:"
+            #     sudo df -h
+            # - name: Maximize build space
+            #   uses: easimon/maximize-build-space@master
+            #   with:
+            #     root-reserve-mb: 59392
+            #     swap-size-mb: 1024
+            #     remove-dotnet: 'true'
+            #     remove-android: 'true'
+            #     remove-haskell: 'true'
+            #     remove-codeql: 'true'
+            #     remove-docker-images: 'true'
             - name: checkout
               uses: actions/checkout@v4
             - name: set up QEMU
