@@ -29,10 +29,15 @@ USER ${NB_UID}
 
 # CUDA toolkit
 # https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#conda-installation
-RUN conda config --remove channels defaults
-RUN conda update --force conda
-RUN conda install --yes cuda -c nvidia \
-    && conda clean --all -f -y
+# RUN conda config --remove channels defaults
+# RUN conda update --force conda
+# RUN conda install --yes cuda -c nvidia \
+#     && conda clean --all -f -y
+
+RUN mamba config --remove channels defaults
+# RUN conda update --force conda
+RUN mamba install --yes cuda -c nvidia \
+    && mamba clean --all -f -y
 
 # pytorch
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_pip.txt \
