@@ -300,11 +300,11 @@ RUN wget -q "http://burtonlab.s3.amazonaws.com/software/zlib1211.zip" \
     && fix-permissions "/home/${NB_USER}"
 
 # CellRanger
-RUN wget -q "https://burtonlab.s3.amazonaws.com/software/cellranger-8.0.1.tar.gz" \
-    && tar xzvf "cellranger-8.0.1.tar.gz" \
+RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
+    && tar xvf "cellranger-8.0.1.tar" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}" 
-RUN rm -rf "cellranger-8.0.1.tar.gz"
+RUN rm -rf "cellranger-8.0.1.tar"
 
 ENV PATH="${NGS_TOOLS_DIR}/cellranger-8.0.1/bin:$PATH"
 
