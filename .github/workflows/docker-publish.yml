@@ -44,7 +44,7 @@ jobs:
     # ------------------
     # codeserver depends on python and needs to wait to be built
     kubeflow-codeserver:
-      runs-on: ubuntu-latest
+      runs-on: ubuntu-22.04-large
 
       permissions:
           contents: read
@@ -223,7 +223,7 @@ jobs:
 
     # datascience image depends on jupyter
     jupyterhub-datascience:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04-large
         needs: [jupyterhub-jupyter]
 
         permissions:
@@ -333,7 +333,7 @@ jobs:
         
     # deeplearning image depends on datascience
     jupyterhub-deeplearning:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04-large
         needs: [jupyterhub-datascience]
 
         permissions:
@@ -552,7 +552,7 @@ jobs:
 
     # datascience image depends on jupyter
     kubeflow-datascience:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04-large
         needs: [kubeflow-jupyter]
 
         permissions:
@@ -661,7 +661,7 @@ jobs:
         
     # deeplearning image depends on datascience
     kubeflow-deeplearning:
-        runs-on: ubuntu-latest
+        runs-on: ubuntu-22.04-large
         needs: [kubeflow-datascience]
 
         permissions:
