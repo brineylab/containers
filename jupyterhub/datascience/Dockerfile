@@ -224,6 +224,23 @@ RUN julia -e 'import Pkg; Pkg.update()' \
     && fix-permissions "${JULIA_PKGDIR}" "${CONDA_DIR}/share/jupyter"
 
 
+#-----------------
+#     Mojo 🔥
+#-----------------
+
+# install instructions from https://docs.modular.com/mojo/manual/get-started/
+
+RUN sudo curl -s https://get.modular.com | sh -
+
+RUN modular install mojo
+
+RUN MOJO_PATH=$(modular config mojo.path) \
+  && BASHRC=$( [ -f "$HOME/.bash_profile" ] && echo "$HOME/.bash_profile" || echo "$HOME/.bashrc" ) \
+  && echo 'export MODULAR_HOME="'$HOME'/.modular"' >> "$BASHRC" \
+  && echo 'export PATH="'$MOJO_PATH'/bin:$PATH"' >> "$BASHRC" \
+  && source "$BASHRC"
+
+
 #-------------------
 #     NGS TOOLS
 #-------------------
@@ -343,7 +360,6 @@ RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && python3 -m pip install --no-deps -e . \
     && python3 -m pip install networkx==2.1 \
     && conda deactivate
-
 
 # ANARCI
 USER ${NB_UID}
