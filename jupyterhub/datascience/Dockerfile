@@ -378,6 +378,18 @@ RUN mamba install -c conda-forge biopython -y \
     && fix-permissions "/home/${NB_USER}"
 
 
+# dorado (ONT)
+RUN cd "${NGS_TOOLS_DIR}" \
+    && wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar.gz" \
+    && tar xzf "dorado-0.7.0-linux-x64.tar.gz" \
+    && sudo chmod -R 777 "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
+    && fix-permissions "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
+    && fix-permissions "/home/${NB_USER}"
+RUN rm -rf "dorado-0.7.0-linux-x64.tar.gz"
+
+ENV PATH="${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64/bin:$PATH"
+
+
 USER ${NB_UID}
 
 WORKDIR "${HOME}"
