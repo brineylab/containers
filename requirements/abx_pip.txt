@@ -1,5 +1,6 @@
 anndata
 baltic
+bbknn
 biopython
 celery
 dask[complete]
