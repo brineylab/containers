@@ -36,7 +36,7 @@ USER ${NB_UID}
 
 # RUN conda config --remove channels defaults
 # RUN conda update --force conda
-RUN mamba install --yes cuda -c nvidia \
+RUN mamba install --yes cuda=12.4 -c nvidia \
     && mamba clean --all -f -y
 
 # pytorch

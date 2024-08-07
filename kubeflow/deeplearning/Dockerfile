@@ -20,7 +20,7 @@ USER ${NB_UID}
 
 # CUDA toolkit
 RUN conda update --force conda
-RUN conda install --yes cuda -c nvidia \
+RUN conda install --yes cuda=12.4 -c nvidia \
     && conda clean --all -f -y
 
 # pytorch
