@@ -21,7 +21,7 @@ USER ${NB_UID}
 # CUDA toolkit
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
 RUN conda update --force conda
-RUN conda install -y-c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
+RUN conda install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
     && conda clean --all -f -y
 
 # pytorch

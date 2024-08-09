@@ -35,7 +35,7 @@ USER ${NB_UID}
 #     && conda clean --all -f -y
 
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
-RUN mamba install -y-c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
+RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
     && mamba clean --all -f -y
 
 # pytorch
