@@ -40,13 +40,12 @@ USER $NB_UID
 
 # CUDA toolkit
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
-RUN conda update --force conda
-RUN conda install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
-    && conda clean --all -f -y
+RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
+    && mamba clean --all -f -y
 
 # scipy
-RUN conda install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
-    && conda clean --all -f -y
+RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
+    && mamba clean --all -f -y
 USER root
 RUN chown -R ${NB_USER}:users "${CONDA_DIR}" \
     && chown -R ${NB_USER}:users "/home/${NB_USER}"

@@ -28,12 +28,6 @@ ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 USER ${NB_UID}
 
 # CUDA toolkit
-# https://docs.nvidia.com/cuda/cuda-installation-guide-linux/index.html#conda-installation
-# RUN conda config --remove channels defaults
-# RUN conda update --force conda
-# RUN conda install --yes cuda -c nvidia \
-#     && conda clean --all -f -y
-
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/cuda.txt \
     && fix-permissions ${REQUIREMENTS_DIR}

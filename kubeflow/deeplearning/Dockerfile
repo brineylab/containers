@@ -22,9 +22,8 @@ USER ${NB_UID}
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/cuda.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
-RUN conda update --force conda
-RUN conda install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
-    && conda clean --all -f -y
+RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
+    && mamba clean --all -f -y
 
 # pytorch
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_pip.txt \

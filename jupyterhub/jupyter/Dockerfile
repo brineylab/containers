@@ -51,7 +51,6 @@ RUN apt-get update --yes \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
-USER ${NB_UID}
 
 WORKDIR /tmp
 
@@ -68,6 +67,8 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
     && rm -rf "/home/${NB_USER}/.cache/yarn" \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
+
+USER ${NB_UID}
 
 ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
