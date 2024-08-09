@@ -40,8 +40,8 @@ jobs:
               uses: docker/build-push-action@v6
               with:
                 context: ./base
-                cache-to: type=local,dest=/tmp/.buildx-cache
-                cache-from: type=local,src=/tmp/.buildx-cache
+                cache-to: type=registry,ref=brineylab/kubeflow-codeserver:cache,mode=max
+                cache-from: type=registry,ref=brineylab/kubeflow-codeserver:cache
                 push: if ${{ github.event_name == 'release' }}
                 tags: |
                     brineylab/base:latest
