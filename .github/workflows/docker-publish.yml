@@ -80,7 +80,7 @@ jobs:
           - name: build and push
             uses: docker/build-push-action@v6
             with:
-              context: ./base
+              context: ./kubeflow/codeserver
               cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
               cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
               push: ${{ github.event_name == 'release' }}
@@ -121,7 +121,7 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./base
+                context: ./jupyterhub/base
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
@@ -160,7 +160,7 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./base
+                context: ./jupyterhub/jupyter
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
@@ -199,7 +199,7 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./base
+                context: ./jupyterhub/datascience
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
@@ -239,7 +239,7 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./base
+                context: ./jupyterhub/deeplearning
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
@@ -280,7 +280,7 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./base
+                context: ./kubeflow/base
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
@@ -319,7 +319,7 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./base
+                context: ./kubeflow/python
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
@@ -358,7 +358,7 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./base
+                context: ./kubeflow/jupyter
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
@@ -397,7 +397,7 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./base
+                context: ./kubeflow/datascience
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
@@ -436,7 +436,7 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./base
+                context: ./kubeflow/deeplearning
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
