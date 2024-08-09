@@ -36,18 +36,16 @@ jobs:
               with:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
-            - name: echo job id
-              run: echo ${{ github.job }}
             - name: build and push
               uses: docker/build-push-action@v6
               with:
                 context: ./base
-                cache-to: type=registry,ref=brineylab/base:cache,mode=max
-                cache-from: type=registry,ref=brineylab/base:cache
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
                 push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/base:latest
-                    brineylab/base:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
 
     # ------------------
     #    CODESERVER
