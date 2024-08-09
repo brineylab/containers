@@ -80,11 +80,13 @@ jobs:
           - name: build and push
             uses: docker/build-push-action@v6
             with:
-              context: ./kubeflow/codeserver
-              push: true
+              context: ./base
+              cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+              cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+              push: ${{ github.event_name == 'release' }}
               tags: |
-                  brineylab/kubeflow-codeserver:latest
-                  brineylab/kubeflow-codeserver:${{ github.event.release.tag_name || 'no_push' }}
+                  brineylab/${{ github.job }}:latest
+                  brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
     
     # ------------------
     #    JUPYTERHUB
@@ -119,11 +121,13 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./jupyterhub/base
-                push: true
+                context: ./base
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/jupyterhub-base:latest
-                    brineylab/jupyterhub-base:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
 
     # jupyter depends on base and needs to wait to be built
     jupyterhub-jupyter:
@@ -156,13 +160,13 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./jupyterhub/jupyter
-                push: true
+                context: ./base
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/jupyterhub-jupyter:latest
-                    brineylab/jupyterhub-jupyter:${{ github.event.release.tag_name || 'no_push' }}
-                    brineylab/jupyter:latest
-                    brineylab/jupyter:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
 
     # datascience image depends on jupyter
     jupyterhub-datascience:
@@ -195,13 +199,13 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./jupyterhub/datascience
-                push: true
+                context: ./base
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/jupyterhub-datascience:latest
-                    brineylab/jupyterhub-datascience:${{ github.event.release.tag_name || 'no_push' }}
-                    brineylab/datascience:latest
-                    brineylab/datascience:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
         
     # deeplearning image depends on datascience
     jupyterhub-deeplearning:
@@ -235,13 +239,13 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./jupyterhub/deeplearning
-                push: true
+                context: ./base
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/jupyterhub-deeplearning:latest
-                    brineylab/jupyterhub-deeplearning:${{ github.event.release.tag_name || 'no_push' }}
-                    brineylab/deeplearning:latest
-                    brineylab/deeplearning:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
 
     # ------------------
     #     KUBEFLOW
@@ -276,11 +280,13 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./kubeflow/base
-                push: true
+                context: ./base
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/kubeflow-base:latest
-                    brineylab/kubeflow-base:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
 
     # python depends on base and needs to wait to be built
     kubeflow-python:
@@ -313,11 +319,13 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./kubeflow/python
-                push: true
+                context: ./base
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/kubeflow-python:latest
-                    brineylab/kubeflow-python:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
 
     # jupyter depends on python and needs to wait to be built
     kubeflow-jupyter:
@@ -350,11 +358,13 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./kubeflow/jupyter
-                push: true
+                context: ./base
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/kubeflow-jupyter:latest
-                    brineylab/kubeflow-jupyter:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
 
     # datascience image depends on jupyter
     kubeflow-datascience:
@@ -387,11 +397,13 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./kubeflow/datascience
-                push: true
+                context: ./base
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/kubeflow-datascience:latest
-                    brineylab/kubeflow-datascience:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
         
     # deeplearning image depends on datascience
     kubeflow-deeplearning:
@@ -424,10 +436,12 @@ jobs:
             - name: build and push
               uses: docker/build-push-action@v6
               with:
-                context: ./kubeflow/deeplearning
-                push: true
+                context: ./base
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: ${{ github.event_name == 'release' }}
                 tags: |
-                    brineylab/kubeflow-deeplearning:latest
-                    brineylab/kubeflow-deeplearning:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:latest
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
         
 
