@@ -36,12 +36,14 @@ jobs:
               with:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: echo job id
+              run: echo ${{ github.job }}
             - name: build and push
               uses: docker/build-push-action@v6
               with:
                 context: ./base
-                cache-to: type=registry,ref=brineylab/kubeflow-codeserver:cache,mode=max
-                cache-from: type=registry,ref=brineylab/kubeflow-codeserver:cache
+                cache-to: type=registry,ref=brineylab/base:cache,mode=max
+                cache-from: type=registry,ref=brineylab/base:cache
                 push: ${{ github.event_name == 'release' }}
                 tags: |
                     brineylab/base:latest
@@ -84,7 +86,7 @@ jobs:
               push: true
               tags: |
                   brineylab/kubeflow-codeserver:latest
-                  brineylab/kubeflow-codeserver:${{ github.event.release.tag_name }}
+                  brineylab/kubeflow-codeserver:${{ github.event.release.tag_name || 'no_push' }}
     
     # ------------------
     #    JUPYTERHUB
@@ -123,7 +125,7 @@ jobs:
                 push: true
                 tags: |
                     brineylab/jupyterhub-base:latest
-                    brineylab/jupyterhub-base:${{ github.event.release.tag_name }}
+                    brineylab/jupyterhub-base:${{ github.event.release.tag_name || 'no_push' }}
 
     # jupyter depends on base and needs to wait to be built
     jupyterhub-jupyter:
@@ -160,9 +162,9 @@ jobs:
                 push: true
                 tags: |
                     brineylab/jupyterhub-jupyter:latest
-                    brineylab/jupyterhub-jupyter:${{ github.event.release.tag_name }}
+                    brineylab/jupyterhub-jupyter:${{ github.event.release.tag_name || 'no_push' }}
                     brineylab/jupyter:latest
-                    brineylab/jupyter:${{ github.event.release.tag_name }}
+                    brineylab/jupyter:${{ github.event.release.tag_name || 'no_push' }}
 
     # datascience image depends on jupyter
     jupyterhub-datascience:
@@ -199,9 +201,9 @@ jobs:
                 push: true
                 tags: |
                     brineylab/jupyterhub-datascience:latest
-                    brineylab/jupyterhub-datascience:${{ github.event.release.tag_name }}
+                    brineylab/jupyterhub-datascience:${{ github.event.release.tag_name || 'no_push' }}
                     brineylab/datascience:latest
-                    brineylab/datascience:${{ github.event.release.tag_name }}
+                    brineylab/datascience:${{ github.event.release.tag_name || 'no_push' }}
         
     # deeplearning image depends on datascience
     jupyterhub-deeplearning:
@@ -239,9 +241,9 @@ jobs:
                 push: true
                 tags: |
                     brineylab/jupyterhub-deeplearning:latest
-                    brineylab/jupyterhub-deeplearning:${{ github.event.release.tag_name }}
+                    brineylab/jupyterhub-deeplearning:${{ github.event.release.tag_name || 'no_push' }}
                     brineylab/deeplearning:latest
-                    brineylab/deeplearning:${{ github.event.release.tag_name }}
+                    brineylab/deeplearning:${{ github.event.release.tag_name || 'no_push' }}
 
     # ------------------
     #     KUBEFLOW
@@ -280,7 +282,7 @@ jobs:
                 push: true
                 tags: |
                     brineylab/kubeflow-base:latest
-                    brineylab/kubeflow-base:${{ github.event.release.tag_name }}
+                    brineylab/kubeflow-base:${{ github.event.release.tag_name || 'no_push' }}
 
     # python depends on base and needs to wait to be built
     kubeflow-python:
@@ -317,7 +319,7 @@ jobs:
                 push: true
                 tags: |
                     brineylab/kubeflow-python:latest
-                    brineylab/kubeflow-python:${{ github.event.release.tag_name }}
+                    brineylab/kubeflow-python:${{ github.event.release.tag_name || 'no_push' }}
 
     # jupyter depends on python and needs to wait to be built
     kubeflow-jupyter:
@@ -354,7 +356,7 @@ jobs:
                 push: true
                 tags: |
                     brineylab/kubeflow-jupyter:latest
-                    brineylab/kubeflow-jupyter:${{ github.event.release.tag_name }}
+                    brineylab/kubeflow-jupyter:${{ github.event.release.tag_name || 'no_push' }}
 
     # datascience image depends on jupyter
     kubeflow-datascience:
@@ -391,7 +393,7 @@ jobs:
                 push: true
                 tags: |
                     brineylab/kubeflow-datascience:latest
-                    brineylab/kubeflow-datascience:${{ github.event.release.tag_name }}
+                    brineylab/kubeflow-datascience:${{ github.event.release.tag_name || 'no_push' }}
         
     # deeplearning image depends on datascience
     kubeflow-deeplearning:
@@ -428,6 +430,6 @@ jobs:
                 push: true
                 tags: |
                     brineylab/kubeflow-deeplearning:latest
-                    brineylab/kubeflow-deeplearning:${{ github.event.release.tag_name }}
+                    brineylab/kubeflow-deeplearning:${{ github.event.release.tag_name || 'no_push' }}
         
 
