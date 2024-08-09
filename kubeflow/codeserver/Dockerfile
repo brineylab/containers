@@ -38,8 +38,9 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 USER $NB_UID
 
 # CUDA toolkit
+# Version error fix: https://github.com/google-deepmind/alphafold/issues/945
 RUN conda update --force conda
-RUN conda install --yes cuda=12.4 -c nvidia \
+RUN conda install -y-c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
     && conda clean --all -f -y
 
 # scipy

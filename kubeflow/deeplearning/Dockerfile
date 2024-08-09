@@ -19,8 +19,9 @@ ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 USER ${NB_UID}
 
 # CUDA toolkit
+# Version error fix: https://github.com/google-deepmind/alphafold/issues/945
 RUN conda update --force conda
-RUN conda install --yes cuda=12.4 -c nvidia \
+RUN conda install -y-c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
     && conda clean --all -f -y
 
 # pytorch

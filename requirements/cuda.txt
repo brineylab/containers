@@ -1,0 +1,7 @@
+cuda=12.2.2
+cuda-tools=12.2.2
+cuda-toolkit=12.2.2
+cuda-version=12.2
+cuda-command-line-tools=12.2.2
+cuda-compiler=12.2.2
+cuda-runtime=12.2.2
