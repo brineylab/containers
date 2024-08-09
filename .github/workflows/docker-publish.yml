@@ -36,7 +36,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./base
                 push: true
@@ -75,7 +75,7 @@ jobs:
               username: ${{ secrets.DOCKERHUB_USERNAME }}
               password: ${{ secrets.DOCKERHUB_TOKEN }}
           - name: build and push
-            uses: docker/build-push-action@v5
+            uses: docker/build-push-action@v6
             with:
               context: ./kubeflow/codeserver
               push: true
@@ -114,7 +114,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./jupyterhub/base
                 push: true
@@ -151,7 +151,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./jupyterhub/jupyter
                 push: true
@@ -190,7 +190,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./jupyterhub/datascience
                 push: true
@@ -230,7 +230,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./jupyterhub/deeplearning
                 push: true
@@ -271,7 +271,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./kubeflow/base
                 push: true
@@ -308,7 +308,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./kubeflow/python
                 push: true
@@ -345,7 +345,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./kubeflow/jupyter
                 push: true
@@ -382,7 +382,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./kubeflow/datascience
                 push: true
@@ -419,7 +419,7 @@ jobs:
                 username: ${{ secrets.DOCKERHUB_USERNAME }}
                 password: ${{ secrets.DOCKERHUB_TOKEN }}
             - name: build and push
-              uses: docker/build-push-action@v5
+              uses: docker/build-push-action@v6
               with:
                 context: ./kubeflow/deeplearning
                 push: true
