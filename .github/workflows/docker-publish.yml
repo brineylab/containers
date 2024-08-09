@@ -45,7 +45,7 @@ jobs:
                 push: ${{ github.event_name == 'release' }}
                 tags: |
                     brineylab/base:latest
-                    brineylab/base:${{ github.event.release.tag_name }}
+                    brineylab/base:${{ github.event.release.tag_name || 'no_push' }}
 
     # ------------------
     #    CODESERVER
