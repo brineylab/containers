@@ -35,6 +35,8 @@ USER ${NB_UID}
 #     && conda clean --all -f -y
 
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/cuda.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
 RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
     && mamba clean --all -f -y
 
