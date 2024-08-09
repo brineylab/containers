@@ -72,10 +72,10 @@ RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/ai-ml_pip.txt
 RUN python3 -m pip cache purge
 
 # code-server extensions
-RUN code-server --install-extension ms-python.black-formatter --force \
+#RUN code-server --install-extension ms-python.black-formatter --force \
     # && code-server --install-extension ms-python.python --force \
-    && code-server --install-extension ms-toolsai.jupyter --force \
-    && code-server --install-extension redhat.vscode-yaml --force \
+    # && code-server --install-extension ms-toolsai.jupyter --force \
+RUN code-server --install-extension redhat.vscode-yaml --force \
     && code-server --install-extension redhat.vscode-xml --force \
     && code-server --install-extension zhuangtongfa.material-theme --force \
     && code-server --list-extensions --show-versions
