@@ -28,6 +28,7 @@ RUN apt-get update --yes \
     #   https://github.com/krallin/tini#why-tini for details.
     tini \
     gnupg \
+    gnupg1 \
     gnupg2 \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
