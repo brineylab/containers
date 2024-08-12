@@ -15,8 +15,7 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # install -- node.js
 RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
-   # && echo "deb https://deb.nodesource.com/node_14.x focal main" > /etc/apt/sources.list.d/nodesource.list \
-   && echo "deb https://deb.nodesource.com/node_16.x jammy main" > /etc/apt/sources.list.d/nodesource.list \
+   && echo "deb https://deb.nodesource.com/node_20.x jammy main" > /etc/apt/sources.list.d/nodesource.list \
    && apt --yes update \
    && apt --yes install --no-install-recommends \
    nodejs \
@@ -53,7 +52,6 @@ EXPOSE $JUPYTER_PORT
 RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter-extensions_pip.txt \
    && fix-permissions "${REQUIREMENTS_DIR}"
 RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt"
-
 
 # RUN jupyter lab clean
 RUN jupyter lab clean \

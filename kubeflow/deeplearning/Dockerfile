@@ -47,10 +47,9 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/ai-ml_pip.txt
 RUN python3 -m pip cache purge
 
-# jupyterlab extensions
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/nvidia_pip.txt \
-    && fix-permissions ${REQUIREMENTS_DIR}
-RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/nvidia_pip.txt
+# JupyterLab NVdashboard
+# install nightly version for jupyterlab >= 4.0 (https://github.com/rapidsai/jupyterlab-nvdashboard)
+RUN python3 -m pip install --extra-index-url https://pypi.anaconda.org/rapidsai-wheels-nightly/simple --pre jupyterlab_nvdashboard
 RUN python3 -m pip cache purge
 
 # jupyter lab clean

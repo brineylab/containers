@@ -1,6 +1,5 @@
-nodejs >=22.5.1
+# nodejs >=22.5.1
 notebook
 jupyterhub
-# jupyterlab >3.6.0,<4.0.0a1
 jupyterlab >=4.0.0
 jupyter_server >=2.7.0

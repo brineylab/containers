@@ -20,8 +20,11 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 USER root
 
 # Install all OS dependencies for fully functional notebook server
-RUN apt-get update --yes \
+RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
+    && echo "deb https://deb.nodesource.com/node_20.x jammy main" > /etc/apt/sources.list.d/nodesource.list \
+    && apt-get update --yes \
     && apt-get install --yes --no-install-recommends \ 
+    nodejs \
     # for latex labels
     cm-super \ 
     dvipng \ 
@@ -54,8 +57,7 @@ RUN apt-get update --yes \
 
 WORKDIR /tmp
 
-# COPY ../../requirements/jupyter_mamba.txt /tmp
-# RUN fix-permissions /tmp
+# jupyter
 RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
     && fix-permissions "${REQUIREMENTS_DIR}"
 
