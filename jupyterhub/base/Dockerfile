@@ -27,6 +27,8 @@ RUN apt-get update --yes \
     #   processes and such of the actual executable we want to start, see
     #   https://github.com/krallin/tini#why-tini for details.
     tini \
+    gnupg \
+    gnupg2 \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 

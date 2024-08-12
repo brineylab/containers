@@ -19,11 +19,14 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 USER root
 
-# Install all OS dependencies for fully functional notebook server
+# node.js - v20
 RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
     && echo "deb https://deb.nodesource.com/node_20.x jammy main" > /etc/apt/sources.list.d/nodesource.list \
-    && apt-get update --yes \
-    && apt-get install --yes --no-install-recommends \ 
+    && cat /etc/apt/sources.list.d/nodesource.list
+
+# Install all OS dependencies for fully functional notebook server
+RUN apt --yes update \
+    && apt --yes install --no-install-recommends \
     nodejs \
     # for latex labels
     cm-super \ 
@@ -54,6 +57,7 @@ RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key ad
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
+RUN node -v
 
 WORKDIR /tmp
 
