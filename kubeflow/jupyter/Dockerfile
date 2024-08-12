@@ -13,24 +13,6 @@ USER root
 # set shell to bash
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# node.js setup script - version 20
-# RUN curl -fsSL https://deb.nodesource.com/setup_20.x -o nodesource_setup.sh \
-#    && bash -c 'DISTRO=jammy bash nodesource_setup.sh' \
-#    && cat /etc/apt/sources.list.d/nodesource.list
-
-# RUN apt --yes update \
-#    && apt --yes install --no-install-recommends \
-#    nodejs \
-#    # for cython: https://cython.readthedocs.io/en/latest/src/quickstart/install.html
-#    # build-essential \
-#    # for latex labels
-#    cm-super \
-#    dvipng \
-#    # for matplotlib anim
-#    ffmpeg \
-#    && apt clean \
-#    && rm -rf /var/lib/apt/lists/*
-
 RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
     && echo "deb https://deb.nodesource.com/node_20.x jammy main" > /etc/apt/sources.list.d/nodesource.list \
     && cat /etc/apt/sources.list.d/nodesource.list
@@ -48,7 +30,7 @@ RUN apt --yes update \
    && apt clean \
    && rm -rf /var/lib/apt/lists/*
 
-RUN node -v
+   RUN node -v
 
 # jupyter
 RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
