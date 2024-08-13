@@ -27,19 +27,19 @@ RUN apt-get update --yes \
     && rm -rf /var/lib/apt/lists/*
 
 # download requirements files
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/cuda_mamba.txt \
+    && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
     && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/abx_pip.txt \
     && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_pip.txt \
     && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
     && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/ai-ml_pip.txt \
-    && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/cuda.txt \
     && chown -R ${NB_USER}:users ${REQUIREMENTS_DIR}
 
 USER $NB_UID
 
 # CUDA toolkit
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
-RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
+RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda_mamba.txt \
     && mamba clean --all -f -y
 
 # scipy
