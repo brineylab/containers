@@ -86,7 +86,7 @@ jobs:
               push: true
               tags: |
                   brineylab/${{ github.job }}:latest
-                  brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
+                  ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
     
     # ------------------
     #    JUPYTERHUB
@@ -127,9 +127,9 @@ jobs:
                 push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
 
-    # jupyter depends on base and needs to wait to be built
+    # jupyter depends on base
     jupyterhub-jupyter:
         runs-on: ubuntu-latest
         needs: [jupyterhub-base]
@@ -166,9 +166,9 @@ jobs:
                 push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
 
-    # datascience image depends on jupyter
+    # datascience depends on jupyter
     jupyterhub-datascience:
         runs-on: ubuntu-latest-brineylab-large
         needs: [jupyterhub-jupyter]
@@ -205,9 +205,9 @@ jobs:
                 push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
         
-    # deeplearning image depends on datascience
+    # deeplearning depends on datascience
     jupyterhub-deeplearning:
         runs-on: ubuntu-latest-brineylab-large
         needs: [jupyterhub-datascience]
@@ -245,7 +245,7 @@ jobs:
                 push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
 
     # ------------------
     #     KUBEFLOW
@@ -286,7 +286,7 @@ jobs:
                 push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
 
     # python depends on base and needs to wait to be built
     kubeflow-python:
@@ -325,9 +325,9 @@ jobs:
                 push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
 
-    # jupyter depends on python and needs to wait to be built
+    # jupyter depends on python
     kubeflow-jupyter:
         runs-on: ubuntu-latest
         needs: [kubeflow-python]
@@ -364,9 +364,9 @@ jobs:
                 push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
 
-    # datascience image depends on jupyter
+    # datascience depends on jupyter
     kubeflow-datascience:
         runs-on: ubuntu-latest-brineylab-large
         needs: [kubeflow-jupyter]
@@ -403,9 +403,9 @@ jobs:
                 push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
         
-    # deeplearning image depends on datascience
+    # deeplearning depends on datascience
     kubeflow-deeplearning:
         runs-on: ubuntu-latest-brineylab-large
         needs: [kubeflow-datascience]
@@ -442,6 +442,6 @@ jobs:
                 push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
         
 

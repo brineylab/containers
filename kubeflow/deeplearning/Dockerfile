@@ -15,41 +15,39 @@ ENV NVIDIA_VISIBLE_DEVICES='all'
 ENV NVIDIA_DRIVER_CAPABILITIES='compute,utility'
 ENV LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 
-# switch to NB_USER to install python packages
+# switch to NB_USER to install packages
 USER ${NB_UID}
+
+# download requirements file
+RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/cuda_mamba.txt \
+    && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_pip.txt \
+    && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
+    && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/ai-ml_pip.txt \
+    && fix-permissions ${REQUIREMENTS_DIR}
 
 # CUDA toolkit
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/cuda.txt \
-    && fix-permissions ${REQUIREMENTS_DIR}
-RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda.txt \
+RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda_mamba.txt \
     && mamba clean --all -f -y
 
 # pytorch
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/torch_pip.txt \
-    && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install \
     --find-links https://download.pytorch.org/whl/torch_stable.html \
     -r ${REQUIREMENTS_DIR}/torch_pip.txt
-RUN python3 -m pip cache purge
 
 # jax
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/jax_pip.txt \
-    && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install \
     --find-links https://storage.googleapis.com/jax-releases/jax_cuda_releases.html \
     -r ${REQUIREMENTS_DIR}/jax_pip.txt
-RUN python3 -m pip cache purge
 
 # AI/ML packages (including 🤗)
-RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/ai-ml_pip.txt \
-    && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/ai-ml_pip.txt
-RUN python3 -m pip cache purge
 
 # JupyterLab NVdashboard
 # install nightly version for jupyterlab >= 4.0 (https://github.com/rapidsai/jupyterlab-nvdashboard)
 RUN python3 -m pip install --extra-index-url https://pypi.anaconda.org/rapidsai-wheels-nightly/simple --pre jupyterlab_nvdashboard
+
+# purge pip cache after installs
 RUN python3 -m pip cache purge
 
 # jupyter lab clean

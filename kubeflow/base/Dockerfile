@@ -63,4 +63,5 @@ RUN mkdir -p ${HOME} \
     && chown -R ${NB_USER}:users /usr/local/bin \
     && chown -R ${NB_USER}:users /etc/s6
 
+# Switch back to jovyan to avoid accidental container runs as root
 USER $NB_UID

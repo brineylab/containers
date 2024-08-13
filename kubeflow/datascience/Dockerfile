@@ -31,7 +31,7 @@ RUN apt update --yes \
 COPY ipython_kernel_config.py "/etc/ipython/"
 RUN chown -R ${NB_USER}:users /etc/ipython/
 
-# switch to NB_USER to install python packages
+# switch to NB_USER to install packages
 USER ${NB_UID}
 
 # ab[x] and dependencies
@@ -40,6 +40,9 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
 RUN python3 -m pip cache purge
 
+#-----------------
+#       R
+#-----------------
 # # R packages including IRKernel which gets installed globally.
 # # r-e1071: dependency of the caret R package
 # RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_mamba.txt \
@@ -49,6 +52,9 @@ RUN python3 -m pip cache purge
 #    && fix-permissions "${CONDA_DIR}" \
 #    && fix-permissions "/home/${NB_USER}"
 
+# #-----------------
+# #     JULIA
+# #-----------------
 # # Julia installation
 # # Default values can be overridden at build time
 # # (ARGS are in lower case to distinguish them from ENV)
@@ -101,4 +107,3 @@ RUN python3 -m pip cache purge
 #    && rm -rf "${HOME}/.local"
 
 WORKDIR "${HOME}"
-

@@ -25,8 +25,7 @@ ARG NB_GID="100"
 # --------
 # python
 ARG PYTHON_VERSION=3.11
-#codeserver
-# ARG codeserver_version=v4.9.1
+# codeserver
 ARG codeserver_version=v4.18.0
 ENV CODESERVER_VERSION="${codeserver_version}"
 # Spark and dependencies
@@ -122,8 +121,6 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su && \
 
 USER ${NB_UID}
 
-
-
 # Setup work directory for backward-compatibility
 # RUN mkdir "/home/${NB_USER}/work" \
 #     && mkdir "/home/${NB_USER}/codeserver" \
@@ -168,10 +165,8 @@ RUN set -x && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
 
-# make requirements directory
-USER root
-
 # grant sudo and add password for NB_USER
+USER root
 RUN usermod -aG sudo ${NB_USER} \
     && echo "${NB_USER}  ALL=(ALL) NOPASSWD:ALL" | sudo tee /etc/sudoers.d/${NB_USER}
 

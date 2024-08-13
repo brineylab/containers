@@ -15,7 +15,6 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # switch to NB_UID for installs
 USER ${NB_UID}
-
 WORKDIR /tmp
 
 # kubeflow
@@ -50,4 +49,5 @@ RUN mkdir -p /tmp_home \
    && cp -r ${HOME} /tmp_home \
    && chown -R ${NB_USER}:users /tmp_home
 
+# Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}

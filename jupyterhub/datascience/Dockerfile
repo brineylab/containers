@@ -39,6 +39,7 @@ RUN apt-get update --yes \
 COPY ipython_kernel_config.py "/etc/ipython/"
 RUN fix-permissions "/etc/ipython/"
 
+# switch to NB_USER to install packages
 USER ${NB_UID}
 
 # Install pyarrow
@@ -66,12 +67,13 @@ RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_
 USER ${NB_UID}
 
 # code-server extensions
-RUN code-server --install-extension ms-python.black-formatter
-RUN code-server --install-extension ms-python.python
-RUN code-server --install-extension ms-toolsai.jupyter
-RUN code-server --install-extension redhat.vscode-yaml
-RUN code-server --install-extension redhat.vscode-xml
-RUN code-server --install-extension zhuangtongfa.material-theme
+RUN code-server --install-extension ms-python.black-formatter --force \
+    && code-server --install-extension ms-python.python --force \
+    && code-server --install-extension ms-toolsai.jupyter --force \
+    && code-server --install-extension redhat.vscode-yaml --force \
+    && code-server --install-extension redhat.vscode-xml --force \
+    && code-server --install-extension zhuangtongfa.material-theme --force \
+    && code-server --list-extensions --show-versions
 
 RUN mamba install --yes \
     "jupyter-server-proxy" \
@@ -168,14 +170,13 @@ RUN cargo install --locked evcxr_jupyter \
 # #-----------------
 # #     JULIA
 # #-----------------
-
-# USER root
-
 # # Julia installation
 # # Default values can be overridden at build time
 # # (ARGS are in lower case to distinguish them from ENV)
 # # Check https://julialang.org/downloads/
 # # ARG julia_version="1.8.5"  # moved to base
+
+# USER root
 
 # # Julia dependencies
 # # install Julia packages in /opt/julia instead of ${HOME}
@@ -252,17 +253,14 @@ RUN python3 -m pip install \
     && fix-permissions "/home/${NB_USER}"
 RUN python3 -m pip cache purge
 
-
 USER root
 
+# NGS directory
 ENV NGS_TOOLS_DIR="/tools"
-
 RUN mkdir "${NGS_TOOLS_DIR}" \
     && chown "${NB_USER}" "${NGS_TOOLS_DIR}" \
     && fix-permissions "${NGS_TOOLS_DIR}"
-
 ENV PATH="${NGS_TOOLS_DIR}:$PATH"
-
 WORKDIR "${NGS_TOOLS_DIR}"
 
 # bcl2fastq
@@ -323,16 +321,7 @@ RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}" 
 RUN rm -rf "cellranger-8.0.1.tar"
-
 ENV PATH="${NGS_TOOLS_DIR}/cellranger-8.0.1/bin:$PATH"
-
-# RUN wget -q "https://burtonlab.s3.amazonaws.com/software/cellranger-7.1.0.tar.gz" \
-#     && tar xzvf "cellranger-7.1.0.tar.gz" \
-#     && fix-permissions "${NGS_TOOLS_DIR}" \
-#     && fix-permissions "/home/${NB_USER}" 
-# RUN rm -rf "cellranger-7.1.0.tar.gz"
-
-# ENV PATH="${NGS_TOOLS_DIR}/cellranger-7.1.0/bin:$PATH"
 
 # # Parse pipeline
 # RUN wget -q "https://brineylab.s3.amazonaws.com/tools/parse-pipeline-1.2.0.tar.gz" \
@@ -389,12 +378,7 @@ RUN rm -rf "dorado-0.7.0-linux-x64.tar.gz"
 
 ENV PATH="${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64/bin:$PATH"
 
-
+# Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
 
 WORKDIR "${HOME}"
-
-
-
-
-
