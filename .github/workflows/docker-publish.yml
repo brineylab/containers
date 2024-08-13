@@ -42,10 +42,10 @@ jobs:
                 context: ./base
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
 
     # ------------------
     #    CODESERVER
@@ -83,10 +83,10 @@ jobs:
               context: ./kubeflow/codeserver
               cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
               cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-              push: ${{ github.event_name == 'release' }}
+              push: true
               tags: |
                   brineylab/${{ github.job }}:latest
-                  brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                  brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
     
     # ------------------
     #    JUPYTERHUB
@@ -124,10 +124,10 @@ jobs:
                 context: ./jupyterhub/base
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
 
     # jupyter depends on base and needs to wait to be built
     jupyterhub-jupyter:
@@ -163,10 +163,10 @@ jobs:
                 context: ./jupyterhub/jupyter
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
 
     # datascience image depends on jupyter
     jupyterhub-datascience:
@@ -202,10 +202,10 @@ jobs:
                 context: ./jupyterhub/datascience
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
         
     # deeplearning image depends on datascience
     jupyterhub-deeplearning:
@@ -242,10 +242,10 @@ jobs:
                 context: ./jupyterhub/deeplearning
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
 
     # ------------------
     #     KUBEFLOW
@@ -283,10 +283,10 @@ jobs:
                 context: ./kubeflow/base
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
 
     # python depends on base and needs to wait to be built
     kubeflow-python:
@@ -322,10 +322,10 @@ jobs:
                 context: ./kubeflow/python
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
 
     # jupyter depends on python and needs to wait to be built
     kubeflow-jupyter:
@@ -361,10 +361,10 @@ jobs:
                 context: ./kubeflow/jupyter
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
 
     # datascience image depends on jupyter
     kubeflow-datascience:
@@ -400,7 +400,7 @@ jobs:
                 context: ./kubeflow/datascience
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
                     brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
@@ -439,9 +439,9 @@ jobs:
                 context: ./kubeflow/deeplearning
                 cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
                 cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
-                push: ${{ github.event_name == 'release' }}
+                push: true
                 tags: |
                     brineylab/${{ github.job }}:latest
-                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || 'no_push' }}
+                    brineylab/${{ github.job }}:${{ github.event.release.tag_name || '' }}
         
 

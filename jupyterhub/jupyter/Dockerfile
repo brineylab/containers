@@ -57,8 +57,6 @@ RUN apt --yes update \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
-RUN node -v
-
 WORKDIR /tmp
 
 # jupyter

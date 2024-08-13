@@ -30,8 +30,6 @@ RUN apt --yes update \
    && apt clean \
    && rm -rf /var/lib/apt/lists/*
 
-   RUN node -v
-
 # jupyter
 RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
    && fix-permissions "${REQUIREMENTS_DIR}"
