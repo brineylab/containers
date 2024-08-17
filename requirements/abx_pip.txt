@@ -22,6 +22,7 @@ polars
 prettytable
 pyfamsa
 pymongo
+pypalettes @ git+https://github.com/JosephBARBIERDARNAL/pypalettes@main
 pytest
 python-circos
 python-Levenshtein
