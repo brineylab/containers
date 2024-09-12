@@ -146,7 +146,8 @@ RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
-
+RUN R -e "install.packages('duckdb', dependencies=TRUE, repos='http://cran.rstudio.com/')"
+RUN R -e "install.packages('pak', dependencies=TRUE, repos='http://cran.rstudio.com/')"
 
 #-----------------
 #     Rust
