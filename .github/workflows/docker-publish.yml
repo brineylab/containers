@@ -209,7 +209,7 @@ jobs:
         
     # deeplearning depends on datascience
     jupyterhub-deeplearning:
-        runs-on: ubuntu-latest-brineylab-large
+        runs-on: ubuntu-latest-brineylab-xlarge
         needs: [jupyterhub-datascience]
 
         permissions:
