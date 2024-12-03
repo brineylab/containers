@@ -25,6 +25,12 @@ RUN apt-get update --yes \
     fonts-dejavu \
     gfortran \
     gcc \
+    # for PyRosetta
+    cmake \
+    ninja-build \
+    g++ \
+    clang \
+    python3.11-dev \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
@@ -352,20 +358,20 @@ RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && python3 -m pip install networkx==2.1 \
     && conda deactivate
 
-# ANARCI
-USER ${NB_UID}
+# # ANARCI
+# USER ${NB_UID}
 
-RUN cd "${NGS_TOOLS_DIR}" \
-    && git clone "https://github.com/oxpig/ANARCI" \
-    && fix-permissions "${NGS_TOOLS_DIR}/ANARCI" \
-    && fix-permissions "/home/${NB_USER}"
+# RUN cd "${NGS_TOOLS_DIR}" \
+#     && git clone "https://github.com/oxpig/ANARCI" \
+#     && fix-permissions "${NGS_TOOLS_DIR}/ANARCI" \
+#     && fix-permissions "/home/${NB_USER}"
 
-RUN mamba install -c conda-forge biopython -y \
-    && mamba install -c bioconda hmmer=3.3.2 -y \
-    && cd "${NGS_TOOLS_DIR}/ANARCI" \
-    && python3 setup.py install \
-    && fix-permissions "${NGS_TOOLS_DIR}/ANARCI" \
-    && fix-permissions "/home/${NB_USER}"
+# RUN mamba install -c conda-forge biopython -y \
+#     && mamba install -c bioconda hmmer=3.3.2 -y \
+#     && cd "${NGS_TOOLS_DIR}/ANARCI" \
+#     && python3 setup.py install \
+#     && fix-permissions "${NGS_TOOLS_DIR}/ANARCI" \
+#     && fix-permissions "/home/${NB_USER}"
 
 
 # dorado (ONT)
