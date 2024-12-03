@@ -20,9 +20,10 @@ SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 USER root
 
 # node.js - v20
-RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
-    && echo "deb https://deb.nodesource.com/node_20.x jammy main" > /etc/apt/sources.list.d/nodesource.list \
-    && cat /etc/apt/sources.list.d/nodesource.list
+# RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
+#     && echo "deb https://deb.nodesource.com/node_20.x jammy main" > /etc/apt/sources.list.d/nodesource.list \
+#     && cat /etc/apt/sources.list.d/nodesource.list
+RUN mamba install --yes -c conda-forge nodejs
 
 # Install all OS dependencies for fully functional notebook server
 RUN apt --yes update \
