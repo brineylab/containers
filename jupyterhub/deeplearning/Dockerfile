@@ -50,10 +50,13 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
 # RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda_mamba.txt \
 
+RUN mamba install --yes -c nvidia "cuda-toolkit~=12.4"
+
+
 RUN mamba install --yes -c nvidia \
     "cuda~=12.4" \
     "cuda-tools~=12.4" \
-    "cuda-toolkit~=12.4" \
+    # "cuda-toolkit~=12.4" \
     "cuda-version~=12.4" \
     "cuda-command-line-tools~=12.4" \
     "cuda-compiler~=12.4" \
