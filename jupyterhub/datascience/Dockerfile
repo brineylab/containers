@@ -373,7 +373,7 @@ RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     "minimap2=2.28" \
     && mamba clean --all -f -y \
     && python3 -m pip install --no-deps -e . \
-    && python3 -m pip install "networkx==2.1" \
+    && python3 -m pip install "networkx==2.1"
     # && conda deactivate
 
 # # ANARCI
