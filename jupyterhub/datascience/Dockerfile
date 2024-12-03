@@ -352,11 +352,29 @@ RUN cd "${NGS_TOOLS_DIR}" \
 USER ${NB_UID}
 
 RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
-    && conda env create -f environment.yml -n igdiscover \
-    && source activate igdiscover \
+    # && conda env create -f environment.yml -n igdiscover \
+    # && source activate igdiscover \
+    && mamba install --yes \
+    nomkl \
+    "snakemake-minimal>=4.5" \
+    scipy \
+    # "cutadapt>=2.8" \
+    "muscle=3.8.1551" \
+    pear \
+    flash \
+    "igblast=1.19" \
+    "ruamel.yaml>=0.15" \
+    "vsearch=2.15.2" \
+    dnaio \
+    "xopen>=1.2.0" \
+    "tinyalign>=0.2" \
+    regex \
+    "networkx=2.5" \
+    "minimap2=2.28" \
+    && mamba clean --all -f -y \
     && python3 -m pip install --no-deps -e . \
-    && python3 -m pip install networkx==2.1 \
-    && conda deactivate
+    && python3 -m pip install "networkx==2.1" \
+    # && conda deactivate
 
 # # ANARCI
 # USER ${NB_UID}
