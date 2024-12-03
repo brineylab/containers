@@ -50,7 +50,13 @@ RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.co
 # Version error fix: https://github.com/google-deepmind/alphafold/issues/945
 # RUN mamba install -y -c nvidia --file ${REQUIREMENTS_DIR}/cuda_mamba.txt \
 
-RUN mamba install --yes -c nvidia "cuda-toolkit~=12.4"
+RUN mamba install --yes -c nvidia "cuda-toolkit~=12.4" \
+    && mamba clean --all -f -y \
+    # link cuda directory (installed by mamba) to /usr/local/cuda
+    # without this, jax can't find libdevice.10.bc 
+    # see: https://github.com/jax-ml/jax/issues/4452
+    && sudo mkdir -p /usr/local/cuda \
+    && sudo ln -s /opt/conda/* /usr/local/cuda/
 
 
 RUN mamba install --yes -c nvidia \
@@ -61,12 +67,12 @@ RUN mamba install --yes -c nvidia \
     "cuda-command-line-tools~=12.4" \
     "cuda-compiler~=12.4" \
     "cuda-runtime~=12.4" \
-    && mamba clean --all -f -y \
-    # link cuda directory (installed by mamba) to /usr/local/cuda
-    # without this, jax can't find libdevice.10.bc 
-    # see: https://github.com/jax-ml/jax/issues/4452
-    && sudo mkdir -p /usr/local/cuda \
-    && sudo ln -s /opt/conda/* /usr/local/cuda/
+    && mamba clean --all -f -y 
+    # # link cuda directory (installed by mamba) to /usr/local/cuda
+    # # without this, jax can't find libdevice.10.bc 
+    # # see: https://github.com/jax-ml/jax/issues/4452
+    # && sudo mkdir -p /usr/local/cuda \
+    # && sudo ln -s /opt/conda/* /usr/local/cuda/
     
 
 # RUN python3 -m pip install nvidia-pyindex
