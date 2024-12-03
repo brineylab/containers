@@ -1,12 +1,19 @@
+# training
 lightning
 deepspeed
+# logging
 wandb
-# equinox  # removed to save space
+# jax-related
 flax
+chex
+optax
+equinox
+haliax  # removed to save space
+levanter  # removed to save space
+# others
 keras
-# haliax  # removed to save space
-# levanter  # removed to save space
-# gradio # requires pydantic>=2, which conflicts with jupyter-ai. We can re-include once juptyer-ai is updated to support pydantic>=2
+treescope
+gradio
 # huggingface
 accelerate
 datasets
