@@ -155,23 +155,23 @@ RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
 RUN R -e "install.packages('duckdb', dependencies=TRUE, repos='http://cran.rstudio.com/')"
 RUN R -e "install.packages('pak', dependencies=TRUE, repos='http://cran.rstudio.com/')"
 
-#-----------------
-#     Rust
-#-----------------
+# #-----------------
+# #     Rust
+# #-----------------
 
-# install Rust
-RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-    && fix-permissions "${HOME}/.cargo" \
-    && fix-permissions "/home/${NB_USER}" \
-    && sudo chmod +x "${HOME}/.cargo/env" \
-    && "${HOME}/.cargo/env"
+# # install Rust
+# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+#     && fix-permissions "${HOME}/.cargo" \
+#     && fix-permissions "/home/${NB_USER}" \
+#     && sudo chmod +x "${HOME}/.cargo/env" \
+#     && "${HOME}/.cargo/env"
 
-ENV PATH="${HOME}/.cargo/bin:$PATH"
+# ENV PATH="${HOME}/.cargo/bin:$PATH"
 
-# install excvr
-RUN cargo install --locked evcxr_jupyter \
-    && evcxr_jupyter --install \
-    && rustup component add rust-src
+# # install excvr
+# RUN cargo install --locked evcxr_jupyter \
+#     && evcxr_jupyter --install \
+#     && rustup component add rust-src
 
 
 # #-----------------
@@ -232,21 +232,21 @@ USER ${NB_UID}
 #     && fix-permissions "${JULIA_PKGDIR}" "${CONDA_DIR}/share/jupyter"
 
 
-#-----------------
-#     Mojo 🔥
-#-----------------
+# #-----------------
+# #     Mojo 🔥
+# #-----------------
 
-# install instructions from https://docs.modular.com/mojo/manual/get-started/
+# # install instructions from https://docs.modular.com/mojo/manual/get-started/
 
-RUN sudo curl -s https://get.modular.com | sh -
+# RUN sudo curl -s https://get.modular.com | sh -
 
-RUN modular install mojo
+# RUN modular install mojo
 
-RUN MOJO_PATH=$(modular config mojo.path) \
-  && BASHRC=$( [ -f "$HOME/.bash_profile" ] && echo "$HOME/.bash_profile" || echo "$HOME/.bashrc" ) \
-  && echo 'export MODULAR_HOME="'$HOME'/.modular"' >> "$BASHRC" \
-  && echo 'export PATH="'$MOJO_PATH'/bin:$PATH"' >> "$BASHRC" \
-  && source "$BASHRC"
+# RUN MOJO_PATH=$(modular config mojo.path) \
+#   && BASHRC=$( [ -f "$HOME/.bash_profile" ] && echo "$HOME/.bash_profile" || echo "$HOME/.bashrc" ) \
+#   && echo 'export MODULAR_HOME="'$HOME'/.modular"' >> "$BASHRC" \
+#   && echo 'export PATH="'$MOJO_PATH'/bin:$PATH"' >> "$BASHRC" \
+#   && source "$BASHRC"
 
 
 #-------------------
