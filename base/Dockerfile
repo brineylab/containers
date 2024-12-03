@@ -58,7 +58,7 @@ RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \
     # - bzip2 is necessary to extract the micromamba executable.
     bzip2 \
-    ca-certificates \
+    # ca-certificates \
     locales \
     sudo \
     wget \
@@ -84,6 +84,10 @@ RUN apt-get update --yes \
     && rm -rf /var/lib/apt/lists/* \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
     && locale-gen
+
+RUN apt update && \
+ apt install -y --no-install-recommends \
+    ca-certificates
 
 # Configure environment
 ENV CONDA_DIR=/opt/conda \
@@ -144,7 +148,7 @@ RUN set -x && \
     # Should be simpler, see <https://github.com/mamba-org/mamba/issues/1437>
     arch="64"; \
     fi && \
-    wget -qO /tmp/micromamba.tar.bz2 \
+    wget -qO /tmp/micromamba.tar.bz2 --no-check-certificate \
     "https://micromamba.snakepit.net/api/micromamba/linux-${arch}/latest" && \
     tar -xvjf /tmp/micromamba.tar.bz2 --strip-components=1 bin/micromamba && \
     rm /tmp/micromamba.tar.bz2 && \
@@ -160,10 +164,13 @@ RUN set -x && \
     'jupyter_core' && \
     rm micromamba && \
     # Pin major.minor version of python
-    mamba list python | grep '^python ' | tr -s ' ' | cut -d ' ' -f 1,2 >> "${CONDA_DIR}/conda-meta/pinned" && \
+    # mamba list python | grep '^python ' | tr -s ' ' | cut -d ' ' -f 1,2 >> "${CONDA_DIR}/conda-meta/pinned" && \
     mamba clean --all -f -y && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
+
+# pin major.minor version of python
+RUN mamba list python | grep '^python ' | tr -s ' ' | cut -d ' ' -f 1,2 >> "${CONDA_DIR}/conda-meta/pinned"
 
 # grant sudo and add password for NB_USER
 USER root
