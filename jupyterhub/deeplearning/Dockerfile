@@ -204,16 +204,16 @@ RUN cd "${NGS_TOOLS_DIR}" \
     && python3 -m pip install . \
     && fix-permissions "${NGS_TOOLS_DIR}/ColabDesign"
 
-# Rosetta (and PyRosetta)
-ENV CXX=/usr/bin/g++
-ENV CC=/usr/bin/gcc
-RUN cd "${NGS_TOOLS_DIR}" \
-    && git clone "https://github.com/RosettaCommons/Rosetta.git" \
-    && cd Rosetta/source/ \
-    && ./scons.py -j12 mode=release bin \
-    && cd src/python/PyRosetta \
-    && python3 build.py -j12 \
-    && fix-permissions "${NGS_TOOLS_DIR}/Rosetta"
+# # Rosetta (and PyRosetta)
+# ENV CXX=/usr/bin/g++
+# ENV CC=/usr/bin/gcc
+# RUN cd "${NGS_TOOLS_DIR}" \
+#     && git clone "https://github.com/RosettaCommons/Rosetta.git" \
+#     && cd Rosetta/source/ \
+#     && ./scons.py -j12 mode=release bin \
+#     && cd src/python/PyRosetta \
+#     && python3 build.py -j12 \
+#     && fix-permissions "${NGS_TOOLS_DIR}/Rosetta"
 
 
 #-------------------------
