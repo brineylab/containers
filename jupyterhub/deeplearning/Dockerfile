@@ -74,9 +74,9 @@ RUN mamba install --yes -c nvidia \
     && sudo mkdir -p /usr/local/cuda \
     && sudo ln -s /opt/conda/* /usr/local/cuda/
 
-RUN mamba install --yes -c nvidia \
-    "cuda-version~=12.4" \
-    && mamba clean --all -f -y 
+# RUN mamba install --yes -c nvidia \
+#     "cuda-version~=12.4" \
+#     && mamba clean --all -f -y 
     
 
 # RUN python3 -m pip install nvidia-pyindex
