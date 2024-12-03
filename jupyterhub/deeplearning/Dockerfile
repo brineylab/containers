@@ -58,7 +58,6 @@ RUN mamba install --yes -c nvidia \
     "cuda-command-line-tools~=12.4" \
     "cuda-compiler~=12.4" \
     "cuda-runtime~=12.4" \
-
     && mamba clean --all -f -y \
     # link cuda directory (installed by mamba) to /usr/local/cuda
     # without this, jax can't find libdevice.10.bc 
@@ -197,7 +196,7 @@ ENV CXX=/usr/bin/g++
 ENV CC=/usr/bin/gcc
 RUN cd "${NGS_TOOLS_DIR}" \
     && git clone "https://github.com/RosettaCommons/Rosetta.git" \
-    && cd Rosetta \
+    && cd Rosetta/source/ \
     && ./scons.py -j12 mode=release bin \
     && cd src/python/PyRosetta \
     && python3 build.py -j12 \
@@ -212,10 +211,18 @@ RUN python3 -m pip install \
     # protein models
     boltz \
     fair-esm \
-    chai_lab \
+    # chai_lab \
     # antibody models
     ablang2 \
-    igfold 
+    # igfold \
+    ImmuneBuilder \
+    "git+https://github.com/OliverT1/p-IgGen.git" 
+
+# RUN cd "${NGS_TOOLS_DIR}" \
+#     && git clone "https://github.com/oxpig/AntiFold" \
+#     && cd AntiFold \
+#     && python3 -m pip install . \
+#     && fix-permissions "${NGS_TOOLS_DIR}/AntiFold"
 
 
 # purge pip cache after installs
