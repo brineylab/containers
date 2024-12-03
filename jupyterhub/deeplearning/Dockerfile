@@ -192,6 +192,31 @@ RUN cd "${NGS_TOOLS_DIR}" \
     && python3 -m pip install . \
     && fix-permissions "${NGS_TOOLS_DIR}/ColabDesign"
 
+# Rosetta (and PyRosetta)
+ENV CXX=/usr/bin/g++
+ENV CC=/usr/bin/gcc
+RUN cd "${NGS_TOOLS_DIR}" \
+    && git clone "https://github.com/RosettaCommons/Rosetta.git" \
+    && cd Rosetta \
+    && ./scons.py -j12 mode=release bin \
+    && cd src/python/PyRosetta \
+    && python3 build.py -j12 \
+    && fix-permissions "${NGS_TOOLS_DIR}/Rosetta"
+
+
+#-------------------------
+#    Ab/protein models
+#-------------------------
+
+RUN python3 -m pip install \
+    # protein models
+    boltz \
+    fair-esm \
+    chai_lab \
+    # antibody models
+    ablang2 \
+    igfold 
+
 
 # purge pip cache after installs
 RUN python3 -m pip cache purge
