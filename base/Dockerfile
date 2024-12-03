@@ -164,13 +164,11 @@ RUN set -x && \
     'jupyter_core' && \
     rm micromamba && \
     # Pin major.minor version of python
+    echo "python ${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned" && \
     # mamba list python | grep '^python ' | tr -s ' ' | cut -d ' ' -f 1,2 >> "${CONDA_DIR}/conda-meta/pinned" && \
     mamba clean --all -f -y && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
-
-# pin major.minor version of python
-RUN mamba list python | grep '^python ' | tr -s ' ' | cut -d ' ' -f 1,2 >> "${CONDA_DIR}/conda-meta/pinned"
 
 # grant sudo and add password for NB_USER
 USER root
