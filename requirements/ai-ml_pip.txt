@@ -14,7 +14,6 @@ levanter  # removed to save space
 keras
 treescope
 gradio
-mercury  # used to make jupyter widgets: https://github.com/mljar/mercury
 # huggingface
 accelerate
 datasets
