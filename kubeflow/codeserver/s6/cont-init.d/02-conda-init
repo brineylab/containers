@@ -1,7 +1,0 @@
-#!/usr/bin/with-contenv bash
-
-# conda init bash
-# conda activate base
-
-mamba init bash
-mamba activate base
