@@ -106,15 +106,16 @@ RUN python3 -m pip cache purge
 #-----------------
 
 # R packages including IRKernel which gets installed globally.
-# r-e1071: dependency of the caret R package
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_mamba.txt \
+    && wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/r_cran.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
-RUN R -e "install.packages('duckdb', dependencies=TRUE, repos='http://cran.rstudio.com/')"
-RUN R -e "install.packages('pak', dependencies=TRUE, repos='http://cran.rstudio.com/')"
+
+# install R packages that are not available in mamba with CRAN
+RUN Rscript -e "pkgs <- scan('${REQUIREMENTS_DIR}/r_cran.txt', what=''); install.packages(pkgs, dependencies=TRUE, repos='http://cran.rstudio.com/')"
 
 
 #-------------------

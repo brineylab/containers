@@ -3,13 +3,14 @@ r-base
 r-caret
 r-crayon
 r-devtools
-r-e1071
+r-e1071 # dependency of the caret R package
 r-forecast
 r-hexbin
 r-htmltools
 r-htmlwidgets
 r-irkernel
 r-nycflights13
+r-pak
 r-randomforest
 r-rcurl
 r-rmarkdown
