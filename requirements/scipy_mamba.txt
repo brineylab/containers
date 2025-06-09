@@ -17,12 +17,12 @@ ipywidgets
 matplotlib-base
 modelcif
 natsort
-nodejs
+nodejs>=20.0.0
 numba
 numexpr
 openmm  # == 7.7.0
 openpyxl
-pandas <2.0.0
+pandas<2.0.0
 patsy
 pdbfixer
 protobuf
