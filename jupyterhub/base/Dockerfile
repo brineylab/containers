@@ -87,15 +87,15 @@ RUN apt-get update --yes \
 # Configure environmental variables
 ENV CONDA_DIR=/opt/conda \
     SHELL=/bin/bash \
-    NB_USER="${NB_USER}" \
+    NB_USER=${NB_USER} \
     NB_UID=${NB_UID} \
     NB_GID=${NB_GID} \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8 \
-    PATH="${CONDA_DIR}/bin:${PATH}" \
-    HOME="/home/${NB_USER}" \
-    REQUIREMENTS_DIR="${HOME}/.requirements"
+    LANGUAGE=en_US.UTF-8
+ENV PATH="${CONDA_DIR}/bin:${PATH}"
+ENV HOME="/home/${NB_USER}"
+ENV REQUIREMENTS_DIR="${HOME}/.requirements"
 
 # Copy script to fix permissions
 COPY fix-permissions /usr/local/bin/fix-permissions
@@ -158,7 +158,6 @@ RUN set -x \
     && fix-permissions "/home/${NB_USER}"
 
 # Make requirements directory
-ENV REQUIREMENTS_DIR="${HOME}/.requirements"
 RUN mkdir -p ${REQUIREMENTS_DIR} \
     && fix-permissions ${REQUIREMENTS_DIR}
 
