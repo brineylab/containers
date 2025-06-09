@@ -13,10 +13,6 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
 
-# Fix: https://github.com/hadolint/hadolint/wiki/DL4006
-# Fix: https://github.com/koalaman/shellcheck/wiki/SC3014
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 USER root
 
 # R pre-requisites
@@ -209,13 +205,10 @@ RUN cd "${NGS_TOOLS_DIR}" \
 USER ${NB_UID}
 
 RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
-    # && conda env create -f environment.yml -n igdiscover \
-    # && source activate igdiscover \
     && mamba install --yes \
     nomkl \
     "snakemake-minimal>=4.5" \
     scipy \
-    # "cutadapt>=2.8" \
     "muscle=3.8.1551" \
     pear \
     flash \
@@ -231,7 +224,6 @@ RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && mamba clean --all -f -y \
     && python3 -m pip install --no-deps -e . \
     && python3 -m pip install "networkx==2.1"
-    # && conda deactivate
 
 # dorado (ONT)
 RUN cd "${NGS_TOOLS_DIR}" \

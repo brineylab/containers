@@ -13,10 +13,6 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
 
-# Fix: https://github.com/hadolint/hadolint/wiki/DL4006
-# Fix: https://github.com/koalaman/shellcheck/wiki/SC3014
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
 USER root
 
 # nvidia configs
@@ -65,4 +61,3 @@ RUN python3 -m pip install \
 
 # purge pip cache after installs
 RUN python3 -m pip cache purge
-
