@@ -92,53 +92,14 @@ RUN mamba install --yes \
 ENV CODE_WORKINGDIR="${HOME}/codeserver"
 
 
-#----------------------
-#      DESKTOP
-#----------------------
-
-# USER root
-
-# # install ubuntu desktop GUI
-# RUN apt-get update --yes \
-#     && apt-get install --yes --no-install-recommends \
-#     # "ubuntu-desktop" \
-#     "dbus-x11" \ 
-#     "libgl1-mesa-glx" \
-#     "xorg" \ 
-#     "xfce4" \
-#     "xfce4-panel" \ 
-#     "xfce4-session" \ 
-#     "xfce4-settings" \ 
-#     "xubuntu-icon-theme" \ 
-#     && apt-get remove --yes --quiet light-locker \
-#     && apt-get clean \ 
-#     && rm -rf /var/lib/apt/lists/*
-
-# USER ${NB_UID}
-
-# # install plugin for accessing the desktop
-# # from inside JupyterHub
-# RUN python3 -m pip install \
-#     "jupyter-remote-desktop-proxy"
-
-# # install websockify
-# RUN mamba install --quiet --yes \
-#     "websockify" \
-#     && mamba clean --all -f -y \
-#     && fix-permissions "${CONDA_DIR}" \
-#     && fix-permissions "/home/${NB_USER}"
-
-
 #-----------------------------
 #   ab[x] and dependencies
 #-----------------------------
 
-# ab[x] and dependencies
 RUN wget --directory-prefix=${REQUIREMENTS_DIR} https://raw.githubusercontent.com/briney/containers/main/requirements/abx_pip.txt \
     && fix-permissions ${REQUIREMENTS_DIR}
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt
 RUN python3 -m pip cache purge
-
 
 #-----------------
 #       R
@@ -154,99 +115,6 @@ RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
     && fix-permissions "/home/${NB_USER}"
 RUN R -e "install.packages('duckdb', dependencies=TRUE, repos='http://cran.rstudio.com/')"
 RUN R -e "install.packages('pak', dependencies=TRUE, repos='http://cran.rstudio.com/')"
-
-# #-----------------
-# #     Rust
-# #-----------------
-
-# # install Rust
-# RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
-#     && fix-permissions "${HOME}/.cargo" \
-#     && fix-permissions "/home/${NB_USER}" \
-#     && sudo chmod +x "${HOME}/.cargo/env" \
-#     && "${HOME}/.cargo/env"
-
-# ENV PATH="${HOME}/.cargo/bin:$PATH"
-
-# # install excvr
-# RUN cargo install --locked evcxr_jupyter \
-#     && evcxr_jupyter --install \
-#     && rustup component add rust-src
-
-
-# #-----------------
-# #     JULIA
-# #-----------------
-# # Julia installation
-# # Default values can be overridden at build time
-# # (ARGS are in lower case to distinguish them from ENV)
-# # Check https://julialang.org/downloads/
-# # ARG julia_version="1.8.5"  # moved to base
-
-# USER root
-
-# # Julia dependencies
-# # install Julia packages in /opt/julia instead of ${HOME}
-# ENV JULIA_DEPOT_PATH=/opt/julia \
-#     JULIA_PKGDIR=/opt/julia
-#     # JULIA_VERSION="${julia_version}"  # moved to base
-
-# WORKDIR /tmp
-
-# # hadolint ignore=SC2046
-# RUN set -x \
-#     && julia_arch=$(uname -m) \
-#     && julia_short_arch="${julia_arch}" \
-#     && if [ "${julia_short_arch}" == "x86_64" ]; then \
-#     julia_short_arch="x64"; \
-#     fi; \
-#     julia_installer="julia-${JULIA_VERSION}-linux-${julia_arch}.tar.gz" \
-#     && julia_major_minor=$(echo "${JULIA_VERSION}" | cut -d. -f 1,2) \
-#     && mkdir "/opt/julia-${JULIA_VERSION}" \
-#     && wget -q "https://julialang-s3.julialang.org/bin/linux/${julia_short_arch}/${julia_major_minor}/${julia_installer}" \
-#     && tar xzf "${julia_installer}" -C "/opt/julia-${JULIA_VERSION}" --strip-components=1 \
-#     && rm "${julia_installer}" \
-#     && ln -fs /opt/julia-*/bin/julia /usr/local/bin/julia
-
-# # Show Julia where conda libraries are \
-# RUN mkdir /etc/julia \
-#     && echo "push!(Libdl.DL_LOAD_PATH, \"${CONDA_DIR}/lib\")" >> /etc/julia/juliarc.jl \
-#     # Create JULIA_PKGDIR 
-#     && mkdir "${JULIA_PKGDIR}" \
-#     && chown "${NB_USER}" "${JULIA_PKGDIR}" \
-#     && fix-permissions "${JULIA_PKGDIR}"
-
-USER ${NB_UID}
-
-# # Add Julia packages.
-# # Install IJulia as jovyan and then move the kernelspec out
-# # to the system share location. Avoids problems with runtime UID change not
-# # taking effect properly on the .local folder in the jovyan home dir.
-# RUN julia -e 'import Pkg; Pkg.update()' \
-#     && julia -e 'import Pkg; Pkg.add("HDF5")' \
-#     && julia -e 'using Pkg; pkg"add IJulia"; pkg"precompile"' \
-#     # move kernelspec out of home \
-#     && mv "${HOME}/.local/share/jupyter/kernels/julia"* "${CONDA_DIR}/share/jupyter/kernels/" \
-#     && chmod -R go+rx "${CONDA_DIR}/share/jupyter" \
-#     && rm -rf "${HOME}/.local" \
-#     && fix-permissions "${JULIA_PKGDIR}" "${CONDA_DIR}/share/jupyter"
-
-
-# #-----------------
-# #     Mojo 🔥
-# #-----------------
-
-# # install instructions from https://docs.modular.com/mojo/manual/get-started/
-
-# RUN sudo curl -s https://get.modular.com | sh -
-
-# RUN modular install mojo
-
-# RUN MOJO_PATH=$(modular config mojo.path) \
-#   && BASHRC=$( [ -f "$HOME/.bash_profile" ] && echo "$HOME/.bash_profile" || echo "$HOME/.bashrc" ) \
-#   && echo 'export MODULAR_HOME="'$HOME'/.modular"' >> "$BASHRC" \
-#   && echo 'export PATH="'$MOJO_PATH'/bin:$PATH"' >> "$BASHRC" \
-#   && source "$BASHRC"
 
 
 #-------------------
@@ -330,18 +198,6 @@ RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
 RUN rm -rf "cellranger-8.0.1.tar"
 ENV PATH="${NGS_TOOLS_DIR}/cellranger-8.0.1/bin:$PATH"
 
-# # Parse pipeline
-# RUN wget -q "https://brineylab.s3.amazonaws.com/tools/parse-pipeline-1.2.0.tar.gz" \
-#     && tar xzvf "parse-pipeline-1.2.0.tar.gz" \
-#     && cd "${NGS_TOOLS_DIR}/parse-pipeline-1.2.0" \
-#     && bash ./install_dependencies_conda.sh -i -y \
-#     && bash ./install_TCR.sh -i -y \
-#     && python3 -m pip install . --no-cache-dir \
-#     && fix-permissions "${NGS_TOOLS_DIR}" \
-#     && fix-permissions "/home/${NB_USER}"
-
-# ENV PATH="${NGS_TOOLS_DIR}/parse-pipeline-1.2.0:$PATH"
-
 # IgDiscover
 RUN cd "${NGS_TOOLS_DIR}" \
     && git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
@@ -376,22 +232,6 @@ RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && python3 -m pip install "networkx==2.1"
     # && conda deactivate
 
-# # ANARCI
-# USER ${NB_UID}
-
-# RUN cd "${NGS_TOOLS_DIR}" \
-#     && git clone "https://github.com/oxpig/ANARCI" \
-#     && fix-permissions "${NGS_TOOLS_DIR}/ANARCI" \
-#     && fix-permissions "/home/${NB_USER}"
-
-# RUN mamba install -c conda-forge biopython -y \
-#     && mamba install -c bioconda hmmer=3.3.2 -y \
-#     && cd "${NGS_TOOLS_DIR}/ANARCI" \
-#     && python3 setup.py install \
-#     && fix-permissions "${NGS_TOOLS_DIR}/ANARCI" \
-#     && fix-permissions "/home/${NB_USER}"
-
-
 # dorado (ONT)
 RUN cd "${NGS_TOOLS_DIR}" \
     && wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar.gz" \
@@ -400,10 +240,8 @@ RUN cd "${NGS_TOOLS_DIR}" \
     && fix-permissions "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
     && fix-permissions "/home/${NB_USER}"
 RUN rm -rf "dorado-0.7.0-linux-x64.tar.gz"
-
 ENV PATH="${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64/bin:$PATH"
 
 # Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
-
 WORKDIR "${HOME}"
