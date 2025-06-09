@@ -35,16 +35,29 @@ ENV CODESERVER_VERSION="${codeserver_version}" \
     HADOOP_VERSION="${hadoop_version}" \
     JULIA_VERSION="${julia_version}"
 
+# Environmental variables
+ENV DEBIAN_FRONTEND=noninteractive \
+    CONDA_DIR=/opt/conda \
+    SHELL=/bin/bash \
+    NB_USER=${NB_USER} \
+    NB_UID=${NB_UID} \
+    NB_GID=${NB_GID} \
+    LC_ALL=en_US.UTF-8 \
+    LANG=en_US.UTF-8 \
+    LANGUAGE=en_US.UTF-8
+ENV PATH="${CONDA_DIR}/bin:${PATH}"
+ENV HOME="/home/${NB_USER}"
+ENV REQUIREMENTS_DIR="${HOME}/.requirements"
+
 # Fix: https://github.com/hadolint/hadolint/wiki/DL4006
 # Fix: https://github.com/koalaman/shellcheck/wiki/SC3014
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
-# Root user
-USER root
 
-# Install all OS dependencies for notebook server that starts but lacks all
-# features (e.g., download as all possible file formats)
-ENV DEBIAN_FRONTEND=noninteractive
+# ----------------------------
+#       OS dependencies
+# ----------------------------
+USER root
 RUN apt-get update --yes \
     # - apt-get upgrade is run to patch known vulnerabilities in apt-get packages as
     #   the ubuntu base image is rebuilt too seldom sometimes (less than once a month)
@@ -84,21 +97,11 @@ RUN apt-get update --yes \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
     && locale-gen
 
-# Configure environmental variables
-ENV CONDA_DIR=/opt/conda \
-    SHELL=/bin/bash \
-    NB_USER=${NB_USER} \
-    NB_UID=${NB_UID} \
-    NB_GID=${NB_GID} \
-    LC_ALL=en_US.UTF-8 \
-    LANG=en_US.UTF-8 \
-    LANGUAGE=en_US.UTF-8
-ENV PATH="${CONDA_DIR}/bin:${PATH}"
-ENV HOME="/home/${NB_USER}"
-ENV REQUIREMENTS_DIR="${HOME}/.requirements"
-
+# ----------------------------
+#       User Setup
+# ----------------------------
 # Copy script to fix permissions
-COPY fix-permissions /usr/local/bin/fix-permissions
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/base/fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
 
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
@@ -121,15 +124,17 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su \
     && usermod -aG sudo ${NB_USER} \
     && echo "${NB_USER}  ALL=(ALL) NOPASSWD:ALL" | tee /etc/sudoers.d/${NB_USER}
 
-# Switch to notebook user for user-level setup
-USER ${NB_UID}
 
+# ----------------------------
+#         Micromamba
+# ----------------------------
 # Download and install Micromamba, and initialize Conda prefix.
 #   <https://github.com/mamba-org/mamba#micromamba>
 #   Similar projects using Micromamba:
 #     - Micromamba-Docker: <https://github.com/mamba-org/micromamba-docker>
 #     - repo2docker: <https://github.com/jupyterhub/repo2docker>
-COPY --chown="${NB_UID}:${NB_GID}" initial-condarc "${CONDA_DIR}/.condarc"
+USER ${NB_UID}
+COPY --chown="${NB_UID}:${NB_GID}" ./jupyterhub/base/initial-condarc "${CONDA_DIR}/.condarc"
 WORKDIR /tmp
 RUN set -x \
     && arch=$(uname -m) \
@@ -157,19 +162,29 @@ RUN set -x \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
-# Make requirements directory
-RUN mkdir -p ${REQUIREMENTS_DIR} \
-    && fix-permissions ${REQUIREMENTS_DIR}
 
-# Setup work directory for backward-compatibility
-RUN mkdir "/home/${NB_USER}/work" \
+# ----------------------------
+#         Directories
+# ----------------------------
+USER root
+
+# Make requirements directory
+# And work directory for backward-compatibility
+RUN mkdir -p ${REQUIREMENTS_DIR} \
+    && mkdir "/home/${NB_USER}/work" \
     && mkdir "/home/${NB_USER}/codeserver" \
+    && fix-permissions ${REQUIREMENTS_DIR} \
     && fix-permissions "/home/${NB_USER}"
 
+
+# ----------------------------
+#         Final Setup
+# ----------------------------
+# Switch back to jovyan to avoid accidental container runs as root
+USER ${NB_UID}
+WORKDIR "${HOME}"
+
 # Configure container startup
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/base/start.sh /usr/local/bin/
 ENTRYPOINT ["tini", "-g", "--"]
 CMD ["start.sh"]
-
-# Copy local files as late as possible to avoid cache busting
-COPY start.sh /usr/local/bin/
-WORKDIR "${HOME}"

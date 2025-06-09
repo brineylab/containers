@@ -13,9 +13,10 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
 
+# ----------------------------
+#       OS dependencies
+# ----------------------------
 USER root
-
-# Install all OS dependencies for fully functional notebook server
 RUN apt --yes update \
     && apt --yes install --no-install-recommends \
     # for latex labels
@@ -47,12 +48,14 @@ RUN apt --yes update \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /tmp
 
-# jupyter
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
-    && fix-permissions "${REQUIREMENTS_DIR}"
+# ----------------------------
+#       Mamba Packages
+# ----------------------------
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_mamba.txt ${REQUIREMENTS_DIR}/jupyter_mamba.txt
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/scipy_mamba.txt ${REQUIREMENTS_DIR}/scipy_mamba.txt
 RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
+    && mamba install --yes --file "${REQUIREMENTS_DIR}/scipy_mamba.txt" \
     && jupyter notebook --generate-config \
     && mamba clean --all -f -y \
     && npm cache clean --force \
@@ -61,22 +64,31 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
-USER ${NB_UID}
 
+# ----------------------------
+#    JupyterLab Extensions
+# ----------------------------
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter-extensions_pip.txt ${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt
+RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" && \
+    jupyter lab clean && \
+    jupyter lab build --minimize=False && \
+    fix-permissions ${HOME}
+
+
+# ----------------------------
+#    Container Startup
+# ----------------------------
 ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
-# Configure container startup
 # Copy local files as late as possible to avoid cache busting
-CMD ["start-notebook.sh"]
-COPY start-notebook.sh start-singleuser.sh /usr/local/bin/ 
-COPY jupyter_server_config.py /etc/jupyter/
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/start-notebook.sh /usr/local/bin/
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/start-singleuser.sh /usr/local/bin/
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/jupyter_server_config.py /etc/jupyter/
 
-# Fix permissions on /etc/jupyter as root
-USER root
-
-# Legacy for Jupyter Notebook Server, see: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
+# Fix permissions on /etc/jupyter as root & create legacy config
 # Currently need to have both jupyter_notebook_config and jupyter_server_config to support classic and lab
+# See: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
 RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
     /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
     && fix-permissions /etc/jupyter/
@@ -88,35 +100,23 @@ HEALTHCHECK  --interval=5s --timeout=3s --start-period=5s --retries=3 \
     CMD wget -O- --no-verbose --tries=1 --no-check-certificate \
     http${GEN_CERT:+s}://localhost:${JUPYTER_PORT}${JUPYTERHUB_SERVICE_PREFIX:-/}api || exit 1
 
-USER ${NB_UID}
-WORKDIR "${HOME}"
 
+# ----------------------------
+#           Plots
+# ----------------------------
 # Add R mimetype option to specify how the plot returns from R to the browser
-COPY --chown=${NB_UID}:${NB_GID} Rprofile.site /opt/conda/lib/R/etc/
-
-# scipy packages
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
-    && fix-permissions ${REQUIREMENTS_DIR}
-RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
-    && mamba clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
-
-# jupyterlab extensions
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter-extensions_pip.txt \
-    && fix-permissions "${REQUIREMENTS_DIR}"
-RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt"
-
-# jupyter lab clean
-RUN jupyter lab clean \
-    && jupyter lab build --minimize=False
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/Rprofile.site /opt/conda/lib/R/etc/
 
 # Import matplotlib the first time to build the font cache.
 ENV XDG_CACHE_HOME="/home/${NB_USER}/.cache/"
-
 RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" \
     && fix-permissions "/home/${NB_USER}"
 
+
+# ----------------------------
+#         Final Setup
+# ----------------------------
 # Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
 WORKDIR "${HOME}"
+CMD ["start-notebook.sh"]
