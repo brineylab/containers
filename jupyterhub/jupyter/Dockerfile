@@ -15,16 +15,9 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 USER root
 
-# node.js - v20
-# RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
-#     && echo "deb https://deb.nodesource.com/node_20.x jammy main" > /etc/apt/sources.list.d/nodesource.list \
-#     && cat /etc/apt/sources.list.d/nodesource.list
-RUN mamba install --yes -c conda-forge nodejs
-
 # Install all OS dependencies for fully functional notebook server
 RUN apt --yes update \
     && apt --yes install --no-install-recommends \
-    nodejs \
     # for latex labels
     cm-super \ 
     dvipng \ 
@@ -59,7 +52,6 @@ WORKDIR /tmp
 # jupyter
 RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
     && fix-permissions "${REQUIREMENTS_DIR}"
-
 RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
     && jupyter notebook --generate-config \
     && mamba clean --all -f -y \
@@ -75,18 +67,16 @@ ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
 # Configure container startup
-CMD ["start-notebook.sh"]
-
 # Copy local files as late as possible to avoid cache busting
+CMD ["start-notebook.sh"]
 COPY start-notebook.sh start-singleuser.sh /usr/local/bin/ 
-
-# Currently need to have both jupyter_notebook_config and jupyter_server_config to support classic and lab
 COPY jupyter_server_config.py /etc/jupyter/
 
 # Fix permissions on /etc/jupyter as root
 USER root
 
 # Legacy for Jupyter Notebook Server, see: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
+# Currently need to have both jupyter_notebook_config and jupyter_server_config to support classic and lab
 RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
     /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
     && fix-permissions /etc/jupyter/
@@ -99,7 +89,6 @@ HEALTHCHECK  --interval=5s --timeout=3s --start-period=5s --retries=3 \
     http${GEN_CERT:+s}://localhost:${JUPYTER_PORT}${JUPYTERHUB_SERVICE_PREFIX:-/}api || exit 1
 
 USER ${NB_UID}
-
 WORKDIR "${HOME}"
 
 # Add R mimetype option to specify how the plot returns from R to the browser
@@ -130,6 +119,4 @@ RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" \
 
 # Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
-
 WORKDIR "${HOME}"
-

@@ -17,6 +17,7 @@ ipywidgets
 matplotlib-base
 modelcif
 natsort
+nodejs
 numba
 numexpr
 openmm  # == 7.7.0
