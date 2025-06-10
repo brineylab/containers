@@ -101,7 +101,16 @@ RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
     && fix-permissions "/home/${NB_USER}"
 
 # install R packages that are not available in mamba with CRAN
-RUN Rscript -e "pkgs <- scan('${REQUIREMENTS_DIR}/r_cran.txt', what=''); install.packages(pkgs, dependencies=TRUE, repos='http://cran.rstudio.com/')"
+# multi-thread compilation to speed up duckdb install
+ENV MAKEFLAGS="-j$(nproc)"
+RUN Rscript -e "\
+  pkgs <- scan('${REQUIREMENTS_DIR}/r_cran.txt', what = '', quiet = TRUE); \
+  install.packages( \
+    pkgs, \
+    dependencies = TRUE, \
+    Ncpus = parallel::detectCores(), \
+    repos = 'https://cran.rstudio.com' \
+  )"
 
 
 #-------------------
