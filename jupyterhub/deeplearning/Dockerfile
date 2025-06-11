@@ -25,6 +25,7 @@ ENV PATH="${PATH}:/usr/local/nvidia/bin" \
     LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 
 # CUDA toolkit
+USER ${NB_UID}
 RUN mamba install --yes -c nvidia \
         "cuda~=12.4" \
         "cuda-tools~=12.4" \
