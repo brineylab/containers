@@ -86,7 +86,7 @@ RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update
 # install R packages that are not available in mamba with CRAN
 # multi-thread compilation to speed up duckdb install - use 75% of cores
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_cran.txt ${REQUIREMENTS_DIR}/r_cran.txt
-ENV MAKEFLAGS="-j$(( $(nproc) * 75 / 100 ))"
+ENV MAKEFLAGS="-j$(( $(nproc) * 0.5 ))"
 RUN Rscript -e "\
   pkgs <- scan('${REQUIREMENTS_DIR}/r_cran.txt', what = '', quiet = TRUE); \
   install.packages( \
@@ -153,20 +153,19 @@ RUN apt-get update \
     && ldconfig
 
 # sickle
-# RUN wget -q "http://burtonlab.s3.amazonaws.com/software/zlib1211.zip" \
-#     && unzip "zlib1211.zip" \ 
-#     && rm "zlib1211.zip"
-#     && cd "${NGS_TOOLS_DIR}/zlib-1.2.11" \
-#     && ./configure \
-#     && make \
-#     && make install \
-#     && cd "${NGS_TOOLS_DIR}" \
-#     && git clone "https://github.com/najoshi/sickle" \
-#     && cd sickle \
-#     && make \
-#     && ln -s "${NGS_TOOLS_DIR}/sickle/sickle" "/usr/local/bin/sickle" \
-#     && fix-permissions "${NGS_TOOLS_DIR}" \
-#     && fix-permissions "/home/${NB_USER}"
+# requires zlib
+RUN git clone -b master "https://github.com/madler/zlib/" \
+    && cd zlib \
+    && ./configure \
+    && make \
+    && make install \
+    && cd "${NGS_TOOLS_DIR}" \
+    && git clone "https://github.com/najoshi/sickle" \
+    && cd sickle \
+    && make \
+    && ln -s "${NGS_TOOLS_DIR}/sickle/sickle" "/usr/local/bin/sickle" \
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
 
 # CellRanger
 RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
