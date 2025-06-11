@@ -23,11 +23,11 @@ RUN apt-get update --yes \
     gfortran \
     gcc \
     # for PyRosetta
-    cmake \
-    ninja-build \
-    g++ \
-    clang \
-    python3.11-dev \
+    # cmake \
+    # ninja-build \
+    # g++ \
+    # clang \
+    # python3.11-dev \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
@@ -35,16 +35,14 @@ RUN apt-get update --yes \
 #----------------------
 #     CODESERVER
 #----------------------
-USER root
-
 # install - code-server
+USER root
 RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm -f /tmp/code-server.deb
 
-USER ${NB_UID}
-
 # code-server extensions
+USER ${NB_UID}
 RUN code-server --install-extension ms-python.black-formatter --force \
     && code-server --install-extension ms-python.python --force \
     && code-server --install-extension ms-toolsai.jupyter --force \
@@ -53,7 +51,6 @@ RUN code-server --install-extension ms-python.black-formatter --force \
     && code-server --install-extension zhuangtongfa.material-theme --force \
     && code-server --list-extensions --show-versions
 
-USER root
 RUN mamba install --yes \
     "jupyter-server-proxy" \
     "jupyter-vscode-proxy" \
@@ -68,7 +65,6 @@ ENV CODE_WORKINGDIR="${HOME}/codeserver"
 #-----------------------------
 #   ab[x] and dependencies
 #-----------------------------
-
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/abx_pip.txt ${REQUIREMENTS_DIR}/abx_pip.txt
 RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt \
     && python3 -m pip cache purge
@@ -103,7 +99,6 @@ RUN Rscript -e "\
 #-------------------
 #     NGS TOOLS
 #-------------------
-
 # cutadapt
 RUN python3 -m pip install \
     "cutadapt" \
@@ -177,7 +172,7 @@ RUN apt-get update \
 RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
     && tar xf "cellranger-8.0.1.tar" \
     && rm "cellranger-8.0.1.tar" \
-    && chmod -R 777 "${NGS_TOOLS_DIR}/cellranger-8.0.1" \
+    && sudo chmod -R 777 "${NGS_TOOLS_DIR}/cellranger-8.0.1" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}" 
 
@@ -212,7 +207,7 @@ RUN cd "${NGS_TOOLS_DIR}" \
     && wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar.gz" \
     && tar xzf "dorado-0.7.0-linux-x64.tar.gz" \
     && rm "dorado-0.7.0-linux-x64.tar.gz" \
-    && chmod -R 777 "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
+    && sudo chmod -R 777 "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
     && fix-permissions "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
     && fix-permissions "/home/${NB_USER}"
 
