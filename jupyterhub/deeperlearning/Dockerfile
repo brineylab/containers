@@ -8,24 +8,25 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
-# models directory
+#------------------------
+#    Models Directory
+#------------------------
 ENV MODELS_DIR="/models"
 RUN mkdir "${MODELS_DIR}" \
     && chown "${NB_USER}" "${MODELS_DIR}" \
     && fix-permissions "${MODELS_DIR}"
 
-# switch to NB_USER to install packages
-USER ${NB_UID}
 
-#-------------------
-#    ColabDesign
-#-------------------
-
+#------------------------
+#       ColabDesign
+#------------------------
 # aria2c
-RUN sudo apt-get update \
-    && sudo apt-get install --yes aria2 \
-    && sudo apt-get clean \
+RUN apt-get update \
+    && apt-get install --yes aria2 \
+    && apt-get clean \
     && sudo rm -rf /var/lib/apt/lists/*
+
+USER ${NB_UID}
 
 # RFdiffusion
 RUN cd "${NGS_TOOLS_DIR}" \
@@ -73,7 +74,6 @@ RUN cd "${NGS_TOOLS_DIR}" \
     && wget -qnc "https://files.ipd.uw.edu/krypton/ananas" \
     && sudo chmod +x ananas \
     && sudo cp ananas /usr/local/bin/
-    # && fix-permissions "${NGS_TOOLS_DIR}"
 
 # AlphaFold weights (for ColabDesign)
 ENV ALPHAFOLD2_PARAMS_DIR="/models/alphafold2/params"
@@ -108,26 +108,18 @@ RUN cd "${NGS_TOOLS_DIR}" \
 #-------------------------
 #    Ab/protein models
 #-------------------------
-
 RUN python3 -m pip install \
-    # protein models
-    boltz \
-    fair-esm \
-    # antibody models
-    ablang2 \
-    ImmuneBuilder \
-    "git+https://github.com/OliverT1/p-IgGen.git" 
+        # protein models
+        boltz \
+        fair-esm \
+        # antibody models
+        ablang2 \
+        ImmuneBuilder \
+        "git+https://github.com/OliverT1/p-IgGen.git" \
+    && python3 -m pip cache purge
 
 # RUN cd "${NGS_TOOLS_DIR}" \
 #     && git clone "https://github.com/oxpig/AntiFold" \
 #     && cd AntiFold \
 #     && python3 -m pip install . \
 #     && fix-permissions "${NGS_TOOLS_DIR}/AntiFold"
-
-
-# purge pip cache after installs
-RUN python3 -m pip cache purge
-
-# # jupyter lab clean
-# RUN jupyter lab clean \
-#     && jupyter lab build --minimize=False

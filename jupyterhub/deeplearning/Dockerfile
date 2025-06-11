@@ -37,8 +37,8 @@ RUN mamba install --yes -c nvidia \
     # link cuda directory (installed by mamba) to /usr/local/cuda
     # without this, jax can't find libdevice.10.bc 
     # see: https://github.com/jax-ml/jax/issues/4452
-    && mkdir -p /usr/local/cuda \
-    && ln -s /opt/conda/* /usr/local/cuda/
+    && sudo mkdir -p /usr/local/cuda \
+    && sudo ln -s /opt/conda/* /usr/local/cuda/
 
 
 # ----------------------------

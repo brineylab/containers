@@ -190,5 +190,5 @@ USER ${NB_UID}
 WORKDIR "${HOME}"
 
 # Configure container startup
-COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/base/start.sh ./jupyterhub/base/run-hooks.sh /usr/local/bin/
+COPY ./jupyterhub/base/start.sh ./jupyterhub/base/run-hooks.sh /usr/local/bin/
 ENTRYPOINT ["tini", "-g", "--", "start.sh"]

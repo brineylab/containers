@@ -19,36 +19,36 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 #       OS dependencies
 # ----------------------------
 USER root
-RUN apt --yes update \
-    && apt --yes install --no-install-recommends \
-    # for cython: https://cython.readthedocs.io/en/latest/src/quickstart/install.html
-    build-essential \
-    # for latex labels
-    cm-super \ 
-    dvipng \ 
-    # for matplotlib anim
-    ffmpeg \ 
-    fonts-liberation \ 
-    git \ 
-    # less is needed to run help in R
-    # see: https://github.com/jupyter/docker-stacks/issues/1588
-    less \ 
-    openssh-client \ 
-    # - pandoc is used to convert notebooks to html files
-    #   it's not present in aarch64 ubuntu image, so we install it here
-    pandoc \
-    # - run-one - a wrapper script that runs no more
-    #   than one unique  instance  of  some  command with a unique set of arguments,
-    #   we use `run-one-constantly` to support `RESTARTABLE` option
-    run-one \ 
-    # nbconvert dependencies
-    # https://nbconvert.readthedocs.io/en/latest/install.html#installing-tex
-    texlive-xetex \ 
-    texlive-fonts-recommended \ 
-    texlive-plain-generic \ 
-    tzdata \ 
-    # Enable clipboard on Linux host systems
-    xclip \ 
+RUN apt-get update --yes \
+    && apt-get install --yes --no-install-recommends \
+        # for cython: https://cython.readthedocs.io/en/latest/src/quickstart/install.html
+        build-essential \
+        # for latex labels
+        cm-super \ 
+        dvipng \ 
+        # for matplotlib anim
+        ffmpeg \ 
+        fonts-liberation \ 
+        git \ 
+        # less is needed to run help in R
+        # see: https://github.com/jupyter/docker-stacks/issues/1588
+        less \ 
+        openssh-client \ 
+        # - pandoc is used to convert notebooks to html files
+        #   it's not present in aarch64 ubuntu image, so we install it here
+        pandoc \
+        # - run-one - a wrapper script that runs no more
+        #   than one unique  instance  of  some  command with a unique set of arguments,
+        #   we use `run-one-constantly` to support `RESTARTABLE` option
+        run-one \ 
+        # nbconvert dependencies
+        # https://nbconvert.readthedocs.io/en/latest/install.html#installing-tex
+        texlive-xetex \ 
+        texlive-fonts-recommended \ 
+        texlive-plain-generic \ 
+        tzdata \ 
+        # Enable clipboard on Linux host systems
+        xclip \ 
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
