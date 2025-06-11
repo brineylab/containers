@@ -36,13 +36,6 @@ RUN apt-get update --yes \
 # Configure IPython system-wide
 COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/datascience/ipython_kernel_config.py "/etc/ipython/"
 
-# Install pyarrow
-RUN mamba install --quiet --yes \
-    "pyarrow" \
-    && mamba clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
-
 EXPOSE 4040
 
 

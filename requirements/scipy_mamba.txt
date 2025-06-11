@@ -10,7 +10,6 @@ conda-forge::blas=*=openblas
 cython
 dask
 dill
-# bioconda::fastp
 h5py
 ipympl
 ipywidgets
@@ -20,13 +19,13 @@ natsort
 nodejs>=20.0.0
 numba
 numexpr
-openmm  # == 7.7.0
+openmm
 openpyxl
 pandas<2.0.0
 patsy
 pdbfixer
 protobuf
-# pyarrow
+pyarrow
 pytables
 scikit-image
 scikit-learn
