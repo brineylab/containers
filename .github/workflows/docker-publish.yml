@@ -87,7 +87,7 @@ jobs:
 
     # datascience depends on jupyter
     jupyterhub-datascience:
-        runs-on: ubuntu-latest-brineylab-large
+        runs-on: ubuntu-latest-brineylab-xlarge
         needs: [jupyterhub-jupyter]
 
         permissions:

@@ -12,22 +12,33 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
+
+# VERSIONS
+ARG openjdk_version="17"
+ARG codeserver_version=v4.18.0
+ENV CODESERVER_VERSION="${codeserver_version}" \
+    OPENJDK_VERSION="${openjdk_version}"
+
+
 # ----------------------------
 #       OS dependencies
 # ----------------------------
 USER root
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \
-    # R pre-requisites
-    fonts-dejavu \
-    gfortran \
-    gcc \
-    # for PyRosetta
-    # cmake \
-    # ninja-build \
-    # g++ \
-    # clang \
-    # python3.11-dev \
+        # R pre-requisites
+        fonts-dejavu \
+        gfortran \
+        gcc \
+        # for PyRosetta
+        # cmake \
+        # ninja-build \
+        # g++ \
+        # clang \
+        # python3.11-dev \
+        # for NGS tools
+        "openjdk-${OPENJDK_VERSION}-jre-headless" \
+        ca-certificates-java \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
@@ -84,9 +95,9 @@ RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
 RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE)"
 
 # install R packages that are not available in mamba with CRAN
-# multi-thread compilation to speed up duckdb install - use 75% of cores
+# multi-thread compilation to speed up duckdb install - use 50% of cores with xlarge runner
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_cran.txt ${REQUIREMENTS_DIR}/r_cran.txt
-ENV MAKEFLAGS="-j$(( $(nproc) * 0.5 ))"
+ENV MAKEFLAGS="-j$(( $(nproc) * 50 / 100 ))"
 RUN Rscript -e "\
   pkgs <- scan('${REQUIREMENTS_DIR}/r_cran.txt', what = '', quiet = TRUE); \
   install.packages( \
@@ -107,6 +118,7 @@ RUN python3 -m pip install \
     && python3 -m pip cache purge
 
 # NGS directory
+USER root
 ENV NGS_TOOLS_DIR="/tools"
 RUN mkdir "${NGS_TOOLS_DIR}" \
     && chown "${NB_USER}" "${NGS_TOOLS_DIR}" \
@@ -116,7 +128,7 @@ WORKDIR "${NGS_TOOLS_DIR}"
 # bcl2fastq
 # RUN wget -q "https://burtonlab.s3.amazonaws.com/software/bcl2fastq2_0v2.20.0.422-2_amd64.deb" \ 
 #     && dpkg -i "bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
-#     && rm "bases2fastq-1.4.0.tar.gz" \
+#     && rm "bases2fastq-1.4.0.deb" \
 #     && fix-permissions "${NGS_TOOLS_DIR}" \
 #     && fix-permissions "/home/${NB_USER}"
 
@@ -154,7 +166,7 @@ RUN apt-get update \
 
 # sickle
 # requires zlib
-RUN git clone -b master "https://github.com/madler/zlib/" \
+RUN git clone -b v1.2.11 "https://github.com/madler/zlib/" \
     && cd zlib \
     && ./configure \
     && make \
@@ -194,9 +206,10 @@ RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
         regex \
         "networkx=2.5" \
         "minimap2=2.28" \
+    && mamba clean --all -f -y \
     && python3 -m pip install --no-deps -e . \
     && python3 -m pip install "networkx==2.1" \
-    && mamba clean --all -f -y \
+    && python3 -m pip cache purge \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
