@@ -95,9 +95,9 @@ RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
 RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE)"
 
 # install R packages that are not available in mamba with CRAN
-# multi-thread compilation to speed up duckdb install - use 50% of cores with xlarge runner
+# multi-thread compilation to speed up duckdb install - use 4 cores (25% of cores with xlarge runner)
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_cran.txt ${REQUIREMENTS_DIR}/r_cran.txt
-ENV MAKEFLAGS="-j$(( $(nproc) * 50 / 100 ))"
+ENV MAKEFLAGS="-j4"
 RUN Rscript -e "\
   pkgs <- scan('${REQUIREMENTS_DIR}/r_cran.txt', what = '', quiet = TRUE); \
   install.packages( \
