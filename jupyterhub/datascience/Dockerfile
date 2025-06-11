@@ -54,13 +54,12 @@ RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_
 
 # code-server extensions
 USER ${NB_UID}
-RUN code-server --install-extension ms-python.python --force \
-    && code-server --install-extension ms-python.debugpy --force \
-    && code-server --install-extension ms-python.black-formatter --force \
-    && code-server --install-extension ms-toolsai.jupyter --force \
-    && code-server --install-extension ms-toolsai.datawrangler --force \
-    && code-server --install-extension redhat.vscode-yaml --force \
-    && code-server --install-extension redhat.vscode-xml --force
+RUN code-server --install-extension ms-python.python \
+                --install-extension ms-python.debugpy \
+                --install-extension ms-python.black-formatter \
+                --install-extension ms-toolsai.jupyter \
+                --install-extension redhat.vscode-yaml \
+                --install-extension redhat.vscode-xml
 
 # jupyterhub proxys for codeserver & R in the launcher
 RUN mamba install --yes \
