@@ -107,11 +107,6 @@ HEALTHCHECK  --interval=5s --timeout=3s --start-period=5s --retries=3 \
 # Add R mimetype option to specify how the plot returns from R to the browser
 COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/Rprofile.site /opt/conda/lib/R/etc/
 
-# Import matplotlib the first time to build the font cache.
-ENV XDG_CACHE_HOME="/home/${NB_USER}/.cache/"
-RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" \
-    && fix-permissions "/home/${NB_USER}"
-
 
 # ----------------------------
 #         Final Setup
