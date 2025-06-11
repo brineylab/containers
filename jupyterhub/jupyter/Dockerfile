@@ -3,7 +3,9 @@ ARG BASE_IMG=$OWNER/jupyterhub-base
 FROM $BASE_IMG
 
 # This image was initially created by the Jupyter Development Team:
-# https://github.com/jupyter/docker-stacks
+# https://github.com/jupyter/docker-stacks/blob/main/images/base-notebook/Dockerfile
+# https://github.com/jupyter/docker-stacks/blob/main/images/minimal-notebook/Dockerfile
+# https://github.com/jupyter/docker-stacks/blob/main/images/scipy-notebook/Dockerfile
 # and was subsequently modified and maintained by the Briney Lab.
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
@@ -19,6 +21,8 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 USER root
 RUN apt --yes update \
     && apt --yes install --no-install-recommends \
+    # for cython: https://cython.readthedocs.io/en/latest/src/quickstart/install.html
+    build-essential \
     # for latex labels
     cm-super \ 
     dvipng \ 
@@ -52,6 +56,8 @@ RUN apt --yes update \
 # ----------------------------
 #       Mamba Packages
 # ----------------------------
+# installs Jupyter & SciPy
+USER ${NB_UID}
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_mamba.txt ${REQUIREMENTS_DIR}/jupyter_mamba.txt
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/scipy_mamba.txt ${REQUIREMENTS_DIR}/scipy_mamba.txt
 RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
@@ -82,13 +88,14 @@ ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
 # Copy local files as late as possible to avoid cache busting
-COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/start-notebook.sh /usr/local/bin/
-COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/start-singleuser.sh /usr/local/bin/
-COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/jupyter_server_config.py /etc/jupyter/
+COPY ./jupyterhub/jupyter/start-notebook.py ./jupyterhub/jupyter/start-notebook.sh /usr/local/bin/
+COPY ./jupyterhub/jupyter/start-singleuser.py ./jupyterhub/jupyter/start-singleuser.sh /usr/local/bin/
+COPY ./jupyterhub/jupyter/jupyter_server_config.py ./jupyterhub/jupyter/docker_healthcheck.py /etc/jupyter/
 
 # Fix permissions on /etc/jupyter as root & create legacy config
 # Currently need to have both jupyter_notebook_config and jupyter_server_config to support classic and lab
 # See: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
+USER root
 RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
     /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
     && fix-permissions /etc/jupyter/
@@ -96,16 +103,8 @@ RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
 # This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
 # https://github.com/jupyter/docker-stacks/issues/915#issuecomment-1068528799
-HEALTHCHECK  --interval=5s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -O- --no-verbose --tries=1 --no-check-certificate \
-    http${GEN_CERT:+s}://localhost:${JUPYTER_PORT}${JUPYTERHUB_SERVICE_PREFIX:-/}api || exit 1
-
-
-# ----------------------------
-#           Plots
-# ----------------------------
-# Add R mimetype option to specify how the plot returns from R to the browser
-COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/Rprofile.site /opt/conda/lib/R/etc/
+HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
+    CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
 
 # ----------------------------
@@ -114,4 +113,9 @@ COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/Rprofile.site /opt/conda/l
 # Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
 WORKDIR "${HOME}"
-CMD ["start-notebook.sh"]
+
+# Add R mimetype option to specify how the plot returns from R to the browser
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/Rprofile.site /opt/conda/lib/R/etc/
+
+# Configure container startup
+CMD ["start-notebook.py"]
