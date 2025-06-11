@@ -77,24 +77,25 @@ RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt \
 #-----------------
 #       R
 #-----------------
-
 # R packages including IRKernel which gets installed globally.
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_mamba.txt ${REQUIREMENTS_DIR}/r_mamba.txt
-COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_cran.txt ${REQUIREMENTS_DIR}/r_cran.txt
 RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
+# Install Bioconductor packages (BiocManager installed by mamba above)
+RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE)"
+
 # install R packages that are not available in mamba with CRAN
 # multi-thread compilation to speed up duckdb install
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_cran.txt ${REQUIREMENTS_DIR}/r_cran.txt
 ENV MAKEFLAGS="-j$(nproc)"
 RUN Rscript -e "\
   pkgs <- scan('${REQUIREMENTS_DIR}/r_cran.txt', what = '', quiet = TRUE); \
   install.packages( \
     pkgs, \
     dependencies = TRUE, \
-    Ncpus = parallel::detectCores(), \
     repos = 'https://cran.rstudio.com' \
   )"
 
