@@ -1,5 +1,5 @@
 # This image was initially created by the Jupyter Development Team:
-# https://github.com/jupyter/docker-stacks
+# https://github.com/jupyter/docker-stacks/tree/main/images/docker-stacks-foundation
 # and was subsequently modified by the Briney Lab.
 
 # In alignment with the licensing of the orignal image created
@@ -16,6 +16,7 @@ FROM $BASE_IMG
 ARG OWNER=brineylab
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
+# NB user
 ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
@@ -57,6 +58,10 @@ RUN apt-get update --yes \
         bzip2 \
         ca-certificates \
         locales \
+        # - `netbase` provides /etc/{protocols,rpc,services}, part of POSIX
+        #   and required by various C functions like getservbyname and getprotobyname
+        #   https://github.com/jupyter/docker-stacks/pull/2129
+        netbase \
         sudo \
         # - tini is installed as a helpful container entrypoint that reaps zombie
         #   processes and such of the actual executable we want to start, see
@@ -67,7 +72,6 @@ RUN apt-get update --yes \
         bash \
         bashtop \
         btop \ 
-        build-essential \ 
         curl \ 
         htop \ 
         nano \
@@ -96,8 +100,15 @@ RUN chmod a+rx /usr/local/bin/fix-permissions
 
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
 RUN sed -i 's/^#force_color_prompt=yes/force_color_prompt=yes/' /etc/skel/.bashrc && \
-    # Add call to conda init script see https://stackoverflow.com/a/58081608/4413446
-    echo 'eval "$(command conda shell.bash hook 2> /dev/null)"' >> /etc/skel/.bashrc
+    # More information in: https://github.com/jupyter/docker-stacks/pull/2047
+    # and docs: https://docs.conda.io/projects/conda/en/latest/dev-guide/deep-dives/activation.html
+    echo 'eval "$(conda shell.bash hook)"' >> /etc/skel/.bashrc
+
+# Delete existing user with UID="${NB_UID}" if it exists
+# hadolint ignore=SC2046
+RUN if grep -q "${NB_UID}" /etc/passwd; then \
+        userdel --remove $(id -un "${NB_UID}"); \
+    fi
 
 # Create NB_USER with name jovyan user with UID=1000 and in the 'users' group
 # Make sure these dirs are writable by the `users` group
@@ -126,46 +137,51 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su \
 USER ${NB_UID}
 COPY --chown="${NB_UID}:${NB_GID}" ./jupyterhub/base/initial-condarc "${CONDA_DIR}/.condarc"
 WORKDIR /tmp
-RUN set -x \
-    && arch=$(uname -m) \
-    # Should be simpler, see <https://github.com/mamba-org/mamba/issues/1437>
-    && if [ "${arch}" = "x86_64" ]; then arch="64"; fi \
-    && wget -qO /tmp/micromamba.tar.bz2 --no-check-certificate \
-        "https://micromamba.snakepit.net/api/micromamba/linux-${arch}/latest" \
-    && tar -xvjf /tmp/micromamba.tar.bz2 --strip-components=1 bin/micromamba \
-    && rm /tmp/micromamba.tar.bz2 \
-    && PYTHON_SPECIFIER="python=${PYTHON_VERSION}" \
-    && if [[ "${PYTHON_VERSION}" == "default" ]]; then PYTHON_SPECIFIER="python"; fi \
-    # Install the packages (Python, Mamba and jupyter_core) & remove Micromamba
-    && ./micromamba install \
+RUN set -x && \
+    arch=$(uname -m) && \
+    if [ "${arch}" = "x86_64" ]; then \
+        # Should be simpler, see <https://github.com/mamba-org/mamba/issues/1437>
+        arch="64"; \
+    fi && \
+    # https://mamba.readthedocs.io/en/latest/installation/micromamba-installation.html#linux-and-macos
+    wget --progress=dot:giga -O - \
+        "https://micro.mamba.pm/api/micromamba/linux-${arch}/latest" | tar -xvj bin/micromamba && \
+    PYTHON_SPECIFIER="python=${PYTHON_VERSION}" && \
+    if [[ "${PYTHON_VERSION}" == "default" ]]; then PYTHON_SPECIFIER="python"; fi && \
+    # Install the packages
+    ./bin/micromamba install \
         --root-prefix="${CONDA_DIR}" \
         --prefix="${CONDA_DIR}" \
         --yes \
-        "${PYTHON_SPECIFIER}" \
-        'mamba' \
         'jupyter_core' \
-    && rm micromamba \
+        'conda' \
+        'mamba' \
+        "${PYTHON_SPECIFIER}" && \
+    rm -rf /tmp/bin/ && \
     # Pin major.minor version of python
-    && echo "python ${PYTHON_VERSION}" >> "${CONDA_DIR}/conda-meta/pinned" \
-    # Clean & correct permissions
-    && mamba clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
+    # https://conda.io/projects/conda/en/latest/user-guide/tasks/manage-pkgs.html#preventing-packages-from-updating-pinning
+    mamba list --full-name 'python' | awk 'END{sub("[^.]*$", "*", $2); print $1 " " $2}' >> "${CONDA_DIR}/conda-meta/pinned" && \
+    mamba clean --all -f -y && \
+    fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
 
 
 # ----------------------------
 #         Directories
 # ----------------------------
-USER root
-
 # Make requirements directory
-# And work directory for backward-compatibility
+# And setup work directory for backward-compatibility
 RUN mkdir -p ${REQUIREMENTS_DIR} \
     && mkdir "/home/${NB_USER}/work" \
     && mkdir "/home/${NB_USER}/codeserver" \
     && fix-permissions ${REQUIREMENTS_DIR} \
     && fix-permissions "/home/${NB_USER}"
 
+# Create dirs for startup hooks
+USER root
+RUN mkdir /usr/local/bin/start-notebook.d \
+    && mkdir /usr/local/bin/before-notebook.d
+COPY ./jupyterhub/base/10activate-conda-env.sh /usr/local/bin/before-notebook.d/
 
 # ----------------------------
 #         Final Setup
@@ -175,6 +191,5 @@ USER ${NB_UID}
 WORKDIR "${HOME}"
 
 # Configure container startup
-COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/base/start.sh /usr/local/bin/
-ENTRYPOINT ["tini", "-g", "--"]
-CMD ["start.sh"]
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/base/start.sh ./jupyterhub/base/run-hooks.sh /usr/local/bin/
+ENTRYPOINT ["tini", "-g", "--", "start.sh"]
