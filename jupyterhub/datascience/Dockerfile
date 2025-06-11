@@ -28,15 +28,8 @@ RUN apt-get update --yes \
     g++ \
     clang \
     python3.11-dev \
-    "openjdk-${OPENJDK_VERSION}-jre-headless" \
-    ca-certificates-java \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
-
-# Configure IPython system-wide
-COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/datascience/ipython_kernel_config.py "/etc/ipython/"
-
-EXPOSE 4040
 
 
 #----------------------

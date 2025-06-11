@@ -23,17 +23,7 @@ ARG NB_GID="100"
 # VERSIONS
 ARG PYTHON_VERSION=3.11
 ARG codeserver_version=v4.18.0
-ARG spark_version="3.3.1"
-ARG spark_checksum="769db39a560a95fd88b58ed3e9e7d1e92fb68ee406689fb4d30c033cb5911e05c1942dcc70e5ec4585df84e80aabbc272b9386a208debda89522efff1335c8ff"
-ARG openjdk_version="17"
-ARG hadoop_version="3"
-ARG julia_version="1.8.5"
-ENV CODESERVER_VERSION="${codeserver_version}" \
-    APACHE_SPARK_VERSION="${spark_version}" \
-    SPARK_CHECKSUM="${spark_checksum}" \
-    OPENJDK_VERSION="${openjdk_version}" \
-    HADOOP_VERSION="${hadoop_version}" \
-    JULIA_VERSION="${julia_version}"
+ENV CODESERVER_VERSION="${codeserver_version}"
 
 # Environmental variables
 ENV DEBIAN_FRONTEND=noninteractive \
