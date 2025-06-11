@@ -21,10 +21,8 @@ ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
 
-# VERSIONS
+# Python version
 ARG PYTHON_VERSION=3.11
-ARG codeserver_version=v4.18.0
-ENV CODESERVER_VERSION="${codeserver_version}"
 
 # Environmental variables
 ENV DEBIAN_FRONTEND=noninteractive \
@@ -90,6 +88,7 @@ RUN apt-get update --yes \
     && rm -rf /var/lib/apt/lists/* \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
     && locale-gen
+
 
 # ----------------------------
 #       User Setup

@@ -15,7 +15,7 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 # VERSIONS
 ARG openjdk_version="17"
-ARG codeserver_version=v4.18.0
+ARG codeserver_version=v4.90.0
 ENV CODESERVER_VERSION="${codeserver_version}" \
     OPENJDK_VERSION="${openjdk_version}"
 
@@ -54,14 +54,15 @@ RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_
 
 # code-server extensions
 USER ${NB_UID}
-RUN code-server --install-extension ms-python.black-formatter --force \
-    && code-server --install-extension ms-python.python --force \
+RUN code-server --install-extension ms-python.python --force \
+    && code-server --install-extension ms-python.debugpy --force \
+    && code-server --install-extension ms-python.black-formatter --force \
     && code-server --install-extension ms-toolsai.jupyter --force \
+    && code-server --install-extension ms-toolsai.datawrangler --force \
     && code-server --install-extension redhat.vscode-yaml --force \
-    && code-server --install-extension redhat.vscode-xml --force \
-    && code-server --install-extension zhuangtongfa.material-theme --force \
-    && code-server --list-extensions --show-versions
+    && code-server --install-extension redhat.vscode-xml --force
 
+# jupyterhub proxys for codeserver & R in the launcher
 RUN mamba install --yes \
     "jupyter-server-proxy" \
     "jupyter-vscode-proxy" \
@@ -126,11 +127,11 @@ RUN mkdir "${NGS_TOOLS_DIR}" \
 WORKDIR "${NGS_TOOLS_DIR}"
 
 # bcl2fastq
-# RUN wget -q "https://burtonlab.s3.amazonaws.com/software/bcl2fastq2_0v2.20.0.422-2_amd64.deb" \ 
-#     && dpkg -i "bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
-#     && rm "bases2fastq-1.4.0.deb" \
-#     && fix-permissions "${NGS_TOOLS_DIR}" \
-#     && fix-permissions "/home/${NB_USER}"
+RUN wget -q "https://burtonlab.s3.amazonaws.com/software/bcl2fastq2_0v2.20.0.422-2_amd64.deb" \ 
+    && dpkg -i "bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
+    && rm "bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
 
 # bases2fastq
 RUN wget -q "https://brineylab.s3.amazonaws.com/tools/bases2fastq-1.4.0.tar.gz" \
@@ -140,17 +141,16 @@ RUN wget -q "https://brineylab.s3.amazonaws.com/tools/bases2fastq-1.4.0.tar.gz" 
     && fix-permissions "/home/${NB_USER}"
 
 # FastQC
-# RUN wget -q "http://burtonlab.s3.amazonaws.com/software/fastqc_v0.11.9.zip" \
-#     && unzip "fastqc_v0.11.9.zip" \
-#     && rm "fastqc_v0.11.9.zip" \
-#     && chmod +x "${NGS_TOOLS_DIR}/FastQC/fastqc" \
-#     && ln -s "${NGS_TOOLS_DIR}/FastQC/fastqc" "/usr/local/bin/fastqc" \
-#     && fix-permissions "/home/${NB_USER}"
+RUN wget -q "http://burtonlab.s3.amazonaws.com/software/fastqc_v0.11.9.zip" \
+    && unzip "fastqc_v0.11.9.zip" \
+    && rm "fastqc_v0.11.9.zip" \
+    && chmod +x "${NGS_TOOLS_DIR}/FastQC/fastqc" \
+    && ln -s "${NGS_TOOLS_DIR}/FastQC/fastqc" "/usr/local/bin/fastqc" \
+    && fix-permissions "/home/${NB_USER}"
 
 # PANDAseq
 RUN apt-get update \
     && apt-get install -y \
-        "build-essential" \
         "libtool" \
         "automake" \
         "zlib1g-dev" \
@@ -190,6 +190,11 @@ RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
 # IgDiscover
 RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
     && cd igdiscover22 \
+    && fix-permissions "${NGS_TOOLS_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+USER ${NB_UID}
+RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && mamba install --yes \
         nomkl \
         "snakemake-minimal>=4.5" \
@@ -209,10 +214,7 @@ RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
     && mamba clean --all -f -y \
     && python3 -m pip install --no-deps -e . \
     && python3 -m pip install "networkx==2.1" \
-    && python3 -m pip cache purge \
-    && fix-permissions "${NGS_TOOLS_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
-
+    && python3 -m pip cache purge
 
 # dorado (ONT)
 RUN cd "${NGS_TOOLS_DIR}" \
