@@ -165,3 +165,44 @@ jobs:
                 tags: |
                     brineylab/${{ github.job }}:latest
                     ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
+    
+    # deeperlearning depends on deeplearning
+    jupyterhub-deeperlearning:
+        runs-on: ubuntu-latest-brineylab-xlarge
+        needs: [jupyterhub-deeplearning]
+
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - name: Delete huge unnecessary tools folder
+              run: | 
+                echo "Disk space before deleting huge unnecessary tools folder:"
+                sudo df -h
+                rm -rf /opt/hostedtoolcache
+                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+                echo "Disk space after deleting huge unnecessary tools folder:"
+                sudo df -h
+            - name: checkout
+              uses: actions/checkout@v4
+            - name: set up QEMU
+              uses: docker/setup-qemu-action@v3
+            - name: set up docker buildx
+              uses: docker/setup-buildx-action@v3
+            - name: login to Docker Hub
+              uses: docker/login-action@v3
+              with:
+                username: ${{ secrets.DOCKERHUB_USERNAME }}
+                password: ${{ secrets.DOCKERHUB_TOKEN }}
+            - name: build and push
+              uses: docker/build-push-action@v6
+              with:
+                context: .
+                file: ./jupyterhub/deeperlearning/Dockerfile
+                cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
+                cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
+                push: true
+                tags: |
+                    brineylab/${{ github.job }}:latest
+                    ${{ github.event_name == 'release' && format('brineylab/{0}:{1}', github.job, github.event.release.tag_name) || '' }}
