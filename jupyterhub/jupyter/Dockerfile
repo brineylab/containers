@@ -92,13 +92,9 @@ COPY ./jupyterhub/jupyter/start-notebook.py ./jupyterhub/jupyter/start-notebook.
 COPY ./jupyterhub/jupyter/start-singleuser.py ./jupyterhub/jupyter/start-singleuser.sh /usr/local/bin/
 COPY ./jupyterhub/jupyter/jupyter_server_config.py ./jupyterhub/jupyter/docker_healthcheck.py /etc/jupyter/
 
-# Fix permissions on /etc/jupyter as root & create legacy config
-# Currently need to have both jupyter_notebook_config and jupyter_server_config to support classic and lab
-# See: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
+# Fix permissions on /etc/jupyter as root
 USER root
-RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
-    /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
-    && fix-permissions /etc/jupyter/
+RUN fix-permissions /etc/jupyter/
 
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
 # This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
