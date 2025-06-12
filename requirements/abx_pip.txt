@@ -46,7 +46,3 @@ scab
 # -----------
 dm-tree
 ml-collections
-# pyspark
-# -------
-# pyspark
-# findspark 

@@ -3,7 +3,9 @@ ARG BASE_IMG=$OWNER/jupyterhub-base
 FROM $BASE_IMG
 
 # This image was initially created by the Jupyter Development Team:
-# https://github.com/jupyter/docker-stacks
+# https://github.com/jupyter/docker-stacks/blob/main/images/base-notebook/Dockerfile
+# https://github.com/jupyter/docker-stacks/blob/main/images/minimal-notebook/Dockerfile
+# https://github.com/jupyter/docker-stacks/blob/main/images/scipy-notebook/Dockerfile
 # and was subsequently modified and maintained by the Briney Lab.
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
@@ -13,58 +15,53 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
 
-# Fix: https://github.com/hadolint/hadolint/wiki/DL4006
-# Fix: https://github.com/koalaman/shellcheck/wiki/SC3014
-SHELL ["/bin/bash", "-o", "pipefail", "-c"]
-
+# ----------------------------
+#       OS dependencies
+# ----------------------------
 USER root
-
-# node.js - v20
-# RUN curl -sL "https://deb.nodesource.com/gpgkey/nodesource.gpg.key" | apt-key add - \
-#     && echo "deb https://deb.nodesource.com/node_20.x jammy main" > /etc/apt/sources.list.d/nodesource.list \
-#     && cat /etc/apt/sources.list.d/nodesource.list
-RUN mamba install --yes -c conda-forge nodejs
-
-# Install all OS dependencies for fully functional notebook server
-RUN apt --yes update \
-    && apt --yes install --no-install-recommends \
-    nodejs \
-    # for latex labels
-    cm-super \ 
-    dvipng \ 
-    # for matplotlib anim
-    ffmpeg \ 
-    fonts-liberation \ 
-    git \ 
-    # less is needed to run help in R
-    # see: https://github.com/jupyter/docker-stacks/issues/1588
-    less \ 
-    openssh-client \ 
-    # - pandoc is used to convert notebooks to html files
-    #   it's not present in aarch64 ubuntu image, so we install it here
-    pandoc \
-    # - run-one - a wrapper script that runs no more
-    #   than one unique  instance  of  some  command with a unique set of arguments,
-    #   we use `run-one-constantly` to support `RESTARTABLE` option
-    run-one \ 
-    # nbconvert dependencies
-    # https://nbconvert.readthedocs.io/en/latest/install.html#installing-tex
-    texlive-xetex \ 
-    texlive-fonts-recommended \ 
-    texlive-plain-generic \ 
-    tzdata \ 
-    # Enable clipboard on Linux host systems
-    xclip \ 
+RUN apt-get update --yes \
+    && apt-get install --yes --no-install-recommends \
+        # for cython: https://cython.readthedocs.io/en/latest/src/quickstart/install.html
+        build-essential \
+        # for latex labels
+        cm-super \ 
+        dvipng \ 
+        # for matplotlib anim
+        ffmpeg \ 
+        fonts-liberation \ 
+        git \ 
+        # less is needed to run help in R
+        # see: https://github.com/jupyter/docker-stacks/issues/1588
+        less \ 
+        openssh-client \ 
+        # - pandoc is used to convert notebooks to html files
+        #   it's not present in aarch64 ubuntu image, so we install it here
+        pandoc \
+        # - run-one - a wrapper script that runs no more
+        #   than one unique  instance  of  some  command with a unique set of arguments,
+        #   we use `run-one-constantly` to support `RESTARTABLE` option
+        run-one \ 
+        # nbconvert dependencies
+        # https://nbconvert.readthedocs.io/en/latest/install.html#installing-tex
+        texlive-xetex \ 
+        texlive-fonts-recommended \ 
+        texlive-plain-generic \ 
+        tzdata \ 
+        # Enable clipboard on Linux host systems
+        xclip \ 
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
-WORKDIR /tmp
 
-# jupyter
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter_mamba.txt \
-    && fix-permissions "${REQUIREMENTS_DIR}"
-
+# ----------------------------
+#       Mamba Packages
+# ----------------------------
+# installs Jupyter & SciPy
+USER ${NB_UID}
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_mamba.txt ${REQUIREMENTS_DIR}/jupyter_mamba.txt
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/scipy_mamba.txt ${REQUIREMENTS_DIR}/scipy_mamba.txt
 RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
+    && mamba install --yes --file "${REQUIREMENTS_DIR}/scipy_mamba.txt" \
     && jupyter notebook --generate-config \
     && mamba clean --all -f -y \
     && npm cache clean --force \
@@ -73,24 +70,32 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
-USER ${NB_UID}
 
+# ----------------------------
+#    JupyterLab Extensions
+# ----------------------------
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter-extensions_pip.txt ${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt
+RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" && \
+    jupyter lab clean && \
+    jupyter lab build --minimize=False && \
+    fix-permissions ${HOME}
+
+
+# ----------------------------
+#    Container Startup
+# ----------------------------
 ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
-# Configure container startup
-CMD ["start-notebook.sh"]
-
 # Copy local files as late as possible to avoid cache busting
-COPY start-notebook.sh start-singleuser.sh /usr/local/bin/ 
+COPY ./jupyterhub/jupyter/start-notebook.py ./jupyterhub/jupyter/start-notebook.sh /usr/local/bin/
+COPY ./jupyterhub/jupyter/start-singleuser.py ./jupyterhub/jupyter/start-singleuser.sh /usr/local/bin/
+COPY ./jupyterhub/jupyter/jupyter_server_config.py ./jupyterhub/jupyter/docker_healthcheck.py /etc/jupyter/
 
+# Fix permissions on /etc/jupyter as root & create legacy config
 # Currently need to have both jupyter_notebook_config and jupyter_server_config to support classic and lab
-COPY jupyter_server_config.py /etc/jupyter/
-
-# Fix permissions on /etc/jupyter as root
+# See: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
 USER root
-
-# Legacy for Jupyter Notebook Server, see: [#1205](https://github.com/jupyter/docker-stacks/issues/1205)
 RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
     /etc/jupyter/jupyter_server_config.py > /etc/jupyter/jupyter_notebook_config.py \
     && fix-permissions /etc/jupyter/
@@ -98,42 +103,19 @@ RUN sed -re "s/c.ServerApp/c.NotebookApp/g" \
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
 # This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
 # https://github.com/jupyter/docker-stacks/issues/915#issuecomment-1068528799
-HEALTHCHECK  --interval=5s --timeout=3s --start-period=5s --retries=3 \
-    CMD wget -O- --no-verbose --tries=1 --no-check-certificate \
-    http${GEN_CERT:+s}://localhost:${JUPYTER_PORT}${JUPYTERHUB_SERVICE_PREFIX:-/}api || exit 1
+HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
+    CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
+
+# ----------------------------
+#         Final Setup
+# ----------------------------
+# Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
-
 WORKDIR "${HOME}"
 
 # Add R mimetype option to specify how the plot returns from R to the browser
-COPY --chown=${NB_UID}:${NB_GID} Rprofile.site /opt/conda/lib/R/etc/
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/jupyter/Rprofile.site /opt/conda/lib/R/etc/
 
-# scipy packages
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/scipy_mamba.txt \
-    && fix-permissions ${REQUIREMENTS_DIR}
-RUN mamba install --yes --file ${REQUIREMENTS_DIR}/scipy_mamba.txt \
-    && mamba clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
-
-# jupyterlab extensions
-RUN wget --directory-prefix="${REQUIREMENTS_DIR}" https://raw.githubusercontent.com/briney/containers/main/requirements/jupyter-extensions_pip.txt \
-    && fix-permissions "${REQUIREMENTS_DIR}"
-RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt"
-
-# jupyter lab clean
-RUN jupyter lab clean \
-    && jupyter lab build --minimize=False
-
-# Import matplotlib the first time to build the font cache.
-ENV XDG_CACHE_HOME="/home/${NB_USER}/.cache/"
-
-RUN MPLBACKEND=Agg python -c "import matplotlib.pyplot" \
-    && fix-permissions "/home/${NB_USER}"
-
-# Switch back to jovyan to avoid accidental container runs as root
-USER ${NB_UID}
-
-WORKDIR "${HOME}"
-
+# Configure container startup
+CMD ["start-notebook.py"]
