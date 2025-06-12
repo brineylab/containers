@@ -56,13 +56,16 @@ RUN apt-get update --yes \
 # ----------------------------
 #       Mamba Packages
 # ----------------------------
-# installs Jupyter & SciPy
+# installs JupyterLab, Jupyter Notebook, JupyterHub and NBClassic
+# generates a Jupyter Server config
+# installs scipy dependencies
 USER ${NB_UID}
+WORKDIR /tmp
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_mamba.txt ${REQUIREMENTS_DIR}/jupyter_mamba.txt
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/scipy_mamba.txt ${REQUIREMENTS_DIR}/scipy_mamba.txt
 RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
     && mamba install --yes --file "${REQUIREMENTS_DIR}/scipy_mamba.txt" \
-    && jupyter notebook --generate-config \
+    && jupyter server --generate-config \
     && mamba clean --all -f -y \
     && npm cache clean --force \
     && jupyter lab clean \
@@ -74,19 +77,18 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
 # ----------------------------
 #    JupyterLab Extensions
 # ----------------------------
+ENV JUPYTER_PORT=8888
+EXPOSE $JUPYTER_PORT
+
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter-extensions_pip.txt ${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt
-RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" && \
-    jupyter lab clean && \
-    jupyter lab build --minimize=False && \
-    fix-permissions ${HOME}
+RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" \
+    && jupyter lab clean \
+    && fix-permissions "/home/${NB_USER}"
 
 
 # ----------------------------
 #    Container Startup
 # ----------------------------
-ENV JUPYTER_PORT=8888
-EXPOSE $JUPYTER_PORT
-
 # Copy local files as late as possible to avoid cache busting
 COPY ./jupyterhub/jupyter/start-notebook.py ./jupyterhub/jupyter/start-notebook.sh /usr/local/bin/
 COPY ./jupyterhub/jupyter/start-singleuser.py ./jupyterhub/jupyter/start-singleuser.sh /usr/local/bin/
