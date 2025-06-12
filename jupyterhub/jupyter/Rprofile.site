@@ -2,3 +2,6 @@
 # https://notebook.community/andrie/jupyter-notebook-samples/Changing%20R%20plot%20options%20in%20Jupyter
 
 options(jupyter.plot_mimetypes = c('text/plain', 'image/png', 'image/jpeg', 'image/svg+xml', 'application/pdf'))
+
+# Set default R library path to conda environment
+.libPaths("/opt/conda/lib/R/library")

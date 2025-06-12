@@ -106,6 +106,10 @@ RUN Rscript -e "\
     repos = 'https://cran.rstudio.com' \
   )"
 
+# make r kernel available system-wide
+# https://irkernel.github.io/installation/
+RUN Rscript -e "IRkernel::installspec(user = FALSE)"
+
 
 #-------------------
 #     NGS TOOLS
