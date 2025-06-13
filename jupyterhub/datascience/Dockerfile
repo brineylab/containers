@@ -47,7 +47,6 @@ RUN apt-get update --yes \
 #     CODESERVER
 #----------------------
 # install - code-server
-USER root
 RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
     && dpkg -i /tmp/code-server.deb \
     && rm -f /tmp/code-server.deb
@@ -105,10 +104,6 @@ RUN Rscript -e "\
     dependencies = TRUE, \
     repos = 'https://cran.rstudio.com' \
   )"
-
-# make r kernel available system-wide
-# https://irkernel.github.io/installation/
-RUN Rscript -e "IRkernel::installspec(user = FALSE)"
 
 
 #-------------------
@@ -193,31 +188,16 @@ RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
 # IgDiscover
 RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
     && cd igdiscover22 \
+    && sed '/- defaults/d' environment.yml > environment_no-default.yml \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
 USER ${NB_UID}
 RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
-    && mamba install --yes \
-        nomkl \
-        "snakemake-minimal>=4.5" \
-        scipy \
-        "muscle=3.8.1551" \
-        pear \
-        flash \
-        "igblast=1.19" \
-        "ruamel.yaml>=0.15" \
-        "vsearch=2.15.2" \
-        dnaio \
-        "xopen>=1.2.0" \
-        "tinyalign>=0.2" \
-        regex \
-        "networkx=2.5" \
-        "minimap2=2.28" \
-    && mamba clean --all -f -y \
-    && python3 -m pip install --no-deps -e . \
-    && python3 -m pip install "networkx==2.1" \
-    && python3 -m pip cache purge
+    && mamba create -f environment_no-default.yml -n igdiscover \
+    && mamba run -n igdiscover python3 -m pip install --no-deps -e . \
+    && mamba run -n igdiscover python3 -m pip install "networkx==2.1" \
+    && mamba clean --all -f -y
 
 # dorado (ONT)
 RUN cd "${NGS_TOOLS_DIR}" \
