@@ -11,6 +11,7 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 #------------------------
 #    Models Directory
 #------------------------
+USER root
 ENV MODELS_DIR="/models"
 RUN mkdir "${MODELS_DIR}" \
     && chown "${NB_USER}" "${MODELS_DIR}" \
