@@ -21,7 +21,7 @@ numba
 numexpr
 openmm
 openpyxl
-pandas<2.0.0
+pandas
 patsy
 pdbfixer
 protobuf

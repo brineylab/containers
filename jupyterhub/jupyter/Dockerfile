@@ -58,16 +58,12 @@ RUN apt-get update --yes \
 # ----------------------------
 # installs JupyterLab, Jupyter Notebook, JupyterHub and NBClassic
 # generates a Jupyter Server config
-# installs scipy dependencies
 USER ${NB_UID}
 WORKDIR /tmp
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_mamba.txt ${REQUIREMENTS_DIR}/jupyter_mamba.txt
-COPY --chown=${NB_UID}:${NB_GID} ./requirements/scipy_mamba.txt ${REQUIREMENTS_DIR}/scipy_mamba.txt
 RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
-    && mamba install --yes --file "${REQUIREMENTS_DIR}/scipy_mamba.txt" \
     && jupyter server --generate-config \
     && mamba clean --all -f -y \
-    && npm cache clean --force \
     && jupyter lab clean \
     && rm -rf "/home/${NB_USER}/.cache/yarn" \
     && fix-permissions "${CONDA_DIR}" \
@@ -84,6 +80,30 @@ COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter-extensions_pip.txt ${REQ
 RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" \
     && jupyter lab clean \
     && fix-permissions "/home/${NB_USER}"
+
+
+#----------------------
+#     CODESERVER
+#----------------------
+# code-server args
+ARG codeserver_version=v4.90.0
+ENV CODESERVER_VERSION="${codeserver_version}" \
+    CODE_WORKINGDIR="${HOME}/codeserver"
+
+# install - code-server
+USER root
+RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
+    && dpkg -i /tmp/code-server.deb \
+    && rm -f /tmp/code-server.deb
+
+# code-server extensions
+USER ${NB_UID}
+RUN code-server --install-extension ms-python.python \
+                --install-extension ms-python.debugpy \
+                --install-extension ms-python.black-formatter \
+                --install-extension ms-toolsai.jupyter \
+                --install-extension redhat.vscode-yaml \
+                --install-extension redhat.vscode-xml
 
 
 # ----------------------------

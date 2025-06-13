@@ -12,12 +12,9 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
-
-# VERSIONS
+# OpenJDK version
 ARG openjdk_version="17"
-ARG codeserver_version=v4.90.0
-ENV CODESERVER_VERSION="${codeserver_version}" \
-    OPENJDK_VERSION="${openjdk_version}"
+ENV OPENJDK_VERSION="${openjdk_version}"
 
 
 # ----------------------------
@@ -43,33 +40,17 @@ RUN apt-get update --yes \
     && rm -rf /var/lib/apt/lists/*
 
 
-#----------------------
-#     CODESERVER
-#----------------------
-# install - code-server
-RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
-    && dpkg -i /tmp/code-server.deb \
-    && rm -f /tmp/code-server.deb
-
-# code-server extensions
+#-----------------
+#      SciPy
+#-----------------
 USER ${NB_UID}
-RUN code-server --install-extension ms-python.python \
-                --install-extension ms-python.debugpy \
-                --install-extension ms-python.black-formatter \
-                --install-extension ms-toolsai.jupyter \
-                --install-extension redhat.vscode-yaml \
-                --install-extension redhat.vscode-xml
-
-# jupyterhub proxys for codeserver & R in the launcher
-RUN mamba install --yes \
-    "jupyter-server-proxy" \
-    "jupyter-vscode-proxy" \
+WORKDIR /tmp
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/scipy_mamba.txt ${REQUIREMENTS_DIR}/scipy_mamba.txt
+RUN mamba install --yes --file "${REQUIREMENTS_DIR}/scipy_mamba.txt" \
     && mamba clean --all -f -y \
+    && npm cache clean --force \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
-
-# set the home directory
-ENV CODE_WORKINGDIR="${HOME}/codeserver"
 
 
 #-----------------------------
