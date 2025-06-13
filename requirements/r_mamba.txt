@@ -23,5 +23,4 @@ r-rsqlite
 r-shiny
 r-tidymodels
 r-tidyverse
-rpy2
 unixodbc
