@@ -124,6 +124,11 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su \
     && usermod -aG sudo ${NB_USER} \
     && echo "${NB_USER}  ALL=(ALL) NOPASSWD:ALL" | tee /etc/sudoers.d/${NB_USER}
 
+# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
+# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
+# More info: https://github.com/jupyter/docker-stacks/issues/2296
+RUN rm -rf "/home/${NB_USER}/.cache/"
+
 
 # ----------------------------
 #         Micromamba
@@ -181,6 +186,12 @@ USER root
 RUN mkdir /usr/local/bin/start-notebook.d \
     && mkdir /usr/local/bin/before-notebook.d
 COPY ./jupyterhub/base/10activate-conda-env.sh /usr/local/bin/before-notebook.d/
+
+# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
+# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
+# More info: https://github.com/jupyter/docker-stacks/issues/2296
+RUN rm -rf "/home/${NB_USER}/.cache/"
+
 
 # ----------------------------
 #         Final Setup

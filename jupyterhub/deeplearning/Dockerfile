@@ -24,6 +24,11 @@ ENV NVIDIA_DRIVER_CAPABILITIES='compute,utility'
 ENV PATH="${PATH}:/usr/local/nvidia/bin" \
     LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
 
+# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
+# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
+# More info: https://github.com/jupyter/docker-stacks/issues/2296
+RUN rm -rf "/home/${NB_USER}/.cache/"
+
 # CUDA toolkit
 USER ${NB_UID}
 RUN mamba install --yes -c nvidia \

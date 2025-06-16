@@ -52,6 +52,10 @@ RUN apt-get update --yes \
     && apt-get clean \ 
     && rm -rf /var/lib/apt/lists/*
 
+# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
+# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
+# More info: https://github.com/jupyter/docker-stacks/issues/2296
+RUN rm -rf "/home/${NB_USER}/.cache/"
 
 # ----------------------------
 #       Mamba Packages
@@ -96,6 +100,11 @@ RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_
     && dpkg -i /tmp/code-server.deb \
     && rm -f /tmp/code-server.deb
 
+# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
+# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
+# More info: https://github.com/jupyter/docker-stacks/issues/2296
+RUN rm -rf "/home/${NB_USER}/.cache/"
+
 # code-server extensions
 USER ${NB_UID}
 RUN code-server --install-extension ms-python.python \
@@ -124,6 +133,10 @@ RUN fix-permissions /etc/jupyter/
 HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
     CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
+# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
+# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
+# More info: https://github.com/jupyter/docker-stacks/issues/2296
+RUN rm -rf "/home/${NB_USER}/.cache/"
 
 # ----------------------------
 #         Final Setup
