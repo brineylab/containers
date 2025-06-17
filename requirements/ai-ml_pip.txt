@@ -1,22 +1,23 @@
 # training
+# --------
 torch
 lightning
 deepspeed
-# logging
 wandb
 # jax-related
+# -----------
 jax[cuda12_local]
 flax
 chex
 optax
 equinox
-# haliax  # removed to save space
-# levanter  # removed to save space
 # others
+# ------
 keras
 treescope
 gradio
 # huggingface
+# -----------
 accelerate
 datasets
 diffusers
