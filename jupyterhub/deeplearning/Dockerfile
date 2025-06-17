@@ -53,11 +53,8 @@ COPY --chown=${NB_UID}:${NB_GID} ./requirements/ai-ml_pip.txt ${REQUIREMENTS_DIR
 RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/ai-ml_pip.txt" \
     # JupterLab NVdashboard (nightly for jupyterlab >= 4.0)
     # https://github.com/rapidsai/jupyterlab-nvdashboard
-    && python3 -m pip install \
-        --no-cache-dir \
-        --extra-index-url https://pypi.anaconda.org/rapidsai-wheels-nightly/simple \
-        --pre \
-        jupyterlab_nvdashboard
+    && mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \
+    && mamba clean --all -f -y
 
 
 # ----------------------------
