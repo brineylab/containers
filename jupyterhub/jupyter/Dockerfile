@@ -90,7 +90,7 @@ RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/jupyter-extens
 #     CODESERVER
 #----------------------
 # code-server args
-ARG codeserver_version=v4.90.0
+ARG codeserver_version=v4.100.0
 ENV CODESERVER_VERSION="${codeserver_version}" \
     CODE_WORKINGDIR="${HOME}/codeserver"
 
@@ -105,20 +105,12 @@ RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_
 # More info: https://github.com/jupyter/docker-stacks/issues/2296
 RUN rm -rf "/home/${NB_USER}/.cache/"
 
-# code-server extensions
-USER ${NB_UID}
-RUN code-server --install-extension ms-python.python \
-                --install-extension ms-python.debugpy \
-                --install-extension ms-python.black-formatter \
-                --install-extension ms-toolsai.jupyter \
-                --install-extension redhat.vscode-yaml \
-                --install-extension redhat.vscode-xml
-
 
 # ----------------------------
 #    Container Startup
 # ----------------------------
 # Copy local files as late as possible to avoid cache busting
+USER ${NB_UID}
 COPY ./jupyterhub/jupyter/start-notebook.py ./jupyterhub/jupyter/start-notebook.sh /usr/local/bin/
 COPY ./jupyterhub/jupyter/start-singleuser.py ./jupyterhub/jupyter/start-singleuser.sh /usr/local/bin/
 COPY ./jupyterhub/jupyter/jupyter_server_config.py ./jupyterhub/jupyter/docker_healthcheck.py /etc/jupyter/
