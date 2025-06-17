@@ -61,17 +61,17 @@ RUN cd "${NGS_TOOLS_DIR}" \
     && echo "  - RF_structure_prediction_weights.pt" \
     && aria2c --max-connection-per-server=8 http://files.ipd.uw.edu/pub/RFdiffusion/1befcb9b28e2f778f53d47f18b7597fa/RF_structure_prediction_weights.pt \
     # dependencies
-    && python3 -m pip install jedi omegaconf hydra-core icecream pyrsistent pynvml decorator \
-    && python3 -m pip install "git+https://github.com/NVIDIA/dllogger#egg=dllogger" \
-    && python3 -m pip install --no-dependencies dgl==2.0.0 -f "https://data.dgl.ai/wheels/cu121/repo.html" \
-    && python3 -m pip install --no-dependencies e3nn==0.3.3 opt_einsum_fx \
+    && python3 -m pip install --no-cache-dir jedi omegaconf hydra-core icecream pyrsistent pynvml decorator \
+    && python3 -m pip install --no-cache-dir "git+https://github.com/NVIDIA/dllogger#egg=dllogger" \
+    && python3 -m pip install --no-cache-dir --no-dependencies dgl==2.0.0 -f "https://data.dgl.ai/wheels/cu121/repo.html" \
+    && python3 -m pip install --no-cache-dir --no-dependencies e3nn==0.3.3 opt_einsum_fx \
     # install SE(3)-Transformers
     && cd ../env/SE3Transformer \ 
     && python3 -m pip install --no-cache-dir -r requirements.txt \
-    && python3 -m pip install -e . \
+    && python3 -m pip install --no-cache-dir -e . \
     # install RFdiffusion
     && cd ../.. \
-    && python3 -m pip install -e . \
+    && python3 -m pip install --no-cache-dir -e . \
     && fix-permissions "${NGS_TOOLS_DIR}/RFdiffusion"
 ENV DGLBACKEND="pytorch"
 
@@ -96,7 +96,7 @@ RUN cd "${ALPHAFOLD2_PARAMS_DIR}" \
 RUN cd "${NGS_TOOLS_DIR}" \
     && git clone "https://github.com/sokrypton/ColabDesign" \
     && cd ColabDesign \
-    && python3 -m pip install . \
+    && python3 -m pip install --no-cache-dir . \
     && fix-permissions "${NGS_TOOLS_DIR}/ColabDesign"
 
 # # Rosetta (and PyRosetta)
@@ -114,18 +114,17 @@ RUN cd "${NGS_TOOLS_DIR}" \
 #-------------------------
 #    Ab/protein models
 #-------------------------
-RUN python3 -m pip install \
+RUN python3 -m pip install --no-cache-dir \
         # protein models
         boltz \
         fair-esm \
         # antibody models
         ablang2 \
         ImmuneBuilder \
-        "git+https://github.com/OliverT1/p-IgGen.git" \
-    && python3 -m pip cache purge
+        "git+https://github.com/OliverT1/p-IgGen.git"
 
 # RUN cd "${NGS_TOOLS_DIR}" \
 #     && git clone "https://github.com/oxpig/AntiFold" \
 #     && cd AntiFold \
-#     && python3 -m pip install . \
+#     && python3 -m pip install --no-cache-dir . \
 #     && fix-permissions "${NGS_TOOLS_DIR}/AntiFold"

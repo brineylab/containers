@@ -101,11 +101,10 @@ RUN Rscript -e "\
 #     NGS TOOLS
 #-------------------
 # cutadapt
-RUN python3 -m pip install \
+RUN python3 -m pip install --no-cache-dir \
     "cutadapt" \
     && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}" \
-    && python3 -m pip cache purge
+    && fix-permissions "/home/${NB_USER}"
 
 # NGS directory
 USER root
@@ -191,8 +190,8 @@ RUN rm -rf "/home/${NB_USER}/.cache/"
 USER ${NB_UID}
 RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && mamba create -f environment_no-default.yml -n igdiscover \
-    && mamba run -n igdiscover python3 -m pip install --no-deps -e . \
-    && mamba run -n igdiscover python3 -m pip install "networkx==2.1" \
+    && mamba run -n igdiscover python3 -m pip install --no-cache-dir --no-deps -e . \
+    && mamba run -n igdiscover python3 -m pip install --no-cache-dir "networkx==2.1" \
     && mamba clean --all -f -y
 
 # dorado (ONT)

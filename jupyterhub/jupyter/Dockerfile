@@ -81,7 +81,7 @@ ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter-extensions_pip.txt ${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt
-RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" \
+RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" \
     && jupyter lab clean \
     && fix-permissions "/home/${NB_USER}"
 

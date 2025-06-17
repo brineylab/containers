@@ -50,14 +50,14 @@ RUN mamba install --yes -c nvidia \
 #         AI/ML Packages
 # ----------------------------
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/ai-ml_pip.txt ${REQUIREMENTS_DIR}/ai-ml_pip.txt
-RUN python3 -m pip install -r "${REQUIREMENTS_DIR}/ai-ml_pip.txt" \
+RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/ai-ml_pip.txt" \
     # JupterLab NVdashboard (nightly for jupyterlab >= 4.0)
     # https://github.com/rapidsai/jupyterlab-nvdashboard
     && python3 -m pip install \
+        --no-cache-dir \
         --extra-index-url https://pypi.anaconda.org/rapidsai-wheels-nightly/simple \
         --pre \
-        jupyterlab_nvdashboard \
-    && python3 -m pip cache purge
+        jupyterlab_nvdashboard
 
 
 # ----------------------------
