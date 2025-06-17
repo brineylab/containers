@@ -37,12 +37,5 @@ scvelo
 smart_open
 tqdm
 umap-learn
-# ab[x]
-# -----
-abutils
-abstar
-scab
-# other utils
-# -----------
 dm-tree
 ml-collections

@@ -61,8 +61,14 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/scipy_mamba.txt" \
 #   ab[x] and dependencies
 #-----------------------------
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/abx_pip.txt ${REQUIREMENTS_DIR}/abx_pip.txt
-RUN python3 -m pip install -r ${REQUIREMENTS_DIR}/abx_pip.txt \
-    && python3 -m pip cache purge
+RUN python3 -m pip install --no-cache-dir -r ${REQUIREMENTS_DIR}/abx_pip.txt
+
+# ab[x]
+# installed separately to prevent pip resolver issues
+RUN python3 -m pip install --no-cache-dir \
+        "scab>=0.2.4" \
+        abstar \
+        abutils
 
 
 #-----------------
