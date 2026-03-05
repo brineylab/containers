@@ -177,7 +177,6 @@ RUN set -x \
 # And setup work directory for backward-compatibility
 RUN mkdir -p ${REQUIREMENTS_DIR} \
     && mkdir "/home/${NB_USER}/work" \
-    && mkdir "/home/${NB_USER}/codeserver" \
     && fix-permissions ${REQUIREMENTS_DIR} \
     && fix-permissions "/home/${NB_USER}"
 

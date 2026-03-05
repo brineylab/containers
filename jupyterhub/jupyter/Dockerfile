@@ -86,26 +86,6 @@ RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/jupyter-extens
     && fix-permissions "/home/${NB_USER}"
 
 
-#----------------------
-#     CODESERVER
-#----------------------
-# code-server args
-ARG codeserver_version=v4.100.0
-ENV CODESERVER_VERSION="${codeserver_version}" \
-    CODE_WORKINGDIR="${HOME}/codeserver"
-
-# install - code-server
-USER root
-RUN curl -sL "https://github.com/cdr/code-server/releases/download/${CODESERVER_VERSION}/code-server_${CODESERVER_VERSION/v/}_amd64.deb" -o /tmp/code-server.deb \
-    && dpkg -i /tmp/code-server.deb \
-    && rm -f /tmp/code-server.deb
-
-# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
-# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
-# More info: https://github.com/jupyter/docker-stacks/issues/2296
-RUN rm -rf "/home/${NB_USER}/.cache/"
-
-
 # ----------------------------
 #    Container Startup
 # ----------------------------
