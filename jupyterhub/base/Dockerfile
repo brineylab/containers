@@ -7,10 +7,10 @@
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
-# The default base image is Ubuntu 22.04 (jammy)
-# https://hub.docker.com/_/ubuntu/tags?page=1&name=jammy
+# The default base image is Ubuntu 24.04 (noble)
+# https://hub.docker.com/_/ubuntu/tags?page=1&name=noble
 
-ARG BASE_IMG=ubuntu:22.04
+ARG BASE_IMG=ubuntu:24.04
 FROM $BASE_IMG
 
 ARG OWNER=brineylab
