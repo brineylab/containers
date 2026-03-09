@@ -3,7 +3,7 @@
 # and was subsequently modified by the Briney Lab.
 
 # In alignment with the licensing of the orignal image created
-# by the Jupyter Development Team, this image is distributed 
+# by the Jupyter Development Team, this image is distributed
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
@@ -69,22 +69,54 @@ RUN apt-get update --yes \
         # - additional apt packages beyond those in the original Jupyter dockerfile
         bash \
         bashtop \
-        btop \ 
-        curl \ 
-        htop \ 
+        btop \
+        curl \
+        htop \
         nano \
-        nfs-common \ 
-        openssh-server \ 
-        pigz \ 
+        nfs-common \
+        openssh-server \
+        pigz \
         screen \
-        tmux \ 
-        traceroute \ 
-        unzip \ 
-        vim \ 
-        zip \ 
+        tmux \
+        traceroute \
+        unzip \
+        vim \
+        zip \
         gnupg \
         gnupg2 \
-    && apt-get clean \ 
+        # for cython: https://cython.readthedocs.io/en/latest/src/quickstart/install.html
+        build-essential \
+        # for latex labels
+        cm-super \
+        dvipng \
+        # for matplotlib anim
+        ffmpeg \
+        fonts-liberation \
+        git \
+        # less is needed to run help in R
+        # see: https://github.com/jupyter/docker-stacks/issues/1588
+        less \
+        openssh-client \
+        # - pandoc is used to convert notebooks to html files
+        #   it's not present in aarch64 ubuntu image, so we install it here
+        pandoc \
+        # - run-one - a wrapper script that runs no more
+        #   than one unique  instance  of  some  command with a unique set of arguments,
+        #   we use `run-one-constantly` to support `RESTARTABLE` option
+        run-one \
+        # nbconvert dependencies
+        # https://nbconvert.readthedocs.io/en/latest/install.html#installing-tex
+        texlive-xetex \
+        texlive-fonts-recommended \
+        texlive-plain-generic \
+        tzdata \
+        # Enable clipboard on Linux host systems
+        xclip \
+        # R pre-requisites
+        fonts-dejavu \
+        gfortran \
+        gcc \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
     && echo "en_US.UTF-8 UTF-8" > /etc/locale.gen \
     && locale-gen
@@ -94,7 +126,7 @@ RUN apt-get update --yes \
 #       User Setup
 # ----------------------------
 # Copy script to fix permissions
-COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/base/fix-permissions /usr/local/bin/fix-permissions
+COPY --chown=${NB_UID}:${NB_GID} ./base/fix-permissions /usr/local/bin/fix-permissions
 RUN chmod a+rx /usr/local/bin/fix-permissions
 
 # Enable prompt color in the skeleton .bashrc before creating the default NB_USER
@@ -139,7 +171,7 @@ RUN rm -rf "/home/${NB_USER}/.cache/"
 #     - Micromamba-Docker: <https://github.com/mamba-org/micromamba-docker>
 #     - repo2docker: <https://github.com/jupyterhub/repo2docker>
 USER ${NB_UID}
-COPY --chown="${NB_UID}:${NB_GID}" ./jupyterhub/base/initial-condarc "${CONDA_DIR}/.condarc"
+COPY --chown="${NB_UID}:${NB_GID}" ./base/initial-condarc "${CONDA_DIR}/.condarc"
 WORKDIR /tmp
 RUN set -x \
     && arch=$(uname -m) \
@@ -180,11 +212,60 @@ RUN mkdir -p ${REQUIREMENTS_DIR} \
     && fix-permissions ${REQUIREMENTS_DIR} \
     && fix-permissions "/home/${NB_USER}"
 
-# Create dirs for startup hooks
-USER root
-RUN mkdir /usr/local/bin/start-notebook.d \
-    && mkdir /usr/local/bin/before-notebook.d
-COPY ./jupyterhub/base/10activate-conda-env.sh /usr/local/bin/before-notebook.d/
+# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
+# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
+# More info: https://github.com/jupyter/docker-stacks/issues/2296
+RUN rm -rf "/home/${NB_USER}/.cache/"
+
+
+#-----------------
+#      SciPy
+#-----------------
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/scipy_mamba.txt ${REQUIREMENTS_DIR}/scipy_mamba.txt
+RUN mamba install --yes --file "${REQUIREMENTS_DIR}/scipy_mamba.txt" \
+    && mamba clean --all -f -y \
+    && fix-permissions "${CONDA_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+
+#-----------------------------
+#   ab[x] and dependencies
+#-----------------------------
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/abx_pip.txt ${REQUIREMENTS_DIR}/abx_pip.txt
+RUN python3 -m pip install --no-cache-dir -r ${REQUIREMENTS_DIR}/abx_pip.txt
+
+# ab[x]
+# installed separately to prevent pip resolver issues
+RUN python3 -m pip install --no-cache-dir \
+        "scab>=0.2.4" \
+        abstar \
+        abutils
+
+
+#-----------------
+#       R
+#-----------------
+# R packages including IRKernel which gets installed globally.
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_mamba.txt ${REQUIREMENTS_DIR}/r_mamba.txt
+RUN mamba install --yes --file ${REQUIREMENTS_DIR}/r_mamba.txt \
+    && mamba clean --all -f -y \
+    && fix-permissions "${CONDA_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+# Install Bioconductor packages (BiocManager installed by mamba above)
+RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE)"
+
+# install R packages that are not available in mamba with CRAN
+# multi-thread compilation to speed up duckdb install - use 4 cores (25% of cores with xlarge runner)
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_cran.txt ${REQUIREMENTS_DIR}/r_cran.txt
+ENV MAKEFLAGS="-j4"
+RUN Rscript -e "\
+  pkgs <- scan('${REQUIREMENTS_DIR}/r_cran.txt', what = '', quiet = TRUE); \
+  install.packages( \
+    pkgs, \
+    dependencies = TRUE, \
+    repos = 'https://cran.rstudio.com' \
+  )"
 
 # macOS Rosetta virtualization creates junk directory which gets owned by root further up.
 # It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
@@ -195,10 +276,8 @@ RUN rm -rf "/home/${NB_USER}/.cache/"
 # ----------------------------
 #         Final Setup
 # ----------------------------
-# Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
 WORKDIR "${HOME}"
 
-# Configure container startup
-COPY ./jupyterhub/base/start.sh ./jupyterhub/base/run-hooks.sh /usr/local/bin/
-ENTRYPOINT ["tini", "-g", "--", "start.sh"]
+ENTRYPOINT ["tini", "--"]
+CMD ["/bin/bash"]
