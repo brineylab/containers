@@ -27,12 +27,6 @@ RUN apt-get update --yes \
         fonts-dejavu \
         gfortran \
         gcc \
-        # for PyRosetta
-        # cmake \
-        # ninja-build \
-        # g++ \
-        # clang \
-        # python3.11-dev \
         # for NGS tools
         "openjdk-${OPENJDK_VERSION}-jre-headless" \
         ca-certificates-java \
