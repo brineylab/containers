@@ -1,5 +1,5 @@
 ARG OWNER=brineylab
-ARG BASE_IMG=$OWNER/jupyterhub-datascience
+ARG BASE_IMG=$OWNER/deeplearning
 FROM $BASE_IMG
 
 # This image was initially created by the Jupyter Development Team:
@@ -8,58 +8,87 @@ FROM $BASE_IMG
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 # In alignment with the licensing of the orignal image created
-# by the Jupyter Development Team, this image is distributed 
+# by the Jupyter Development Team, this image is distributed
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
 
 # ----------------------------
-#         CUDA Setup
+#       Mamba Packages
 # ----------------------------
-USER root
+# installs JupyterLab, Jupyter Notebook, JupyterHub and NBClassic
+# generates a Jupyter Server config
+USER ${NB_UID}
+WORKDIR /tmp
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_mamba.txt ${REQUIREMENTS_DIR}/jupyter_mamba.txt
+RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
+    && jupyter server --generate-config \
+    && mamba clean --all -f -y \
+    && jupyter lab clean \
+    && npm cache clean --force \
+    && rm -rf "/home/${NB_USER}/.cache/yarn" \
+    && fix-permissions "${CONDA_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
 
-# NVIDIA configs
-ENV NVIDIA_VISIBLE_DEVICES='all'
-ENV NVIDIA_DRIVER_CAPABILITIES='compute,utility'
-ENV PATH="${PATH}:/usr/local/nvidia/bin" \
-    LD_LIBRARY_PATH='/usr/local/nvidia/lib:/usr/local/nvidia/lib64'
+
+# ----------------------------
+#    JupyterLab Extensions
+# ----------------------------
+ENV JUPYTER_PORT=8888
+EXPOSE $JUPYTER_PORT
+
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter-extensions_pip.txt ${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt
+RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" \
+    && jupyter lab clean \
+    && fix-permissions "/home/${NB_USER}"
+
+# JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
+# https://github.com/rapidsai/jupyterlab-nvdashboard
+RUN mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \
+    && mamba clean --all -f -y
+
+
+# ----------------------------
+#    Container Startup
+# ----------------------------
+# Copy local files as late as possible to avoid cache busting
+USER ${NB_UID}
+COPY ./jupyterhub/runtime/start-notebook.py ./jupyterhub/runtime/start-notebook.sh /usr/local/bin/
+COPY ./jupyterhub/runtime/start-singleuser.py ./jupyterhub/runtime/start-singleuser.sh /usr/local/bin/
+COPY ./jupyterhub/runtime/jupyter_server_config.py ./jupyterhub/runtime/docker_healthcheck.py /etc/jupyter/
+
+# Fix permissions on /etc/jupyter as root
+USER root
+RUN fix-permissions /etc/jupyter/
+
+# Create dirs for startup hooks and install conda activation hook
+RUN mkdir /usr/local/bin/start-notebook.d \
+    && mkdir /usr/local/bin/before-notebook.d
+COPY ./jupyterhub/runtime/10activate-conda-env.sh /usr/local/bin/before-notebook.d/
+
+# HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
+# This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
+# https://github.com/jupyter/docker-stacks/issues/915#issuecomment-1068528799
+HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
+    CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
 # macOS Rosetta virtualization creates junk directory which gets owned by root further up.
 # It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
 # More info: https://github.com/jupyter/docker-stacks/issues/2296
 RUN rm -rf "/home/${NB_USER}/.cache/"
 
-# CUDA toolkit
+# Add R mimetype option to specify how the plot returns from R to the browser
 USER ${NB_UID}
-RUN mamba install --yes -c nvidia \
-        "cuda~=12.4" \
-        "cuda-tools~=12.4" \
-        "cuda-toolkit~=12.4" \
-        "cuda-command-line-tools~=12.4" \
-        "cuda-compiler~=12.4" \
-        "cuda-runtime~=12.4" \
-    && mamba clean --all -f -y \
-    # link cuda directory (installed by mamba) to /usr/local/cuda
-    # without this, jax can't find libdevice.10.bc 
-    # see: https://github.com/jax-ml/jax/issues/4452
-    && sudo mkdir -p /usr/local/cuda \
-    && sudo ln -s /opt/conda/* /usr/local/cuda/
-
-
-# ----------------------------
-#         AI/ML Packages
-# ----------------------------
-COPY --chown=${NB_UID}:${NB_GID} ./requirements/ai-ml_pip.txt ${REQUIREMENTS_DIR}/ai-ml_pip.txt
-RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/ai-ml_pip.txt" \
-    # JupterLab NVdashboard (nightly for jupyterlab >= 4.0)
-    # https://github.com/rapidsai/jupyterlab-nvdashboard
-    && mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \
-    && mamba clean --all -f -y
+COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/runtime/Rprofile.site /opt/conda/lib/R/etc/
 
 
 # ----------------------------
 #         Final Setup
 # ----------------------------
-# Switch back to jovyan to avoid accidental container runs as root
 USER ${NB_UID}
 WORKDIR "${HOME}"
+
+# Configure container startup
+COPY ./jupyterhub/runtime/start.sh ./jupyterhub/runtime/run-hooks.sh /usr/local/bin/
+ENTRYPOINT ["tini", "-g", "--", "start.sh"]
+CMD ["start-notebook.py"]
