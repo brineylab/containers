@@ -35,8 +35,6 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
 #    JupyterLab Extensions
 # ----------------------------
 ENV JUPYTER_PORT=8888
-ENV JUPYTER_RUNTIME_DIR=/tmp/jupyter-runtime
-ENV JUPYTER_DATA_DIR=/tmp/jupyter-data
 EXPOSE $JUPYTER_PORT
 
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter-extensions_pip.txt ${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt
@@ -54,18 +52,12 @@ RUN jupyter server extension disable mercury_app
 # ----------------------------
 # Copy local files as late as possible to avoid cache busting
 USER ${NB_UID}
-COPY ./jupyterhub/runtime/start-notebook.py ./jupyterhub/runtime/start-notebook.sh /usr/local/bin/
-COPY ./jupyterhub/runtime/start-singleuser.py ./jupyterhub/runtime/start-singleuser.sh /usr/local/bin/
+COPY ./jupyterhub/runtime/start-notebook.py ./jupyterhub/runtime/start-singleuser.py /usr/local/bin/
 COPY ./jupyterhub/runtime/jupyter_server_config.py ./jupyterhub/runtime/docker_healthcheck.py /etc/jupyter/
 
 # Fix permissions on /etc/jupyter as root
 USER root
 RUN fix-permissions /etc/jupyter/
-
-# Create dirs for startup hooks and install conda activation hook
-RUN mkdir /usr/local/bin/start-notebook.d \
-    && mkdir /usr/local/bin/before-notebook.d
-COPY ./jupyterhub/runtime/10activate-conda-env.sh /usr/local/bin/before-notebook.d/
 
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
 # This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
@@ -90,6 +82,5 @@ USER ${NB_UID}
 WORKDIR "${HOME}"
 
 # Configure container startup
-COPY ./jupyterhub/runtime/start.sh ./jupyterhub/runtime/run-hooks.sh /usr/local/bin/
-ENTRYPOINT ["tini", "-g", "--", "start.sh"]
+ENTRYPOINT ["tini", "--"]
 CMD ["start-notebook.py"]
