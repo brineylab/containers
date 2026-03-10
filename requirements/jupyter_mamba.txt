@@ -6,4 +6,3 @@ nbclassic
 notebook>=7.2.2
 # proxy for codeserver & R in the launcher
 jupyter-server-proxy
-jupyter-vscode-proxy
