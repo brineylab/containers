@@ -14,7 +14,6 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 # OpenJDK version (required for NGS tools)
 ARG openjdk_version="17"
-ENV OPENJDK_VERSION="${openjdk_version}"
 
 
 # ----------------------------
@@ -24,29 +23,16 @@ USER root
 RUN apt-get update --yes \
     && apt-get install --yes --no-install-recommends \
         # for NGS tools
-        "openjdk-${OPENJDK_VERSION}-jre-headless" \
+        "openjdk-${openjdk_version}-jre-headless" \
         ca-certificates-java \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
-
-# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
-# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
-# More info: https://github.com/jupyter/docker-stacks/issues/2296
-RUN rm -rf "/home/${NB_USER}/.cache/"
 
 
 #-------------------
 #     NGS TOOLS
 #-------------------
-# cutadapt
-USER ${NB_UID}
-RUN python3 -m pip install --no-cache-dir \
-    "cutadapt" \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
-
 # NGS directory
-USER root
 ENV NGS_TOOLS_DIR="/tools"
 RUN mkdir "${NGS_TOOLS_DIR}" \
     && chown "${NB_USER}" "${NGS_TOOLS_DIR}" \
@@ -110,7 +96,7 @@ RUN git clone -b v1.2.11 "https://github.com/madler/zlib/" \
 RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
     && tar xf "cellranger-8.0.1.tar" \
     && rm "cellranger-8.0.1.tar" \
-    && sudo chmod -R 777 "${NGS_TOOLS_DIR}/cellranger-8.0.1" \
+    && chmod -R 777 "${NGS_TOOLS_DIR}/cellranger-8.0.1" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
@@ -121,26 +107,31 @@ RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
+# dorado (ONT)
+RUN wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar.gz" \
+    && tar xzf "dorado-0.7.0-linux-x64.tar.gz" \
+    && rm "dorado-0.7.0-linux-x64.tar.gz" \
+    && chmod -R 777 "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
+    && fix-permissions "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
+    && fix-permissions "/home/${NB_USER}"
+
 # macOS Rosetta virtualization creates junk directory which gets owned by root further up.
 # It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
 # More info: https://github.com/jupyter/docker-stacks/issues/2296
 RUN rm -rf "/home/${NB_USER}/.cache/"
 
+# cutadapt + IgDiscover conda env must be installed as NB_UID (conda is owned by jovyan)
 USER ${NB_UID}
+RUN python3 -m pip install --no-cache-dir \
+    "cutadapt" \
+    && fix-permissions "${CONDA_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
 RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && mamba create -f environment_no-default.yml -n igdiscover \
     && mamba run -n igdiscover python3 -m pip install --no-cache-dir --no-deps -e . \
     && mamba run -n igdiscover python3 -m pip install --no-cache-dir "networkx==2.1" \
     && mamba clean --all -f -y
-
-# dorado (ONT)
-RUN cd "${NGS_TOOLS_DIR}" \
-    && wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar.gz" \
-    && tar xzf "dorado-0.7.0-linux-x64.tar.gz" \
-    && rm "dorado-0.7.0-linux-x64.tar.gz" \
-    && sudo chmod -R 777 "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
-    && fix-permissions "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64" \
-    && fix-permissions "/home/${NB_USER}"
 
 # update path with all tools
 ENV PATH="${NGS_TOOLS_DIR}:${NGS_TOOLS_DIR}/cellranger-8.0.1/bin:${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64/bin:$PATH"
