@@ -35,12 +35,18 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
 #    JupyterLab Extensions
 # ----------------------------
 ENV JUPYTER_PORT=8888
+ENV JUPYTER_RUNTIME_DIR=/tmp/jupyter-runtime
+ENV JUPYTER_DATA_DIR=/tmp/jupyter-data
 EXPOSE $JUPYTER_PORT
 
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter-extensions_pip.txt ${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt
 RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" \
     && jupyter lab clean \
     && fix-permissions "/home/${NB_USER}"
+
+# mercury is installed as a Python package (for notebook widget use) 
+# but its server extension breaks JupyterHub routing
+RUN jupyter server extension disable mercury_app
 
 # JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
 # https://github.com/rapidsai/jupyterlab-nvdashboard
