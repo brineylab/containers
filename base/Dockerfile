@@ -22,7 +22,7 @@ ARG NB_UID="1000"
 ARG NB_GID="100"
 
 # Python version
-ARG PYTHON_VERSION=3.11
+ARG PYTHON_VERSION=3.12
 
 # Environmental variables
 ENV DEBIAN_FRONTEND=noninteractive \
