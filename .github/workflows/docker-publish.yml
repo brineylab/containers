@@ -8,20 +8,13 @@ on:
 jobs:
     # base image
     base:
-        runs-on: ubuntu-latest
+        runs-on: [self-hosted, legolas]
 
         permissions:
             contents: read
             packages: write
 
         steps:
-            - name: Delete huge unnecessary tools folder
-              run: |
-                echo "Disk space before deleting huge unnecessary tools folder:"
-                sudo df -h
-                rm -rf /opt/hostedtoolcache
-                echo "Disk space after deleting huge unnecessary tools folder:"
-                sudo df -h
             - name: checkout
               uses: actions/checkout@v6
             - name: set up QEMU
@@ -47,7 +40,7 @@ jobs:
 
     # datascience depends on base (adds NGS tools)
     datascience:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: [self-hosted, legolas]
         needs: [base]
 
         permissions:
@@ -55,13 +48,6 @@ jobs:
             packages: write
 
         steps:
-            - name: Delete huge unnecessary tools folder
-              run: |
-                echo "Disk space before deleting huge unnecessary tools folder:"
-                sudo df -h
-                rm -rf /opt/hostedtoolcache
-                echo "Disk space after deleting huge unnecessary tools folder:"
-                sudo df -h
             - name: checkout
               uses: actions/checkout@v6
             - name: set up QEMU
@@ -87,7 +73,7 @@ jobs:
 
     # deeplearning depends on base (adds CUDA + AI/ML)
     deeplearning:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: [self-hosted, legolas]
         needs: [base]
 
         permissions:
@@ -95,14 +81,6 @@ jobs:
             packages: write
 
         steps:
-            - name: Delete huge unnecessary tools folder
-              run: |
-                echo "Disk space before deleting huge unnecessary tools folder:"
-                sudo df -h
-                rm -rf /opt/hostedtoolcache
-                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-                echo "Disk space after deleting huge unnecessary tools folder:"
-                sudo df -h
             - name: checkout
               uses: actions/checkout@v6
             - name: set up QEMU
@@ -128,7 +106,7 @@ jobs:
 
     # jupyterhub-datascience depends on datascience (adds JupyterLab/Hub)
     jupyterhub-datascience:
-        runs-on: ubuntu-latest
+        runs-on: [self-hosted, legolas]
         needs: [datascience]
 
         permissions:
@@ -136,13 +114,6 @@ jobs:
             packages: write
 
         steps:
-            - name: Delete huge unnecessary tools folder
-              run: |
-                echo "Disk space before deleting huge unnecessary tools folder:"
-                sudo df -h
-                rm -rf /opt/hostedtoolcache
-                echo "Disk space after deleting huge unnecessary tools folder:"
-                sudo df -h
             - name: checkout
               uses: actions/checkout@v6
             - name: set up QEMU
@@ -168,7 +139,7 @@ jobs:
 
     # jupyterhub-deeplearning depends on deeplearning (adds JupyterLab/Hub)
     jupyterhub-deeplearning:
-        runs-on: ubuntu-latest
+        runs-on: [self-hosted, legolas]
         needs: [deeplearning]
 
         permissions:
@@ -176,14 +147,6 @@ jobs:
             packages: write
 
         steps:
-            - name: Delete huge unnecessary tools folder
-              run: |
-                echo "Disk space before deleting huge unnecessary tools folder:"
-                sudo df -h
-                rm -rf /opt/hostedtoolcache
-                sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-                echo "Disk space after deleting huge unnecessary tools folder:"
-                sudo df -h
             - name: checkout
               uses: actions/checkout@v6
             - name: set up QEMU
