@@ -51,7 +51,7 @@ runs:
             context: .
             file: ${{ inputs.dockerfile }}
             no-cache: ${{ inputs.use_cache != 'true' }}
-            cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,compression=zstd,mode=max
+            cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,compression=zstd,mode=max,ignore-error=true
             cache-from: type=registry,ref=brineylab/${{ github.job }}:cache,compression=zstd
             provenance: true
             push: ${{ inputs.push == 'true' }}
