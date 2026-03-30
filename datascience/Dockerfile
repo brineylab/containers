@@ -123,9 +123,7 @@ RUN python3 -m pip install --no-cache-dir \
 # IgDiscover
 RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
     && cd igdiscover22 \
-    && sed '/- defaults/d' environment.yml > environment_no-default.yml \
-    && fix-permissions "${NGS_TOOLS_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
+    && sed '/- defaults/d' environment.yml > environment_no-default.yml
 
 RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
     && mamba create -f environment_no-default.yml -n igdiscover \
