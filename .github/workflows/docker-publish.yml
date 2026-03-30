@@ -9,6 +9,10 @@ on:
                 description: Use Docker layer cache
                 type: boolean
                 default: true
+            push:
+                description: Push image to Docker Hub
+                type: boolean
+                default: true
 
 concurrency:
     group: docker-publish
@@ -37,6 +41,7 @@ jobs:
                 dockerfile: ./base/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
+                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
 
     # datascience depends on base (adds NGS tools)
     datascience:
@@ -54,6 +59,7 @@ jobs:
                 dockerfile: ./datascience/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
+                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
 
     # deeplearning depends on base (adds CUDA + AI/ML)
     deeplearning:
@@ -71,6 +77,7 @@ jobs:
                 dockerfile: ./deeplearning/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
+                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
 
     # jupyterhub-datascience depends on datascience (adds JupyterLab/Hub)
     jupyterhub-datascience:
@@ -88,6 +95,7 @@ jobs:
                 dockerfile: ./jupyterhub/datascience/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
+                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
 
     # jupyterhub-deeplearning depends on deeplearning (adds JupyterLab/Hub)
     jupyterhub-deeplearning:
@@ -105,3 +113,4 @@ jobs:
                 dockerfile: ./jupyterhub/deeplearning/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
+                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}

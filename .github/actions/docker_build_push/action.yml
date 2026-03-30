@@ -16,6 +16,10 @@ inputs:
         description: Use Docker layer cache
         required: false
         default: 'true'
+    push:
+        description: Push image to Docker Hub
+        required: false
+        default: 'true'
 
 runs:
     using: composite
@@ -50,5 +54,5 @@ runs:
             cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,mode=max
             cache-from: type=registry,ref=brineylab/${{ github.job }}:cache
             provenance: true
-            push: true
+            push: ${{ inputs.push == 'true' }}
             tags: ${{ steps.tags.outputs.tags }}
