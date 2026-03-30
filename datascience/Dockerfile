@@ -128,7 +128,6 @@ RUN python3 -m pip install --no-cache-dir \
     && fix-permissions "/home/${NB_USER}"
 
 RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
-    && git config --global --add safe.directory ${NGS_TOOLS_DIR}/igdiscover22
     && mamba create -f environment_no-default.yml -n igdiscover \
     && mamba run -n igdiscover python3 -m pip install --no-cache-dir --no-deps -e . \
     && mamba run -n igdiscover python3 -m pip install --no-cache-dir "networkx==2.1" \
