@@ -53,6 +53,6 @@ runs:
             no-cache: ${{ inputs.use_cache != 'true' }}
             cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,compression=zstd,mode=max,ignore-error=true
             cache-from: type=registry,ref=brineylab/${{ github.job }}:cache,compression=zstd
-            provenance: true
+            provenance: false
             push: ${{ inputs.push == 'true' }}
             tags: ${{ steps.tags.outputs.tags }}
