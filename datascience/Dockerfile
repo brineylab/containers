@@ -100,13 +100,6 @@ RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
     && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
-# IgDiscover
-RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
-    && cd igdiscover22 \
-    && sed '/- defaults/d' environment.yml > environment_no-default.yml \
-    && fix-permissions "${NGS_TOOLS_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
-
 # dorado (ONT)
 RUN wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar.gz" \
     && tar xzf "dorado-0.7.0-linux-x64.tar.gz" \
@@ -125,6 +118,13 @@ USER ${NB_UID}
 RUN python3 -m pip install --no-cache-dir \
     "cutadapt" \
     && fix-permissions "${CONDA_DIR}" \
+    && fix-permissions "/home/${NB_USER}"
+
+# IgDiscover
+RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
+    && cd igdiscover22 \
+    && sed '/- defaults/d' environment.yml > environment_no-default.yml \
+    && fix-permissions "${NGS_TOOLS_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
 RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
