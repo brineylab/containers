@@ -19,9 +19,9 @@ gradio
 # huggingface
 # -----------
 accelerate
-datasets
+datasets>=4.0.0
 diffusers
 evaluate
 optimum
 peft
-transformers
+transformers>=5.0.0
