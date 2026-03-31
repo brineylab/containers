@@ -1,4 +1,4 @@
-jupyterhub-singleuser~=4.1
+jupyterhub-singleuser
 jupyterlab
 nbclassic
 # Old versions of `notebook` (<v7) didn't have a restriction on the `jupyterlab` version
