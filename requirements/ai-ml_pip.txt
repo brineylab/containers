@@ -1,27 +1,25 @@
-# training
-# --------
-torch
+# --- training ---
 lightning
 deepspeed
 wandb
-# jax-related
-# -----------
-jax[cuda12_local]
+
+# --- jax-related ---
+jax[cuda13_local]
 flax
 chex
 optax
 equinox
-# others
-# ------
+
+# --- others ---
 keras
 treescope
 gradio
-# huggingface
-# -----------
+
+# --- huggingface ---
 accelerate
-datasets>=4.0.0
+datasets
 diffusers
 evaluate
 optimum
 peft
-transformers>=5.0.0
+transformers

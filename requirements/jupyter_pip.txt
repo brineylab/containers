@@ -1,3 +1,13 @@
+# Jupyter packages (installed in jupyterhub images)
+
+# --- core ---
+jupyterhub-singleuser
+jupyterlab
+nbclassic
+notebook>=7.2.2
+jupyter-server-proxy
+
+# --- extensions ---
 jupyterlab-code-formatter
 jupyterlab-github
 jupyterlab-git
@@ -13,5 +23,5 @@ cohere
 huggingface_hub
 pillow
 ipywidgets
-openai 
+openai
 boto3

@@ -1,9 +1,15 @@
-anndata
+# Biology and abx packages (installed after pip.txt to avoid resolver depth issues)
+
+# --- structural biology / antibody ---
+abnumber
+anarci
+modelcif
+
+# --- abx ---
 baltic
 bbknn
 biopython
 celery
-dask[complete]
 dnachisel
 doubletdetection
 duckdb
@@ -13,8 +19,7 @@ harmonypy
 humanize
 leidenalg
 logomaker
-matplotlib
-mercury  # used to make jupyter widgets: https://github.com/mljar/mercury
+mercury
 mnemonic
 paramiko
 parasail
@@ -39,3 +44,8 @@ tqdm
 umap-learn
 dm-tree
 ml-collections
+
+# ab[x] packages
+scab>=0.2.4
+abstar
+abutils
