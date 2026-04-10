@@ -46,7 +46,7 @@ EXPOSE $JUPYTER_PORT
 
 # mercury is installed as a Python package (for notebook widget use)
 # but its server extension breaks JupyterHub routing
-RUN jupyter server extension disable mercury_app
+RUN sed -i 's/"mercury_app": true/"mercury_app": false/' /usr/local/etc/jupyter/jupyter_server_config.d/mercury_app.json
 
 # JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
 # https://github.com/rapidsai/jupyterlab-nvdashboard
