@@ -20,6 +20,9 @@ ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
 
+# Python version (must match the NVIDIA base image's Python)
+ARG PYTHON_VERSION=3.12
+
 # Environmental variables
 ENV DEBIAN_FRONTEND=noninteractive \
     CONDA_DIR=/opt/conda \
@@ -30,8 +33,9 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8
-ENV PATH="${PATH}:${CONDA_DIR}/bin"
 ENV HOME="/home/${NB_USER}"
+ENV PATH="${HOME}/.local/bin:${PATH}:${CONDA_DIR}/bin"
+ENV PYTHONPATH="${CONDA_DIR}/lib/python${PYTHON_VERSION}/site-packages"
 ENV REQUIREMENTS_DIR="${HOME}/.requirements"
 
 # NVIDIA configs
@@ -107,6 +111,7 @@ RUN set -x \
         --root-prefix="${CONDA_DIR}" \
         --prefix="${CONDA_DIR}" \
         --yes \
+        "python=${PYTHON_VERSION}" \
         'jupyter_core' \
         'conda' \
         'mamba' \
