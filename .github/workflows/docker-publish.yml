@@ -26,27 +26,9 @@ env:
     DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
 jobs:
-    # base image
-    base:
-        runs-on: ubuntu-latest-brineylab-xlarge
-        steps:
-            - name: checkout
-              uses: actions/checkout@v6
-              with:
-                fetch-depth: 1
-            - name: build and push
-              uses: ./.github/actions/docker_build_push
-              with:
-                image_name: base
-                dockerfile: ./base/Dockerfile
-                tag_name: ${{ github.event.release.tag_name }}
-                use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
-                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
-
-    # datascience depends on base (adds NGS tools)
+    # datascience
     datascience:
         runs-on: ubuntu-latest-brineylab-xlarge
-        needs: [base]
         steps:
             - name: checkout
               uses: actions/checkout@v6
@@ -61,10 +43,9 @@ jobs:
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
                 push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
 
-    # deeplearning depends on base (adds CUDA + AI/ML)
+    # deeplearning
     deeplearning:
         runs-on: ubuntu-latest-brineylab-xlarge
-        needs: [base]
         steps:
             - name: checkout
               uses: actions/checkout@v6
