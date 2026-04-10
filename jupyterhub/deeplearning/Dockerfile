@@ -26,8 +26,10 @@ RUN mamba install --yes 'nodejs>=20.0.0' \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}"
 
+# Install as root so entry points (jupyterhub-singleuser) go to /usr/local/bin
+USER root
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_pip.txt ${REQUIREMENTS_DIR}/jupyter_pip.txt
-RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/jupyter_pip.txt" \
+RUN python3 -m pip install --no-cache-dir --break-system-packages -r "${REQUIREMENTS_DIR}/jupyter_pip.txt" \
     && jupyter server --generate-config \
     && jupyter lab clean \
     && npm cache clean --force \
