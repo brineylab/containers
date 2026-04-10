@@ -163,7 +163,7 @@ RUN uv pip install --no-cache --system --break-system-packages -r "${REQUIREMENT
 # ----------------------------
 USER ${NB_UID}
 RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE)" \
-    && fix-permissions "${CONDA_DIR}"
+    && fix-permissions "${CONDA_DIR}/lib/R"
 
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_cran.txt ${REQUIREMENTS_DIR}/r_cran.txt
 RUN MAKEFLAGS="-j$(nproc)" Rscript -e "\
@@ -173,7 +173,7 @@ RUN MAKEFLAGS="-j$(nproc)" Rscript -e "\
     dependencies = TRUE, \
     repos = 'https://cran.rstudio.com' \
   )" \
-    && fix-permissions "${CONDA_DIR}"
+    && fix-permissions "${CONDA_DIR}/lib/R"
 
 
 # ----------------------------

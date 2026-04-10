@@ -23,8 +23,7 @@ WORKDIR /tmp
 
 # nodejs is required for JupyterLab extension building
 RUN mamba install --yes 'nodejs>=20.0.0' \
-    && mamba clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}"
+    && mamba clean --all -f -y
 
 # Install as root so entry points (jupyterhub-singleuser) go to /usr/local/bin
 USER root
@@ -34,7 +33,6 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages -r "${REQUIREM
     && jupyter lab clean \
     && npm cache clean --force \
     && rm -rf "/home/${NB_USER}/.cache/yarn" \
-    && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
 
@@ -50,6 +48,7 @@ RUN sed -i 's/"mercury_app": true/"mercury_app": false/' /usr/local/etc/jupyter/
 
 # JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
 # https://github.com/rapidsai/jupyterlab-nvdashboard
+USER ${NB_UID}
 RUN mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \
     && mamba clean --all -f -y
 
@@ -58,7 +57,6 @@ RUN mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboar
 #    Container Startup
 # ----------------------------
 # Copy local files as late as possible to avoid cache busting
-USER ${NB_UID}
 COPY ./jupyterhub/runtime/start-notebook.py ./jupyterhub/runtime/start-singleuser.py /usr/local/bin/
 COPY ./jupyterhub/runtime/jupyter_server_config.py ./jupyterhub/runtime/docker_healthcheck.py /etc/jupyter/
 
