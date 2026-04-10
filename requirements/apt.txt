@@ -16,6 +16,7 @@ git
 gnupg2
 htop
 less
+libaio-dev
 locales
 nano
 netbase
