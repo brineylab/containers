@@ -220,7 +220,9 @@ RUN apt-get update \
     && ./configure \
     && make \
     && make install \
-    && ldconfig
+    && ldconfig \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # sickle
 RUN git clone -b v1.2.11 "https://github.com/madler/zlib/" \
@@ -251,7 +253,7 @@ RUN wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar
 
 # cutadapt + IgDiscover conda env must be installed as NB_UID (conda is owned by jovyan)
 USER ${NB_UID}
-RUN python3 -m pip install --no-cache-dir "cutadapt"
+RUN uv pip install --no-cache --system "cutadapt"
 
 # IgDiscover
 RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
