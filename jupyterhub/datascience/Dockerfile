@@ -42,10 +42,6 @@ RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/jupyter_pip.tx
 ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
-# mercury is installed as a Python package (for notebook widget use)
-# but its server extension breaks JupyterHub routing
-RUN jupyter server extension disable mercury_app
-
 
 # ----------------------------
 #    Container Startup

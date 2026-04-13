@@ -42,10 +42,6 @@ RUN python3 -m pip install --no-cache-dir --break-system-packages -r "${REQUIREM
 ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
-# mercury is installed as a Python package (for notebook widget use)
-# but its server extension breaks JupyterHub routing
-RUN sed -i 's/"mercury_app": true/"mercury_app": false/' /usr/local/etc/jupyter/jupyter_server_config.d/mercury_app.json
-
 # JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
 # https://github.com/rapidsai/jupyterlab-nvdashboard
 USER ${NB_UID}
