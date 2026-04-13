@@ -144,8 +144,7 @@ USER root
 RUN python3 -m pip install --no-cache-dir --break-system-packages uv
 
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/pip.txt ${REQUIREMENTS_DIR}/pip.txt
-COPY --chown=${NB_UID}:${NB_GID} ./requirements/abx_pip.txt ${REQUIREMENTS_DIR}/abx_pip.txt
-RUN uv pip install --no-cache --system --break-system-packages -r ${REQUIREMENTS_DIR}/pip.txt -r ${REQUIREMENTS_DIR}/abx_pip.txt
+RUN uv pip install --no-cache --system --break-system-packages -r ${REQUIREMENTS_DIR}/pip.txt
 
 # Rebuild fastcluster against NumPy 2.x (NVIDIA base ships NumPy 2, but the wheel targets NumPy 1)
 RUN uv pip install --no-cache --system --break-system-packages --force-reinstall --no-binary fastcluster fastcluster

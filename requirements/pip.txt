@@ -1,4 +1,7 @@
-# Scipy stack and core scientific packages
+# --- Python packages ---
+# installed in both datascience and deeplearning images
+
+# scientific computing
 altair
 beautifulsoup4
 black
@@ -19,7 +22,6 @@ pandas
 patsy
 protobuf
 pyarrow
-tables
 scikit-image
 scikit-learn
 scipy
@@ -27,4 +29,49 @@ seaborn
 sqlalchemy
 statsmodels
 sympy
-xlrd
+tables
+
+# biology
+abnumber
+anarci
+baltic
+bbknn
+biopython
+dnachisel
+doubletdetection
+ete3
+fastcluster
+harmonypy
+leidenalg
+logomaker
+modelcif
+parasail
+plottable
+pyfamsa
+python-circos
+python-Levenshtein
+pypalettes @ git+https://github.com/JosephBARBIERDARNAL/pypalettes@main
+sample-sheet
+scanpy
+scanorama
+scrublet
+scvelo
+umap-learn
+
+# ab[x]
+abstar
+abutils
+scab>=0.2.4
+
+# utils
+duckdb
+humanize
+paramiko
+polars
+prettytable
+pymongo
+pytest
+pyyaml
+s3cmd
+smart_open
+tqdm

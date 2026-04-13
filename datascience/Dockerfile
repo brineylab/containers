@@ -139,8 +139,7 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/conda.txt" \
 RUN python3 -m pip install --no-cache-dir uv
 
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/pip.txt ${REQUIREMENTS_DIR}/pip.txt
-COPY --chown=${NB_UID}:${NB_GID} ./requirements/abx_pip.txt ${REQUIREMENTS_DIR}/abx_pip.txt
-RUN uv pip install --no-cache --system -r ${REQUIREMENTS_DIR}/pip.txt -r ${REQUIREMENTS_DIR}/abx_pip.txt \
+RUN uv pip install --no-cache --system -r ${REQUIREMENTS_DIR}/pip.txt \
     && fix-permissions "${CONDA_DIR}"
 
 
