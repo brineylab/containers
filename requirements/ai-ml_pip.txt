@@ -1,21 +1,26 @@
-# --- training ---
-lightning
+# --- AI/ML packages ---
+# deeplearning image only
+
+# training
 deepspeed
+lightning
 wandb
 
-# --- jax-related ---
-jax[cuda13_local]
-flax
+# JAX
 chex
-optax
 equinox
+flax
+jax[cuda13_local]
+optax
 
-# --- others ---
-keras
-treescope
+# other frameworks
+dm-tree
 gradio
+keras
+ml-collections
+treescope
 
-# --- huggingface ---
+# huggingface
 accelerate
 datasets
 diffusers

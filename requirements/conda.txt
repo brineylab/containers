@@ -1,4 +1,4 @@
-# Conda packages
+# --- Conda packages ---
 
 # structural biology (pip version constrains scipy — must use conda)
 openmm

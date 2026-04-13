@@ -1,13 +1,13 @@
-# Jupyter packages (installed in jupyterhub images)
+# --- Jupyter packages ---
+# jupyterhub images only
 
-# --- core ---
+# core
 jupyterhub
 jupyterlab
-nbclassic
 notebook>=7.2.2
 jupyter-server-proxy
 
-# --- extensions ---
+# extensions
 jupyterlab-code-formatter
 jupyterlab-github
 jupyterlab-git
