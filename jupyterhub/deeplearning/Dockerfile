@@ -52,6 +52,10 @@ USER ${NB_UID}
 RUN mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \
     && mamba clean --all -f -y
 
+# Make conda-installed Jupyter kernels visible to system Jupyter
+USER root
+RUN ln -s "${CONDA_DIR}/share/jupyter/kernels/ir" /usr/local/share/jupyter/kernels/ir
+
 
 # ----------------------------
 #    Container Startup
@@ -61,7 +65,6 @@ COPY ./jupyterhub/runtime/start-notebook.py ./jupyterhub/runtime/start-singleuse
 COPY ./jupyterhub/runtime/jupyter_server_config.py ./jupyterhub/runtime/docker_healthcheck.py /etc/jupyter/
 
 # Fix permissions on /etc/jupyter as root
-USER root
 RUN fix-permissions /etc/jupyter/
 
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
