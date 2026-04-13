@@ -27,7 +27,7 @@ RUN mamba install --yes 'nodejs>=20.0.0' \
     && fix-permissions "${CONDA_DIR}"
 
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_pip.txt ${REQUIREMENTS_DIR}/jupyter_pip.txt
-RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/jupyter_pip.txt" \
+RUN uv pip install --no-cache --system -r "${REQUIREMENTS_DIR}/jupyter_pip.txt" \
     && jupyter server --generate-config \
     && jupyter lab clean \
     && npm cache clean --force \
