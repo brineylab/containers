@@ -16,7 +16,7 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # ----------------------------
 #      Jupyter Packages
 # ----------------------------
-# installs JupyterLab, Jupyter Notebook, JupyterHub and NBClassic
+# installs JupyterLab, Jupyter Notebook, and JupyterHub
 # generates a Jupyter Server config
 USER ${NB_UID}
 WORKDIR /tmp

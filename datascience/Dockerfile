@@ -10,7 +10,6 @@
 ARG BASE_IMG=ubuntu:24.04
 FROM $BASE_IMG
 
-ARG OWNER=brineylab
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 # NB user
@@ -100,16 +99,13 @@ RUN set -x \
     fi \
     && wget --progress=dot:giga -O - \
         "https://micro.mamba.pm/api/micromamba/linux-${arch}/latest" | tar -xvj bin/micromamba \
-    && PYTHON_SPECIFIER="python=${PYTHON_VERSION}" \
-    && if [[ "${PYTHON_VERSION}" == "default" ]]; then PYTHON_SPECIFIER="python"; fi \
     && ./bin/micromamba install \
         --root-prefix="${CONDA_DIR}" \
         --prefix="${CONDA_DIR}" \
         --yes \
-        'jupyter_core' \
+        "python=${PYTHON_VERSION}" \
         'conda' \
         'mamba' \
-        "${PYTHON_SPECIFIER}" \
     && rm -rf /tmp/bin/ \
     && mamba list --full-name 'python' | awk 'END{sub("[^.]*$", "*", $2); print $1 " " $2}' >> "${CONDA_DIR}/conda-meta/pinned" \
     && mamba clean --all -f -y \
