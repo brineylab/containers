@@ -23,16 +23,16 @@ WORKDIR /tmp
 
 # nodejs is required for JupyterLab extension building
 RUN mamba install --yes 'nodejs>=20.0.0' \
-    && mamba clean --all -f -y
+    && mamba clean --all -f -y \
+    && fix-permissions "${CONDA_DIR}"
 
-# Install as root so entry points (jupyterhub-singleuser) go to /usr/local/bin
-USER root
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_pip.txt ${REQUIREMENTS_DIR}/jupyter_pip.txt
-RUN uv pip install --no-cache --system --break-system-packages -r "${REQUIREMENTS_DIR}/jupyter_pip.txt" \
+RUN uv pip install --no-cache --system -r "${REQUIREMENTS_DIR}/jupyter_pip.txt" \
     && jupyter server --generate-config \
     && jupyter lab clean \
     && npm cache clean --force \
     && rm -rf "/home/${NB_USER}/.cache/yarn" \
+    && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
 
@@ -44,23 +44,21 @@ EXPOSE $JUPYTER_PORT
 
 # JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
 # https://github.com/rapidsai/jupyterlab-nvdashboard
-USER ${NB_UID}
 RUN mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \
-    && mamba clean --all -f -y
-
-# Make conda-installed Jupyter kernels visible to system Jupyter
-USER root
-RUN ln -s "${CONDA_DIR}/share/jupyter/kernels/ir" /usr/local/share/jupyter/kernels/ir
+    && mamba clean --all -f -y \
+    && fix-permissions "${CONDA_DIR}"
 
 
 # ----------------------------
 #    Container Startup
 # ----------------------------
 # Copy local files as late as possible to avoid cache busting
+USER ${NB_UID}
 COPY ./jupyterhub/runtime/start-notebook.py ./jupyterhub/runtime/start-singleuser.py /usr/local/bin/
 COPY ./jupyterhub/runtime/jupyter_server_config.py ./jupyterhub/runtime/docker_healthcheck.py /etc/jupyter/
 
 # Fix permissions on /etc/jupyter as root
+USER root
 RUN fix-permissions /etc/jupyter/
 
 # HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck

@@ -7,9 +7,9 @@
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
-# The NVIDIA PyTorch base image provides CUDA, cuDNN, NCCL, and Python 3.12.
-# No manual CUDA installation is needed.
-ARG BASE_IMG=nvcr.io/nvidia/pytorch:26.03-py3
+# NVIDIA CUDA DL Base provides CUDA, cuDNN, NCCL, and TensorRT without Python.
+# PyTorch and other frameworks are installed via pip.
+ARG BASE_IMG=nvcr.io/nvidia/cuda-dl-base:26.03-cuda13.2-devel-ubuntu24.04
 FROM $BASE_IMG
 
 ARG OWNER=brineylab
@@ -20,7 +20,7 @@ ARG NB_USER="jovyan"
 ARG NB_UID="1000"
 ARG NB_GID="100"
 
-# Python version (must match the NVIDIA base image's Python)
+# Python version
 ARG PYTHON_VERSION=3.12
 
 # Environmental variables
@@ -33,9 +33,8 @@ ENV DEBIAN_FRONTEND=noninteractive \
     LC_ALL=en_US.UTF-8 \
     LANG=en_US.UTF-8 \
     LANGUAGE=en_US.UTF-8
+ENV PATH="${CONDA_DIR}/bin:${PATH}"
 ENV HOME="/home/${NB_USER}"
-ENV PATH="${HOME}/.local/bin:${PATH}:${CONDA_DIR}/bin"
-ENV PYTHONPATH="${CONDA_DIR}/lib/python${PYTHON_VERSION}/site-packages"
 ENV REQUIREMENTS_DIR="${HOME}/.requirements"
 
 # NVIDIA configs
@@ -79,6 +78,8 @@ RUN if grep -q "${NB_UID}" /etc/passwd; then \
     fi
 
 # Create NB_USER with name jovyan user with UID=1000 and in the 'users' group
+# Make sure these dirs are writable by the `users` group
+# Grant sudo and add password
 RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su \
     && sed -i.bak -e 's/^%admin/#%admin/' /etc/sudoers \
     && sed -i.bak -e 's/^%sudo/#%sudo/' /etc/sudoers \
@@ -95,8 +96,6 @@ RUN echo "auth requisite pam_deny.so" >> /etc/pam.d/su \
 # ----------------------------
 #         Micromamba
 # ----------------------------
-# Install micromamba alongside NVIDIA base's Python.
-# Micromamba is used for R and conda-only packages.
 USER ${NB_UID}
 COPY --chown="${NB_UID}:${NB_GID}" ./common/initial-condarc "${CONDA_DIR}/.condarc"
 WORKDIR /tmp
@@ -107,15 +106,18 @@ RUN set -x \
     fi \
     && wget --progress=dot:giga -O - \
         "https://micro.mamba.pm/api/micromamba/linux-${arch}/latest" | tar -xvj bin/micromamba \
+    && PYTHON_SPECIFIER="python=${PYTHON_VERSION}" \
+    && if [[ "${PYTHON_VERSION}" == "default" ]]; then PYTHON_SPECIFIER="python"; fi \
     && ./bin/micromamba install \
         --root-prefix="${CONDA_DIR}" \
         --prefix="${CONDA_DIR}" \
         --yes \
-        "python=${PYTHON_VERSION}" \
         'jupyter_core' \
         'conda' \
         'mamba' \
+        "${PYTHON_SPECIFIER}" \
     && rm -rf /tmp/bin/ \
+    && mamba list --full-name 'python' | awk 'END{sub("[^.]*$", "*", $2); print $1 " " $2}' >> "${CONDA_DIR}/conda-meta/pinned" \
     && mamba clean --all -f -y \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
@@ -140,30 +142,29 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/conda.txt" \
 # ----------------------------
 #      Pip Packages
 # ----------------------------
-USER root
-RUN python3 -m pip install --no-cache-dir --break-system-packages uv
+RUN python3 -m pip install --no-cache-dir uv
 
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/pip.txt ${REQUIREMENTS_DIR}/pip.txt
-RUN uv pip install --no-cache --system --break-system-packages -r ${REQUIREMENTS_DIR}/pip.txt
-
-# Rebuild fastcluster against NumPy 2.x (NVIDIA base ships NumPy 2, but the wheel targets NumPy 1)
-RUN uv pip install --no-cache --system --break-system-packages --force-reinstall --no-binary fastcluster fastcluster
+RUN uv pip install --no-cache --system -r ${REQUIREMENTS_DIR}/pip.txt \
+    && fix-permissions "${CONDA_DIR}"
 
 
 # ----------------------------
 #      AI/ML Packages
 # ----------------------------
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/ai-ml_pip.txt ${REQUIREMENTS_DIR}/ai-ml_pip.txt
-RUN uv pip install --no-cache --system --break-system-packages -r "${REQUIREMENTS_DIR}/ai-ml_pip.txt"
+RUN uv pip install --no-cache --system -r "${REQUIREMENTS_DIR}/ai-ml_pip.txt" \
+    && fix-permissions "${CONDA_DIR}"
 
 
 # ----------------------------
 #    R CRAN / Bioconductor
 # ----------------------------
-USER ${NB_UID}
+# Bioconductor packages (BiocManager installed by conda above)
 RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE)" \
-    && fix-permissions "${CONDA_DIR}/lib/R"
+    && fix-permissions "${CONDA_DIR}"
 
+# CRAN packages
 COPY --chown=${NB_UID}:${NB_GID} ./requirements/r_cran.txt ${REQUIREMENTS_DIR}/r_cran.txt
 RUN MAKEFLAGS="-j$(nproc)" Rscript -e "\
   pkgs <- scan('${REQUIREMENTS_DIR}/r_cran.txt', what = '', quiet = TRUE); \
@@ -172,7 +173,7 @@ RUN MAKEFLAGS="-j$(nproc)" Rscript -e "\
     dependencies = TRUE, \
     repos = 'https://cran.rstudio.com' \
   )" \
-    && fix-permissions "${CONDA_DIR}/lib/R"
+    && fix-permissions "${CONDA_DIR}"
 
 
 # ----------------------------

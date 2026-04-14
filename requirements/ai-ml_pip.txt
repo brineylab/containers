@@ -4,6 +4,7 @@
 # training
 deepspeed
 lightning
+torch
 wandb
 
 # JAX
