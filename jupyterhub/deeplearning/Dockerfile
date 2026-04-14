@@ -14,16 +14,21 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 
 
 # ----------------------------
-#       Mamba Packages
+#      Jupyter Packages
 # ----------------------------
-# installs JupyterLab, Jupyter Notebook, JupyterHub and NBClassic
+# installs JupyterLab, Jupyter Notebook, and JupyterHub
 # generates a Jupyter Server config
 USER ${NB_UID}
 WORKDIR /tmp
-COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_mamba.txt ${REQUIREMENTS_DIR}/jupyter_mamba.txt
-RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
-    && jupyter server --generate-config \
+
+# nodejs is required for JupyterLab extension building
+RUN mamba install --yes 'nodejs>=20.0.0' \
     && mamba clean --all -f -y \
+    && fix-permissions "${CONDA_DIR}"
+
+COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_pip.txt ${REQUIREMENTS_DIR}/jupyter_pip.txt
+RUN uv pip install --no-cache --system -r "${REQUIREMENTS_DIR}/jupyter_pip.txt" \
+    && jupyter server --generate-config \
     && jupyter lab clean \
     && npm cache clean --force \
     && rm -rf "/home/${NB_USER}/.cache/yarn" \
@@ -37,19 +42,11 @@ RUN mamba install --yes --file "${REQUIREMENTS_DIR}/jupyter_mamba.txt" \
 ENV JUPYTER_PORT=8888
 EXPOSE $JUPYTER_PORT
 
-COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter-extensions_pip.txt ${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt
-RUN python3 -m pip install --no-cache-dir -r "${REQUIREMENTS_DIR}/jupyter-extensions_pip.txt" \
-    && jupyter lab clean \
-    && fix-permissions "/home/${NB_USER}"
-
-# mercury is installed as a Python package (for notebook widget use) 
-# but its server extension breaks JupyterHub routing
-RUN jupyter server extension disable mercury_app
-
 # JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
 # https://github.com/rapidsai/jupyterlab-nvdashboard
 RUN mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \
-    && mamba clean --all -f -y
+    && mamba clean --all -f -y \
+    && fix-permissions "${CONDA_DIR}"
 
 
 # ----------------------------
@@ -70,9 +67,6 @@ RUN fix-permissions /etc/jupyter/
 HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
     CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
-# macOS Rosetta virtualization creates junk directory which gets owned by root further up.
-# It'll get re-created, but as USER runner after the next directive so hopefully should not cause permission issues.
-# More info: https://github.com/jupyter/docker-stacks/issues/2296
 RUN rm -rf "/home/${NB_USER}/.cache/"
 
 # Add R mimetype option to specify how the plot returns from R to the browser

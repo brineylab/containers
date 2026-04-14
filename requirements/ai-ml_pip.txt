@@ -1,27 +1,31 @@
+# --- AI/ML packages ---
+# deeplearning image only
+
 # training
-# --------
-torch
-lightning
 deepspeed
+lightning
+torch
 wandb
-# jax-related
-# -----------
-jax[cuda12_local]
-flax
+
+# JAX
 chex
-optax
 equinox
-# others
-# ------
-keras
-treescope
+flax
+jax[cuda13_local]
+optax
+
+# other frameworks
+dm-tree
 gradio
+keras
+ml-collections
+treescope
+
 # huggingface
-# -----------
 accelerate
-datasets>=4.0.0
+datasets
 diffusers
 evaluate
 optimum
 peft
-transformers>=5.0.0
+transformers

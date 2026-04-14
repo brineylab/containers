@@ -1,0 +1,16 @@
+# --- Jupyter packages ---
+# jupyterhub images only
+
+# core
+jupyterhub
+jupyterlab
+notebook>=7.2.2
+jupyter-server-proxy
+
+# extensions
+jupyterlab-code-formatter
+jupyterlab-github
+jupyterlab-git
+nbgitpuller
+marimo>=0.19.11
+marimo-jupyter-extension

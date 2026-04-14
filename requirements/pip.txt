@@ -1,0 +1,77 @@
+# --- Python packages ---
+# installed in both datascience and deeplearning images
+
+# scientific computing
+altair
+beautifulsoup4
+black
+bokeh
+bottleneck
+cloudpickle
+cython
+dask
+dill
+h5py
+ipympl
+matplotlib
+natsort
+numba
+numexpr
+openpyxl
+pandas
+patsy
+protobuf
+pyarrow
+scikit-image
+scikit-learn
+scipy
+seaborn
+sqlalchemy
+statsmodels
+sympy
+tables
+
+# biology
+abnumber
+anarci
+baltic
+bbknn
+biopython
+dnachisel
+doubletdetection
+ete3
+fastcluster
+harmonypy
+leidenalg
+logomaker
+modelcif
+parasail
+plottable
+pyfamsa
+python-circos
+python-Levenshtein
+pypalettes @ git+https://github.com/JosephBARBIERDARNAL/pypalettes@main
+sample-sheet
+scanpy
+scanorama
+scrublet
+scvelo
+umap-learn
+
+# ab[x]
+abstar
+abutils>=0.6.0
+scab>=0.2.4
+
+# utils
+duckdb
+humanize
+paramiko
+polars
+prettytable
+pymongo
+pytest
+pyyaml
+s3cmd
+smart_open
+tqdm

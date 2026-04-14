@@ -1,3 +1,10 @@
+# --- Conda packages ---
+
+# structural biology (pip version constrains scipy — must use conda)
+openmm
+pdbfixer
+
+# R packages
 r-arrow
 r-base
 r-biocmanager
@@ -5,7 +12,7 @@ r-caret
 r-crayon
 r-devtools
 r-dplyr
-r-e1071 # dependency of the caret R package
+r-e1071
 r-forecast
 r-ggrepel
 r-hexbin
@@ -23,4 +30,3 @@ r-rsqlite
 r-shiny
 r-tidymodels
 r-tidyverse
-unixodbc
