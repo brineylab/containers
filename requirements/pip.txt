@@ -60,7 +60,7 @@ umap-learn
 
 # ab[x]
 abstar
-abutils
+abutils>=0.6.0
 scab>=0.2.4
 
 # utils
