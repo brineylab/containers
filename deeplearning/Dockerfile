@@ -39,6 +39,7 @@ ENV REQUIREMENTS_DIR="${HOME}/.requirements"
 # NVIDIA configs
 ENV NVIDIA_VISIBLE_DEVICES='all'
 ENV NVIDIA_DRIVER_CAPABILITIES='compute,utility'
+ENV LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:${LIBRARY_PATH}"
 
 # Fix: https://github.com/hadolint/hadolint/wiki/DL4006
 # Fix: https://github.com/koalaman/shellcheck/wiki/SC3014
