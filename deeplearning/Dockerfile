@@ -39,7 +39,6 @@ ENV REQUIREMENTS_DIR="${HOME}/.requirements"
 # NVIDIA configs
 ENV NVIDIA_VISIBLE_DEVICES='all'
 ENV NVIDIA_DRIVER_CAPABILITIES='compute,utility'
-ENV LIBRARY_PATH="/usr/lib/x86_64-linux-gnu:${LIBRARY_PATH}"
 
 # Fix: https://github.com/hadolint/hadolint/wiki/DL4006
 # Fix: https://github.com/koalaman/shellcheck/wiki/SC3014
@@ -116,6 +115,9 @@ RUN set -x \
     && rm -rf /tmp/bin/ \
     && mamba list --full-name 'python' | awk 'END{sub("[^.]*$", "*", $2); print $1 " " $2}' >> "${CONDA_DIR}/conda-meta/pinned" \
     && mamba clean --all -f -y \
+    # move conda compiler_compat/ld to force use of the system libraries (to fix deepspeed import errors)
+    # ref: https://github.com/ContinuumIO/anaconda-issues/issues/11152#issuecomment-1453005442
+    && mv "${CONDA_DIR}/compiler_compat/ld" "${CONDA_DIR}/compiler_compat/ld.bak" \
     && fix-permissions "${CONDA_DIR}" \
     && fix-permissions "/home/${NB_USER}"
 
