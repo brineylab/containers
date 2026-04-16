@@ -102,7 +102,6 @@ RUN MAKEFLAGS="-j$(nproc)" Rscript -e "\
   pkgs <- scan('/tmp/r_cran.txt', what = '', quiet = TRUE); \
   install.packages( \
     pkgs, \
-    dependencies = TRUE, \
     repos = 'https://cran.rstudio.com' \
   )"
 
