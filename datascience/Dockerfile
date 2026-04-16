@@ -67,8 +67,10 @@ RUN set -x \
     && mamba clean --all -f -y
 
 # Mamba shell hook for interactive sessions, with base activation
+# Set umask to 000
 RUN echo 'eval "$(mamba shell hook --shell bash)"' >> /etc/bash.bashrc \
-    && echo 'mamba activate base' >> /etc/bash.bashrc
+    && echo 'mamba activate base' >> /etc/bash.bashrc \
+    && echo 'umask 000' >> /etc/bash.bashrc
 
 
 # ----------------------------

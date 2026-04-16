@@ -76,8 +76,10 @@ RUN set -x \
     && mv "${CONDA_DIR}/compiler_compat/ld" "${CONDA_DIR}/compiler_compat/ld.bak"
 
 # Mamba shell hook for interactive sessions, with base activation
+# Set umask to 000
 RUN echo 'eval "$(mamba shell hook --shell bash)"' >> /etc/bash.bashrc \
-    && echo 'mamba activate base' >> /etc/bash.bashrc
+    && echo 'mamba activate base' >> /etc/bash.bashrc \
+    && echo 'umask 000' >> /etc/bash.bashrc
 
 
 # ----------------------------
