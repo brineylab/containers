@@ -18,22 +18,17 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # ----------------------------
 # installs JupyterLab, Jupyter Notebook, and JupyterHub
 # generates a Jupyter Server config
-USER ${NB_UID}
 WORKDIR /tmp
 
 # nodejs is required for JupyterLab extension building
 RUN mamba install --yes 'nodejs>=20.0.0' \
-    && mamba clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}"
+    && mamba clean --all -f -y
 
-COPY --chown=${NB_UID}:${NB_GID} ./requirements/jupyter_pip.txt ${REQUIREMENTS_DIR}/jupyter_pip.txt
-RUN uv pip install --no-cache --system -r "${REQUIREMENTS_DIR}/jupyter_pip.txt" \
+COPY ./requirements/jupyter_pip.txt /tmp/jupyter_pip.txt
+RUN uv pip install --no-cache --system -r /tmp/jupyter_pip.txt \
     && jupyter server --generate-config \
     && jupyter lab clean \
-    && npm cache clean --force \
-    && rm -rf "/home/${NB_USER}/.cache/yarn" \
-    && fix-permissions "${CONDA_DIR}" \
-    && fix-permissions "/home/${NB_USER}"
+    && npm cache clean --force
 
 
 # ----------------------------
@@ -45,41 +40,26 @@ EXPOSE $JUPYTER_PORT
 # JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
 # https://github.com/rapidsai/jupyterlab-nvdashboard
 RUN mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \
-    && mamba clean --all -f -y \
-    && fix-permissions "${CONDA_DIR}"
+    && mamba clean --all -f -y
 
 
 # ----------------------------
 #    Container Startup
 # ----------------------------
-# Copy local files as late as possible to avoid cache busting
-USER ${NB_UID}
 COPY ./jupyterhub/runtime/start-notebook.py ./jupyterhub/runtime/start-singleuser.py /usr/local/bin/
 COPY ./jupyterhub/runtime/jupyter_server_config.py ./jupyterhub/runtime/docker_healthcheck.py /etc/jupyter/
 
-# Fix permissions on /etc/jupyter as root
-USER root
-RUN fix-permissions /etc/jupyter/
-
-# HEALTHCHECK documentation: https://docs.docker.com/engine/reference/builder/#healthcheck
-# This healtcheck works well for `lab`, `notebook`, `nbclassic`, `server` and `retro` jupyter commands
-# https://github.com/jupyter/docker-stacks/issues/915#issuecomment-1068528799
 HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
     CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
-RUN rm -rf "/home/${NB_USER}/.cache/"
-
 # Add R mimetype option to specify how the plot returns from R to the browser
-USER ${NB_UID}
-COPY --chown=${NB_UID}:${NB_GID} ./jupyterhub/runtime/Rprofile.site /opt/conda/lib/R/etc/
+COPY ./jupyterhub/runtime/Rprofile.site /opt/conda/lib/R/etc/
 
 
 # ----------------------------
 #         Final Setup
 # ----------------------------
-USER ${NB_UID}
-WORKDIR "${HOME}"
+WORKDIR /home/jovyan
 
-# Configure container startup
 ENTRYPOINT ["tini", "--"]
 CMD ["start-notebook.py"]
