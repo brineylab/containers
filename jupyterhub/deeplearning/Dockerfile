@@ -12,6 +12,11 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
+# Runtime config
+ENV PIP_NO_CACHE_DIR=1 \
+    JUPYTER_PORT=8888
+EXPOSE $JUPYTER_PORT
+
 
 # ----------------------------
 #      Jupyter Packages
@@ -34,9 +39,6 @@ RUN uv pip install --no-cache --system -r /tmp/jupyter_pip.txt \
 # ----------------------------
 #    JupyterLab Extensions
 # ----------------------------
-ENV JUPYTER_PORT=8888
-EXPOSE $JUPYTER_PORT
-
 # JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
 # https://github.com/rapidsai/jupyterlab-nvdashboard
 RUN mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \

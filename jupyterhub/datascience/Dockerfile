@@ -12,6 +12,11 @@ LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
 # under the terms of the Modified BSD License.
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
+# Runtime config
+ENV PIP_NO_CACHE_DIR=1 \
+    JUPYTER_PORT=8888
+EXPOSE $JUPYTER_PORT
+
 
 # ----------------------------
 #      Jupyter Packages
@@ -29,13 +34,6 @@ RUN uv pip install --no-cache --system -r /tmp/jupyter_pip.txt \
     && jupyter server --generate-config \
     && jupyter lab clean \
     && npm cache clean --force
-
-
-# ----------------------------
-#    JupyterLab Extensions
-# ----------------------------
-ENV JUPYTER_PORT=8888
-EXPOSE $JUPYTER_PORT
 
 
 # ----------------------------

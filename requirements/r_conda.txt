@@ -1,10 +1,4 @@
-# --- Conda packages ---
-
-# structural biology (pip version constrains scipy — must use conda)
-openmm
-pdbfixer
-
-# R packages
+# --- R packages (installed via conda) ---
 r-arrow
 r-base
 r-biocmanager
