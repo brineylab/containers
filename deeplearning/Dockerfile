@@ -9,7 +9,7 @@
 
 # NVIDIA CUDA DL Base provides CUDA, cuDNN, NCCL, and TensorRT without Python.
 # PyTorch and other frameworks are installed via pip.
-ARG BASE_IMG=nvcr.io/nvidia/cuda-dl-base:26.03-cuda13.2-devel-ubuntu24.04
+ARG BASE_IMG=nvcr.io/nvidia/cuda-dl-base:25.11-cuda13.0-devel-ubuntu24.04
 FROM $BASE_IMG
 
 LABEL maintainer='Briney Lab @ Scripps Research <briney@scripps.edu>'
