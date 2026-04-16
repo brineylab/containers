@@ -13,4 +13,4 @@ jupyterlab-github
 jupyterlab-git
 nbgitpuller
 marimo>=0.19.11
-marimo-jupyter-extension
+marimo-jupyter-extension<=0.2.1
