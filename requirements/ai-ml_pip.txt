@@ -29,3 +29,7 @@ evaluate
 optimum
 peft
 transformers
+
+# structural biology
+openmm[cuda13]
+pdbfixer
