@@ -66,6 +66,10 @@ RUN set -x \
     && mamba list --full-name 'python' | awk 'END{sub("[^.]*$", "*", $2); print $1 " " $2}' >> "${CONDA_DIR}/conda-meta/pinned" \
     && mamba clean --all -f -y
 
+# Mamba shell hook for interactive sessions, with base activation
+RUN echo 'eval "$(mamba shell hook --shell bash)"' >> /etc/bash.bashrc \
+    && echo 'mamba activate base' >> /etc/bash.bashrc
+
 
 # ----------------------------
 #      Conda Packages

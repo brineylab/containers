@@ -75,6 +75,10 @@ RUN set -x \
     # ref: https://github.com/ContinuumIO/anaconda-issues/issues/11152
     && mv "${CONDA_DIR}/compiler_compat/ld" "${CONDA_DIR}/compiler_compat/ld.bak"
 
+# Mamba shell hook for interactive sessions, with base activation
+RUN echo 'eval "$(mamba shell hook --shell bash)"' >> /etc/bash.bashrc \
+    && echo 'mamba activate base' >> /etc/bash.bashrc
+
 
 # ----------------------------
 #      Conda Packages
