@@ -106,6 +106,11 @@ COPY ./requirements/ai-ml_pip.txt /tmp/ai-ml_pip.txt
 RUN uv pip install --no-cache --system -r /tmp/ai-ml_pip.txt
 
 
+# Flash attention
+# Built from source against the torch installed above.
+RUN MAX_JOBS=2 uv pip install --no-cache --system --no-build-isolation flash-attn
+
+
 # ----------------------------
 #    R CRAN / Bioconductor
 # ----------------------------
