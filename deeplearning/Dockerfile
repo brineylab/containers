@@ -108,7 +108,7 @@ RUN uv pip install --no-cache --system -r /tmp/ai-ml_pip.txt
 
 # Flash attention
 # Built from source against the torch installed above.
-RUN MAX_JOBS=4 uv pip install --no-cache --system --no-build-isolation flash-attn
+RUN MAX_JOBS=2 uv pip install --no-cache --system --no-build-isolation flash-attn
 
 
 # ----------------------------
