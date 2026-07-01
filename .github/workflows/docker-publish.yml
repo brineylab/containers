@@ -31,7 +31,7 @@ jobs:
         runs-on: ubuntu-latest-brineylab-xlarge
         steps:
             - name: checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                 fetch-depth: 1
             - name: build and push
@@ -48,7 +48,7 @@ jobs:
         runs-on: ubuntu-latest-brineylab-xlarge
         steps:
             - name: checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                 fetch-depth: 1
             - name: build and push
@@ -66,7 +66,7 @@ jobs:
         needs: [datascience]
         steps:
             - name: checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                 fetch-depth: 1
             - name: build and push
@@ -84,7 +84,7 @@ jobs:
         needs: [deeplearning]
         steps:
             - name: checkout
-              uses: actions/checkout@v6
+              uses: actions/checkout@v7
               with:
                 fetch-depth: 1
             - name: build and push
