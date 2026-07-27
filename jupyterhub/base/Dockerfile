@@ -26,7 +26,8 @@ EXPOSE $JUPYTER_PORT
 WORKDIR /tmp
 
 # nodejs is required for JupyterLab extension building
-RUN mamba install --yes 'nodejs>=20.0.0' \
+# r-irkernel provides the R kernel (base installs r-base, but no R packages)
+RUN mamba install --yes 'nodejs>=20.0.0' 'r-irkernel' \
     && mamba clean --all -f -y
 
 COPY ./requirements/jupyter_pip.txt /tmp/jupyter_pip.txt
@@ -45,8 +46,8 @@ COPY ./jupyterhub/runtime/jupyter_server_config.py ./jupyterhub/runtime/docker_h
 HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
     CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
-# No Rprofile.site here: unlike the datascience and deeplearning images, base has
-# no R installed, so this image provides a Python kernel only.
+# Add R mimetype option to specify how the plot returns from R to the browser
+COPY ./jupyterhub/runtime/Rprofile.site /opt/conda/lib/R/etc/
 
 
 # ----------------------------

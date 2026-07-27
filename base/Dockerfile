@@ -8,7 +8,8 @@
 # https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license
 
 # A minimal environment for users who manage their own packages: OS tooling,
-# Python, conda/mamba, uv, and s5cmd -- but no scientific, AI/ML, or R packages.
+# the Python and R interpreters, conda/mamba, uv, and s5cmd -- but none of the
+# scientific, AI/ML, or R libraries carried by the datascience/deeplearning images.
 
 # NVIDIA CUDA DL Base provides CUDA, cuDNN, NCCL, and TensorRT without Python.
 # The image carries no driver (that is injected at runtime by the NVIDIA container
@@ -74,6 +75,7 @@ RUN set -x \
         "python=${PYTHON_VERSION}" \
         'conda' \
         'mamba' \
+        'r-base' \
     && rm -rf /tmp/bin/ \
     && mamba list --full-name 'python' | awk 'END{sub("[^.]*$", "*", $2); print $1 " " $2}' >> "${CONDA_DIR}/conda-meta/pinned" \
     && mamba clean --all -f -y \
