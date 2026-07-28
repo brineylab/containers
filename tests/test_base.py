@@ -202,6 +202,43 @@ class TestBiology:
         parts = tuple(int(p) for p in result.stdout.strip().split(".")[:3] if p.isdigit())
         assert parts >= (0, 6, 0), f"Expected abutils >= 0.6.0, got {result.stdout.strip()}"
 
+    # Trastuzumab (Herceptin) heavy-chain variable domain -- real, published sequence.
+    TRASTUZUMAB_VH = (
+        "EVQLVESGGGLVQPGGSLRLSCAASGFNIKDTYIHWVRQAPGKGLEWVARIYPTNGYTRYADSVKG"
+        "RFTISADTSKNTAYLQMNSLRAEDTAVYYCSRWGGDGFYAMDYWGQGTLVTVSS"
+    )
+
+    def test_anarcii_numbers_real_antibody(self, stack_image):
+        """Import alone proves nothing for a numbering tool -- actually number one."""
+        script = f"""
+from anarcii import Anarcii
+m = Anarcii(seq_type='antibody', batch_size=1, cpu=True, ncpu=1, mode='accuracy', verbose=False)
+res = list(m.number([('vh', '{self.TRASTUZUMAB_VH}')]).values())[0]
+assert res['chain_type'] == 'H', res['chain_type']
+print('POSITIONS', len(res['numbering']))
+"""
+        result = docker_run(stack_image, f"python3 -c \"{script}\"", timeout=180)
+        assert result.returncode == 0, f"anarcii numbering failed: {result.stdout}"
+        assert "POSITIONS 128" in result.stdout, result.stdout
+
+    @pytest.mark.xfail(
+        strict=True,
+        reason=(
+            "Known issue: abnumber delegates to classic anarci, which shells out "
+            "to hmmscan, but HMMER is not in apt.txt. Both packages import fine "
+            "and fail at runtime. Add 'hmmer' to requirements/apt.txt to fix, "
+            "then remove this marker."
+        ),
+    )
+    def test_abnumber_numbers_real_antibody(self, stack_image):
+        script = f"""
+from abnumber import Chain
+ch = Chain('{self.TRASTUZUMAB_VH}', scheme='imgt')
+print('CDR3', ch.cdr3_seq)
+"""
+        result = docker_run(stack_image, f"python3 -c \"{script}\"", timeout=180)
+        assert result.returncode == 0, f"abnumber numbering failed: {result.stdout}"
+
     def test_fastcluster_numpy2(self, stack_image):
         """Verify fastcluster works with NumPy 2.x (was broken with pre-built wheels)."""
         result = docker_run(stack_image, """python3 -c "
