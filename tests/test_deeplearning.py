@@ -115,3 +115,19 @@ class TestGPU:
         )
         assert result.returncode == 0
         assert "cuda" in result.stdout
+
+
+# ----------------------------
+#      Structural biology
+# ----------------------------
+
+# openmm and pdbfixer moved to the deeplearning image only in 30795ba.
+# test_datascience.py asserts the matching absence.
+class TestStructuralBiology:
+    def test_openmm(self, image):
+        result = docker_run(image, "python3 -c 'import openmm; print(openmm.__version__)'")
+        assert result.returncode == 0, f"Failed to import openmm: {result.stdout}"
+
+    def test_pdbfixer(self, image):
+        result = docker_run(image, "python3 -c 'import pdbfixer'")
+        assert result.returncode == 0, f"Failed to import pdbfixer: {result.stdout}"

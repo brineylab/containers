@@ -35,13 +35,16 @@ class TestJupyter:
         result = docker_run(jupyterhub_image, "test -f /etc/jupyter/docker_healthcheck.py")
         assert result.returncode == 0
 
-    def test_start_notebook(self, jupyterhub_image):
-        result = docker_run(jupyterhub_image, "test -f /usr/local/bin/start-notebook.py")
-        assert result.returncode == 0
+    # -x rather than -f: these are exec'd as commands (start-notebook.py is CMD,
+    # and it execvp's start-singleuser.py), so a present-but-non-executable file
+    # is a broken image that -f would not catch.
+    def test_start_notebook_executable(self, jupyterhub_image):
+        result = docker_run(jupyterhub_image, "test -x /usr/local/bin/start-notebook.py")
+        assert result.returncode == 0, "start-notebook.py is not executable"
 
-    def test_start_singleuser(self, jupyterhub_image):
-        result = docker_run(jupyterhub_image, "test -f /usr/local/bin/start-singleuser.py")
-        assert result.returncode == 0
+    def test_start_singleuser_executable(self, jupyterhub_image):
+        result = docker_run(jupyterhub_image, "test -x /usr/local/bin/start-singleuser.py")
+        assert result.returncode == 0, "start-singleuser.py is not executable"
 
     def test_rprofile(self, jupyterhub_image):
         result = docker_run(jupyterhub_image, "test -f /opt/conda/lib/R/etc/Rprofile.site")
@@ -74,12 +77,25 @@ class TestLabExtensions:
         "@jupyterlab/git",
         "@jupyterlab/github",
         "@marimo-team/jupyter-extension",
-        "jupyter-matplotlib",
-        "@jupyter-widgets/jupyterlab-manager",
         "@jupyterhub/jupyter-server-proxy",
     ])
     def test_lab_extension(self, jupyterhub_image, extension):
+        """Extensions installed from jupyter_pip.txt, so present in every variant."""
         result = docker_run(jupyterhub_image, "jupyter labextension list")
+        assert extension in result.stdout, \
+            f"{extension} not found in labextension list"
+
+    @pytest.mark.parametrize("extension", [
+        "jupyter-matplotlib",
+        "@jupyter-widgets/jupyterlab-manager",
+    ])
+    def test_stack_lab_extension(self, stack_jupyterhub_image, extension):
+        """Extensions that arrive with the scientific stack rather than with Jupyter.
+
+        jupyter-matplotlib comes from ipympl in pip.txt and jupyterlab-manager
+        from ipywidgets pulled in transitively, so jupyterhub-base has neither.
+        """
+        result = docker_run(stack_jupyterhub_image, "jupyter labextension list")
         assert extension in result.stdout, \
             f"{extension} not found in labextension list"
 

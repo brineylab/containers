@@ -68,3 +68,20 @@ class TestIgDiscover:
     def test_igdiscover_runs(self, image):
         result = docker_run(image, "mamba run -n igdiscover igdiscover --help")
         assert result.returncode == 0
+
+
+# ----------------------------
+#      Excluded packages
+# ----------------------------
+
+class TestExcludedPackages:
+    """openmm moved to deeplearning only in 30795ba.
+
+    These guard against it drifting back into the shared pip.txt.
+    """
+
+    @pytest.mark.parametrize("module", ["openmm", "pdbfixer", "torch"])
+    def test_module_absent(self, image, module):
+        result = docker_run(image, f"python3 -c 'import {module}'")
+        assert result.returncode != 0, \
+            f"{module} should not be in the datascience image, but imported successfully"
