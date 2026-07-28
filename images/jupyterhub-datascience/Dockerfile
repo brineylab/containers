@@ -39,14 +39,14 @@ RUN uv pip install --no-cache --system -r /tmp/jupyter_pip.txt \
 # ----------------------------
 #    Container Startup
 # ----------------------------
-COPY ./jupyterhub/runtime/start-notebook.py ./jupyterhub/runtime/start-singleuser.py /usr/local/bin/
-COPY ./jupyterhub/runtime/jupyter_server_config.py ./jupyterhub/runtime/docker_healthcheck.py /etc/jupyter/
+COPY ./runtime/start-notebook.py ./runtime/start-singleuser.py /usr/local/bin/
+COPY ./runtime/jupyter_server_config.py ./runtime/docker_healthcheck.py /etc/jupyter/
 
 HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
     CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
 # Add R mimetype option to specify how the plot returns from R to the browser
-COPY ./jupyterhub/runtime/Rprofile.site /opt/conda/lib/R/etc/
+COPY ./runtime/Rprofile.site /opt/conda/lib/R/etc/
 
 
 # ----------------------------

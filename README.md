@@ -35,12 +35,39 @@ RUN Rscript -e "install.packages('data.table', repos = 'https://cran.rstudio.com
 
 Or create a separate conda environment at runtime with `mamba create -n myenv ...`.
 
-## Package lists
+## Repository layout
 
-Packages live in [`requirements/`](requirements) rather than in the Dockerfiles:
+Files are grouped by what they are, not by which image uses them. Each directory
+under `images/` is named exactly as the image it publishes, which is also its job
+name in the workflow.
 
-- `apt.txt` — OS packages, used by every image
-- `pip.txt` — scientific and biology Python packages (datascience, deeplearning)
-- `ai-ml_pip.txt` — AI/ML packages (deeplearning only)
-- `r_conda.txt` / `r_cran.txt` — R packages (datascience, deeplearning)
-- `jupyter_pip.txt` — Jupyter packages (`jupyterhub-*` images only)
+```
+requirements/   package lists — the thing you edit to add a package
+runtime/        config and scripts baked into the images
+images/<name>/  one Dockerfile per published image
+```
+
+**To add a package, go to [`requirements/`](requirements).** It is always there,
+for every image and every package manager:
+
+| file | contents | used by |
+|---|---|---|
+| `apt.txt` | OS packages | base, datascience, deeplearning |
+| `pip.txt` | scientific and biology Python packages | datascience, deeplearning |
+| `ai-ml_pip.txt` | AI/ML packages | deeplearning |
+| `r_conda.txt` / `r_cran.txt` | R packages | datascience, deeplearning |
+| `jupyter_pip.txt` | Jupyter packages | all three `jupyterhub-*` images |
+
+The `jupyterhub-*` images inherit everything above through their parent image, so
+a package added to `apt.txt` reaches all six.
+
+[`runtime/`](runtime) holds files copied into the images rather than installed:
+`initial-condarc` (conda channels), the `start-notebook.py` and
+`start-singleuser.py` entrypoints, `jupyter_server_config.py`,
+`docker_healthcheck.py`, and `Rprofile.site`.
+
+Which image is built from which parent is declared in each Dockerfile's `FROM`
+line and in the workflow's `needs:`, not in this directory structure.
+
+Builds run with the repository root as the Docker context, so `COPY` paths are
+written relative to the root rather than to the Dockerfile.

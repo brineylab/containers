@@ -1,5 +1,5 @@
 ARG OWNER=brineylab
-ARG BASE_IMG=$OWNER/base
+ARG BASE_IMG=$OWNER/deeplearning
 FROM $BASE_IMG
 
 # This image was initially created by the Jupyter Development Team:
@@ -26,8 +26,7 @@ EXPOSE $JUPYTER_PORT
 WORKDIR /tmp
 
 # nodejs is required for JupyterLab extension building
-# r-irkernel provides the R kernel (base installs r-base, but no R packages)
-RUN mamba install --yes 'nodejs>=20.0.0' 'r-irkernel' \
+RUN mamba install --yes 'nodejs>=20.0.0' \
     && mamba clean --all -f -y
 
 COPY ./requirements/jupyter_pip.txt /tmp/jupyter_pip.txt
@@ -38,16 +37,25 @@ RUN uv pip install --no-cache --system -r /tmp/jupyter_pip.txt \
 
 
 # ----------------------------
+#    JupyterLab Extensions
+# ----------------------------
+# JupyterLab NVdashboard (nightly for jupyterlab >= 4.0)
+# https://github.com/rapidsai/jupyterlab-nvdashboard
+RUN mamba install --yes -c rapidsai-nightly -c conda-forge jupyterlab-nvdashboard \
+    && mamba clean --all -f -y
+
+
+# ----------------------------
 #    Container Startup
 # ----------------------------
-COPY ./jupyterhub/runtime/start-notebook.py ./jupyterhub/runtime/start-singleuser.py /usr/local/bin/
-COPY ./jupyterhub/runtime/jupyter_server_config.py ./jupyterhub/runtime/docker_healthcheck.py /etc/jupyter/
+COPY ./runtime/start-notebook.py ./runtime/start-singleuser.py /usr/local/bin/
+COPY ./runtime/jupyter_server_config.py ./runtime/docker_healthcheck.py /etc/jupyter/
 
 HEALTHCHECK --interval=3s --timeout=1s --start-period=3s --retries=3 \
     CMD /etc/jupyter/docker_healthcheck.py || exit 1
 
 # Add R mimetype option to specify how the plot returns from R to the browser
-COPY ./jupyterhub/runtime/Rprofile.site /opt/conda/lib/R/etc/
+COPY ./runtime/Rprofile.site /opt/conda/lib/R/etc/
 
 
 # ----------------------------

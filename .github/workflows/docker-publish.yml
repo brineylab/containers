@@ -38,7 +38,7 @@ jobs:
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: base
-                dockerfile: ./base/Dockerfile
+                dockerfile: ./images/base/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
                 push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
@@ -55,7 +55,7 @@ jobs:
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: datascience
-                dockerfile: ./datascience/Dockerfile
+                dockerfile: ./images/datascience/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
                 push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
@@ -72,7 +72,7 @@ jobs:
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: deeplearning
-                dockerfile: ./deeplearning/Dockerfile
+                dockerfile: ./images/deeplearning/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
                 push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
@@ -90,7 +90,7 @@ jobs:
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: jupyterhub-base
-                dockerfile: ./jupyterhub/base/Dockerfile
+                dockerfile: ./images/jupyterhub-base/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
                 push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
@@ -108,7 +108,7 @@ jobs:
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: jupyterhub-datascience
-                dockerfile: ./jupyterhub/datascience/Dockerfile
+                dockerfile: ./images/jupyterhub-datascience/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
                 push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
@@ -126,7 +126,7 @@ jobs:
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: jupyterhub-deeplearning
-                dockerfile: ./jupyterhub/deeplearning/Dockerfile
+                dockerfile: ./images/jupyterhub-deeplearning/Dockerfile
                 tag_name: ${{ github.event.release.tag_name }}
                 use_cache: ${{ github.event_name != 'workflow_dispatch' || inputs.use_cache }}
                 push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
