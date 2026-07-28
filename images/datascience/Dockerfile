@@ -46,7 +46,7 @@ RUN apt-get update --yes \
 # ----------------------------
 #         Micromamba
 # ----------------------------
-COPY ./common/initial-condarc "${CONDA_DIR}/.condarc"
+COPY ./runtime/initial-condarc "${CONDA_DIR}/.condarc"
 WORKDIR /tmp
 RUN set -x \
     && arch=$(uname -m) \
