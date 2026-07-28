@@ -12,6 +12,7 @@ fonts-dejavu
 fonts-liberation
 gcc
 gfortran
+gh
 git
 gnupg2
 htop
