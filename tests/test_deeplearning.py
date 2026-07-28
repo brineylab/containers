@@ -57,10 +57,32 @@ class TestAIML:
         assert result.returncode == 0
         assert "cu130" in result.stdout, f"Expected CUDA 13 build, got: {result.stdout.strip()}"
 
-    def test_deepspeed_ops(self, image):
-        """Verify libaio is available for DeepSpeed async I/O."""
+    def test_libaio_present(self, image):
+        """libaio must be present for DeepSpeed async I/O.
+
+        Renamed from test_deepspeed_ops: this only checks the shared library
+        exists, it does not build or load any DeepSpeed op.
+        """
         result = docker_run(image, "test -f /usr/lib/x86_64-linux-gnu/libaio.so || test -f /usr/lib/x86_64-linux-gnu/libaio.so.1")
         assert result.returncode == 0, "libaio not found — DeepSpeed async I/O will fail"
+
+    def test_flash_attn(self, image):
+        """Added in #55, built from source against the installed torch.
+
+        A source build against the wrong torch is the most fragile thing in
+        this image, and it was previously untested.
+        """
+        result = docker_run(
+            image,
+            "python3 -c 'import flash_attn; print(flash_attn.__version__)'",
+            timeout=120,
+        )
+        assert result.returncode == 0, f"Failed to import flash_attn: {result.stdout}"
+
+    def test_compiler_compat_ld_moved(self, image):
+        """40e3b07 moves conda's ld aside so DeepSpeed JIT uses the system linker."""
+        result = docker_run(image, "test -f /opt/conda/compiler_compat/ld.bak && ! test -f /opt/conda/compiler_compat/ld")
+        assert result.returncode == 0, "conda compiler_compat/ld was not moved aside"
 
 
 # ----------------------------
@@ -87,16 +109,19 @@ class TestNVIDIA:
 # ----------------------------
 
 class TestGPU:
+    @pytest.mark.gpu
     @pytest.mark.skipif(not _gpu_available(), reason="No GPU available")
     def test_torch_cuda(self, image):
         result = docker_run(image, "python3 -c 'import torch; assert torch.cuda.is_available()'", gpus=True)
         assert result.returncode == 0, f"torch CUDA not available: {result.stdout}"
 
+    @pytest.mark.gpu
     @pytest.mark.skipif(not _gpu_available(), reason="No GPU available")
     def test_torch_gpu_name(self, image):
         result = docker_run(image, "python3 -c 'import torch; print(torch.cuda.get_device_name(0))'", gpus=True)
         assert result.returncode == 0
 
+    @pytest.mark.gpu
     @pytest.mark.skipif(not _gpu_available(), reason="No GPU available")
     def test_jax_gpu(self, image):
         result = docker_run(
@@ -106,6 +131,7 @@ class TestGPU:
         )
         assert result.returncode == 0, f"JAX GPU not available: {result.stdout}"
 
+    @pytest.mark.gpu
     @pytest.mark.skipif(not _gpu_available(), reason="No GPU available")
     def test_torch_tensor_on_gpu(self, image):
         result = docker_run(

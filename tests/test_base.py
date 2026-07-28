@@ -1,5 +1,8 @@
 """Tests for behavior shared by every image."""
 
+import json
+import subprocess
+
 import pytest
 
 from conftest import docker_run
@@ -22,11 +25,21 @@ class TestEnvironment:
         assert result.returncode == 0
         assert "3.12" in result.stdout
 
-    def test_single_python(self, any_image):
-        """Ensure only one Python is in PATH (conda Python)."""
-        result = docker_run(any_image, "which -a python3 | head -1")
+    def test_no_third_python(self, any_image):
+        """Exactly two interpreters: conda's and Ubuntu's system python3.
+
+        0b374c0 switched deeplearning to CUDA DL Base to drop a *third* Python
+        that NVIDIA's PyTorch image bundled. Ubuntu's /usr/bin/python3 is
+        unavoidable and harmless as long as conda's wins on PATH, which
+        test_python_location covers. Symlinks are resolved because /bin/python3
+        and /usr/bin/python3 are the same file.
+        """
+        result = docker_run(
+            any_image, "which -a python3 | xargs -n1 readlink -f | sort -u | wc -l"
+        )
         assert result.returncode == 0
-        assert "/opt/conda/bin/python3" in result.stdout
+        assert result.stdout.strip() == "2", \
+            f"expected conda + system python only, found {result.stdout.strip()} interpreters"
 
     def test_mamba(self, any_image):
         result = docker_run(any_image, "which mamba")
@@ -72,9 +85,32 @@ class TestEnvironment:
         assert result.returncode == 0
 
     def test_umask_is_000_in_interactive_shell(self, any_image):
-        """Set in /etc/bash.bashrc so shared-storage writes stay group-writable."""
+        """umask 000 is set in /etc/bash.bashrc.
+
+        Scope matters: bash sources that file only for interactive shells, so
+        this covers terminal sessions but NOT files written by a notebook
+        kernel, which inherits the server process umask instead. Group-writable
+        notebook output on shared NFS depends on NB_UMASK in the singleuser pod
+        spec, which no image test can verify.
+        """
         result = docker_run(any_image, "bash -ic umask")
+        assert result.returncode == 0
         assert "0000" in result.stdout
+
+    def test_runs_as_root(self, any_image):
+        """85fbee4 removed the jovyan user; these images always run as root."""
+        result = docker_run(any_image, "id -u")
+        assert result.returncode == 0
+        assert result.stdout.strip() == "0"
+
+    def test_entrypoint_is_tini(self, any_image):
+        """tini reaps zombies; losing it from ENTRYPOINT would be silent."""
+        result = subprocess.run(
+            ["docker", "inspect", "-f", "{{json .Config.Entrypoint}}", any_image],
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
+        )
+        assert result.returncode == 0, result.stdout
+        assert json.loads(result.stdout.strip()) == ["tini", "--"]
 
 
 # ----------------------------
@@ -140,16 +176,31 @@ class TestBiology:
         "logomaker",
         "dnachisel",
         "pyfamsa",
+        # the lab's own ab[x] suite -- previously only abutils was covered
+        "abstar",
+        "scab",
+        # antibody numbering
+        "anarci",
+        "abnumber",
     ])
     def test_biology_import(self, stack_image, package):
         import_name = package.replace("biopython", "Bio")
         result = docker_run(stack_image, f"python3 -c 'import {import_name}'")
         assert result.returncode == 0, f"Failed to import {package}: {result.stdout}"
 
-    def test_abutils(self, stack_image):
-        result = docker_run(stack_image, "python3 -c 'import abutils; print(abutils.__version__)'")
-        assert result.returncode == 0, f"Failed to import abutils: {result.stdout}"
-        assert "0.6" in result.stdout, f"Expected abutils >= 0.6.0: {result.stdout}"
+    def test_abutils_meets_pin(self, stack_image):
+        """pip.txt pins abutils>=0.6.0 (numpy 2 compatibility).
+
+        Compares release tuples rather than substring-matching "0.6", which
+        would reject a legitimate 1.x and accept an unrelated 10.6.
+        """
+        result = docker_run(
+            stack_image,
+            "python3 -c 'from importlib.metadata import version; print(version(\"abutils\"))'",
+        )
+        assert result.returncode == 0, f"Failed to read abutils version: {result.stdout}"
+        parts = tuple(int(p) for p in result.stdout.strip().split(".")[:3] if p.isdigit())
+        assert parts >= (0, 6, 0), f"Expected abutils >= 0.6.0, got {result.stdout.strip()}"
 
     def test_fastcluster_numpy2(self, stack_image):
         """Verify fastcluster works with NumPy 2.x (was broken with pre-built wheels)."""
