@@ -67,3 +67,25 @@ class TestBaseHasNoJupyter:
         tag = request.config.getoption("--tag")
         result = docker_run(f"brineylab/base:{tag}", "which jupyter")
         assert result.returncode != 0, "jupyter should only be in the jupyterhub images"
+
+
+class TestRVersionParity:
+    """base and jupyterhub-base must agree on R.
+
+    r-irkernel is built against a specific R minor version (build string r45),
+    so installing it in the jupyterhub layer silently downgraded r-base. Pinning
+    r-base in the base image keeps the two in step and stops a user's first
+    `mamba install r-<pkg>` from pulling R out from under them.
+    """
+
+    def test_r_version_matches_across_base_images(self, request):
+        tag = request.config.getoption("--tag")
+        cmd = "Rscript -e 'cat(paste(R.version$major, R.version$minor, sep=\".\"))'"
+        base = docker_run(f"brineylab/base:{tag}", cmd)
+        jh = docker_run(f"brineylab/jupyterhub-base:{tag}", cmd)
+        assert base.returncode == 0, base.stdout
+        assert jh.returncode == 0, jh.stdout
+        assert base.stdout.strip() == jh.stdout.strip(), (
+            f"R differs: base={base.stdout.strip()} "
+            f"jupyterhub-base={jh.stdout.strip()}"
+        )

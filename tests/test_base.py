@@ -221,16 +221,12 @@ print('POSITIONS', len(res['numbering']))
         assert result.returncode == 0, f"anarcii numbering failed: {result.stdout}"
         assert "POSITIONS 128" in result.stdout, result.stdout
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "Known issue: abnumber delegates to classic anarci, which shells out "
-            "to hmmscan, but HMMER is not in apt.txt. Both packages import fine "
-            "and fail at runtime. Add 'hmmer' to requirements/apt.txt to fix, "
-            "then remove this marker."
-        ),
-    )
     def test_abnumber_numbers_real_antibody(self, stack_image):
+        """abnumber delegates to classic anarci, which shells out to hmmscan.
+
+        Both packages import cleanly without HMMER present and only fail at
+        runtime, so an import test is not enough here.
+        """
         script = f"""
 from abnumber import Chain
 ch = Chain('{self.TRASTUZUMAB_VH}', scheme='imgt')

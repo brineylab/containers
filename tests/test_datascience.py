@@ -86,18 +86,13 @@ class TestExcludedPackages:
         assert result.returncode != 0, \
             f"{module} should not be in the datascience image, but imported successfully"
 
-    @pytest.mark.xfail(
-        strict=True,
-        reason=(
-            "Known issue: pip.txt -> abnumber -> anarcii pulls torch, and pip "
-            "resolves the default CUDA wheel. That puts ~1.1 GB of torch plus "
-            "~2.7 GB of nvidia/* CUDA libraries into the CPU-only image. Fix is "
-            "to install torch from the PyTorch CPU index in this image. Remove "
-            "this marker once that lands."
-        ),
-    )
     def test_torch_is_cpu_build_if_present(self, image):
-        """datascience runs on CPU nodes, so any torch here should be the CPU wheel."""
+        """datascience runs on CPU nodes, so any torch here should be the CPU wheel.
+
+        torch arrives transitively via abnumber -> anarcii. Without
+        --torch-backend=cpu on the pip.txt install, pip resolves the default
+        CUDA wheel and drags ~2.7 GB of nvidia/* libraries in with it.
+        """
         result = docker_run(image, "python3 -c 'import torch; print(torch.__version__)'")
         if result.returncode != 0:
             pytest.skip("torch not installed, nothing to check")

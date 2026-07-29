@@ -15,6 +15,7 @@ gfortran
 gh
 git
 gnupg2
+hmmer
 htop
 less
 libaio-dev

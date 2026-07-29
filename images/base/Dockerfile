@@ -75,7 +75,7 @@ RUN set -x \
         "python=${PYTHON_VERSION}" \
         'conda' \
         'mamba' \
-        'r-base' \
+        'r-base=4.5.*' \
     && rm -rf /tmp/bin/ \
     && mamba list --full-name 'python' | awk 'END{sub("[^.]*$", "*", $2); print $1 " " $2}' >> "${CONDA_DIR}/conda-meta/pinned" \
     && mamba clean --all -f -y \
