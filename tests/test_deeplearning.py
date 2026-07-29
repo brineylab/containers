@@ -14,8 +14,18 @@ def image(request):
 
 
 def _gpu_available() -> bool:
-    """Check if GPU is available on the host."""
-    result = subprocess.run(["nvidia-smi"], capture_output=True)
+    """Whether the host has a usable GPU.
+
+    subprocess.run raises OSError (FileNotFoundError) when nvidia-smi is absent
+    rather than returning non-zero. This runs at collection time inside a
+    skipif decorator, so an unhandled raise aborts collection of the whole file
+    and the suite reports an error without running a single test. CI runners
+    have no nvidia-smi at all, which is exactly that case.
+    """
+    try:
+        result = subprocess.run(["nvidia-smi"], capture_output=True)
+    except OSError:
+        return False
     return result.returncode == 0
 
 
