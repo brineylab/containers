@@ -117,90 +117,89 @@ class TestEnvironment:
 #      Scientific stack
 # ----------------------------
 
-class TestScientificStack:
-    @pytest.mark.parametrize("package", [
-        "scipy",
-        "numpy",
-        "pandas",
-        "matplotlib",
-        "seaborn",
-        "scikit-learn",
-        "scikit-image",
-        "statsmodels",
-        "bokeh",
-        "dask",
-        "numba",
-        "h5py",
-        "sympy",
-        "sqlalchemy",
-        "altair",
-        "cython",
-        "pyarrow",
-        "tables",
-        "openpyxl",
-        "protobuf",
-        "ipympl",
-    ])
-    def test_scientific_import(self, stack_image, package):
-        import_name = (
-            package
-            .replace("scikit-learn", "sklearn")
-            .replace("scikit-image", "skimage")
-            .replace("protobuf", "google.protobuf")
-        )
-        result = docker_run(stack_image, f"python3 -c 'import {import_name}'")
-        assert result.returncode == 0, f"Failed to import {package}: {result.stdout}"
+# package name (the test id) -> module actually imported
+SCIENTIFIC_PACKAGES = {
+    "scipy": "scipy",
+    "numpy": "numpy",
+    "pandas": "pandas",
+    "matplotlib": "matplotlib",
+    "seaborn": "seaborn",
+    "scikit-learn": "sklearn",
+    "scikit-image": "skimage",
+    "statsmodels": "statsmodels",
+    "bokeh": "bokeh",
+    "dask": "dask",
+    "numba": "numba",
+    "h5py": "h5py",
+    "sympy": "sympy",
+    "sqlalchemy": "sqlalchemy",
+    "altair": "altair",
+    "cython": "cython",
+    "pyarrow": "pyarrow",
+    "tables": "tables",
+    "openpyxl": "openpyxl",
+    "protobuf": "google.protobuf",
+    "ipympl": "ipympl",
+}
 
-    def test_numpy_version_gte_2(self, stack_image):
-        result = docker_run(stack_image, "python3 -c 'import numpy; assert int(numpy.__version__.split(\".\")[0]) >= 2'")
-        assert result.returncode == 0, f"Expected numpy >= 2: {result.stdout}"
+
+class TestScientificStack:
+    @pytest.mark.parametrize("package", list(SCIENTIFIC_PACKAGES))
+    def test_scientific_import(self, stack_image, import_probe, package):
+        results = import_probe(stack_image, SCIENTIFIC_PACKAGES.values())
+        ok, detail = results.get(SCIENTIFIC_PACKAGES[package], (False, "not reported by probe"))
+        assert ok, f"Failed to import {package}: {detail}"
+
+    def test_numpy_version_gte_2(self, stack_image, version_probe):
+        version = version_probe(stack_image, ["numpy"])["numpy"]
+        assert int(version.split(".")[0]) >= 2, f"Expected numpy >= 2, got {version}"
 
 
 # ----------------------------
 #      Biology packages
 # ----------------------------
 
-class TestBiology:
-    @pytest.mark.parametrize("package", [
-        "scanpy",
-        "scvelo",
-        "bbknn",
-        "leidenalg",
-        "umap",
-        "biopython",
-        "parasail",
-        "doubletdetection",
-        "harmonypy",
-        "scanorama",
-        "scrublet",
-        "logomaker",
-        "dnachisel",
-        "pyfamsa",
-        # the lab's own ab[x] suite -- previously only abutils was covered
-        "abstar",
-        "scab",
-        # antibody numbering
-        "anarci",
-        "abnumber",
-    ])
-    def test_biology_import(self, stack_image, package):
-        import_name = package.replace("biopython", "Bio")
-        result = docker_run(stack_image, f"python3 -c 'import {import_name}'")
-        assert result.returncode == 0, f"Failed to import {package}: {result.stdout}"
+BIOLOGY_PACKAGES = {
+    "scanpy": "scanpy",
+    "scvelo": "scvelo",
+    "bbknn": "bbknn",
+    "leidenalg": "leidenalg",
+    "umap": "umap",
+    "biopython": "Bio",
+    "parasail": "parasail",
+    "doubletdetection": "doubletdetection",
+    "harmonypy": "harmonypy",
+    "scanorama": "scanorama",
+    "scrublet": "scrublet",
+    "logomaker": "logomaker",
+    "dnachisel": "dnachisel",
+    "pyfamsa": "pyfamsa",
+    # the lab's own ab[x] suite -- previously only abutils was covered
+    "abstar": "abstar",
+    "scab": "scab",
+    # antibody numbering
+    "anarci": "anarci",
+    "abnumber": "abnumber",
+}
 
-    def test_abutils_meets_pin(self, stack_image):
+
+class TestBiology:
+    @pytest.mark.parametrize("package", list(BIOLOGY_PACKAGES))
+    def test_biology_import(self, stack_image, import_probe, package):
+        results = import_probe(stack_image, BIOLOGY_PACKAGES.values())
+        ok, detail = results.get(BIOLOGY_PACKAGES[package], (False, "not reported by probe"))
+        assert ok, f"Failed to import {package}: {detail}"
+
+    def test_abutils_meets_pin(self, stack_image, version_probe):
         """pip.txt pins abutils>=0.6.0 (numpy 2 compatibility).
 
         Compares release tuples rather than substring-matching "0.6", which
         would reject a legitimate 1.x and accept an unrelated 10.6.
         """
-        result = docker_run(
-            stack_image,
-            "python3 -c 'from importlib.metadata import version; print(version(\"abutils\"))'",
-        )
-        assert result.returncode == 0, f"Failed to read abutils version: {result.stdout}"
-        parts = tuple(int(p) for p in result.stdout.strip().split(".")[:3] if p.isdigit())
-        assert parts >= (0, 6, 0), f"Expected abutils >= 0.6.0, got {result.stdout.strip()}"
+        version = version_probe(stack_image, SHARED_PINNED_PACKAGES)["abutils"]
+        assert version != "MISSING", "abutils not installed"
+        parts = tuple(int(p) for p in version.split(".")[:3] if p.isdigit())
+        assert parts >= (0, 6, 0), f"Expected abutils >= 0.6.0, got {version}"
 
     # Trastuzumab (Herceptin) heavy-chain variable domain -- real, published sequence.
     TRASTUZUMAB_VH = (
@@ -254,20 +253,24 @@ print('OK')
 #      Utility packages
 # ----------------------------
 
+UTILITY_MODULES = [
+    "duckdb",
+    "polars",
+    "paramiko",
+    "pymongo",
+    "pytest",
+    "yaml",
+    "tqdm",
+    "humanize",
+]
+
+
 class TestUtilities:
-    @pytest.mark.parametrize("package", [
-        "duckdb",
-        "polars",
-        "paramiko",
-        "pymongo",
-        "pytest",
-        "yaml",
-        "tqdm",
-        "humanize",
-    ])
-    def test_utility_import(self, stack_image, package):
-        result = docker_run(stack_image, f"python3 -c 'import {package}'")
-        assert result.returncode == 0, f"Failed to import {package}: {result.stdout}"
+    @pytest.mark.parametrize("module", UTILITY_MODULES)
+    def test_utility_import(self, stack_image, import_probe, module):
+        results = import_probe(stack_image, UTILITY_MODULES)
+        ok, detail = results.get(module, (False, "not reported by probe"))
+        assert ok, f"Failed to import {module}: {detail}"
 
 
 # ----------------------------
@@ -305,32 +308,33 @@ class TestR:
 #     Version consistency
 # ----------------------------
 
+SHARED_PINNED_PACKAGES = [
+    "numpy",
+    "scipy",
+    "pandas",
+    "scikit-learn",
+    "matplotlib",
+    "scanpy",
+    "abutils",
+    "fastcluster",
+    "h5py",
+    "seaborn",
+    "dask",
+    "numba",
+    "openpyxl",
+]
+
+
 class TestVersionConsistency:
     """Verify key packages have the same version across images."""
 
-    @pytest.mark.parametrize("package", [
-        "numpy",
-        "scipy",
-        "pandas",
-        "scikit-learn",
-        "matplotlib",
-        "scanpy",
-        "abutils",
-        "fastcluster",
-        "h5py",
-        "seaborn",
-        "dask",
-        "numba",
-        "openpyxl",
-    ])
-    def test_version_matches(self, request, package):
+    @pytest.mark.parametrize("package", SHARED_PINNED_PACKAGES)
+    def test_version_matches(self, request, version_probe, package):
         tag = request.config.getoption("--tag")
-        cmd = f"python3 -c 'import importlib.metadata; print(importlib.metadata.version(\"{package}\"))'"
+        ds = version_probe(f"brineylab/datascience:{tag}", SHARED_PINNED_PACKAGES)
+        dl = version_probe(f"brineylab/deeplearning:{tag}", SHARED_PINNED_PACKAGES)
 
-        ds = docker_run(f"brineylab/datascience:{tag}", cmd)
-        dl = docker_run(f"brineylab/deeplearning:{tag}", cmd)
-
-        assert ds.returncode == 0, f"datascience failed: {ds.stdout}"
-        assert dl.returncode == 0, f"deeplearning failed: {dl.stdout}"
-        assert ds.stdout.strip() == dl.stdout.strip(), \
-            f"{package}: datascience={ds.stdout.strip()} != deeplearning={dl.stdout.strip()}"
+        assert ds.get(package) != "MISSING", f"{package} not installed in datascience"
+        assert dl.get(package) != "MISSING", f"{package} not installed in deeplearning"
+        assert ds.get(package) == dl.get(package), \
+            f"{package}: datascience={ds.get(package)} != deeplearning={dl.get(package)}"
