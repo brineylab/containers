@@ -87,7 +87,7 @@ RUN mamba install --yes --file /tmp/r_conda.txt \
 RUN python3 -m pip install --no-cache-dir uv
 
 COPY ./requirements/pip.txt /tmp/pip.txt
-RUN uv pip install --no-cache --system -r /tmp/pip.txt
+RUN uv pip install --no-cache --system --torch-backend=cpu -r /tmp/pip.txt
 
 
 # ----------------------------
