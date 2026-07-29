@@ -56,13 +56,13 @@ class TestJupyter:
 # ----------------------------
 
 class TestKernels:
-    def test_python_kernel(self, jupyterhub_image):
-        result = docker_run(jupyterhub_image, "jupyter kernelspec list")
+    def test_python_kernel(self, jupyterhub_image, cached_run):
+        result = cached_run(jupyterhub_image, "jupyter kernelspec list")
         assert result.returncode == 0
         assert "python3" in result.stdout
 
-    def test_r_kernel(self, jupyterhub_image):
-        result = docker_run(jupyterhub_image, "jupyter kernelspec list")
+    def test_r_kernel(self, jupyterhub_image, cached_run):
+        result = cached_run(jupyterhub_image, "jupyter kernelspec list")
         assert result.returncode == 0
         assert "ir" in result.stdout
 
@@ -79,9 +79,9 @@ class TestLabExtensions:
         "@marimo-team/jupyter-extension",
         "@jupyterhub/jupyter-server-proxy",
     ])
-    def test_lab_extension(self, jupyterhub_image, extension):
+    def test_lab_extension(self, jupyterhub_image, cached_run, extension):
         """Extensions installed from jupyter_pip.txt, so present in every variant."""
-        result = docker_run(jupyterhub_image, "jupyter labextension list")
+        result = cached_run(jupyterhub_image, "jupyter labextension list")
         assert extension in result.stdout, \
             f"{extension} not found in labextension list"
 
@@ -89,19 +89,19 @@ class TestLabExtensions:
         "jupyter-matplotlib",
         "@jupyter-widgets/jupyterlab-manager",
     ])
-    def test_stack_lab_extension(self, stack_jupyterhub_image, extension):
+    def test_stack_lab_extension(self, stack_jupyterhub_image, cached_run, extension):
         """Extensions that arrive with the scientific stack rather than with Jupyter.
 
         jupyter-matplotlib comes from ipympl in pip.txt and jupyterlab-manager
         from ipywidgets pulled in transitively, so jupyterhub-base has neither.
         """
-        result = docker_run(stack_jupyterhub_image, "jupyter labextension list")
+        result = cached_run(stack_jupyterhub_image, "jupyter labextension list")
         assert extension in result.stdout, \
             f"{extension} not found in labextension list"
 
-    def test_nvdashboard(self, request):
+    def test_nvdashboard(self, request, cached_run):
         tag = request.config.getoption("--tag")
-        result = docker_run(f"brineylab/jupyterhub-deeplearning:{tag}", "jupyter labextension list")
+        result = cached_run(f"brineylab/jupyterhub-deeplearning:{tag}", "jupyter labextension list")
         assert "nvdashboard" in result.stdout
 
 
@@ -118,12 +118,12 @@ class TestServerExtensions:
         "notebook",
         "jupyter_server_proxy",
     ])
-    def test_server_extension(self, jupyterhub_image, extension):
-        result = docker_run(jupyterhub_image, "jupyter server extension list")
+    def test_server_extension(self, jupyterhub_image, cached_run, extension):
+        result = cached_run(jupyterhub_image, "jupyter server extension list")
         assert extension in result.stdout, \
             f"{extension} not found in server extension list"
 
-    def test_nvdashboard_server(self, request):
+    def test_nvdashboard_server(self, request, cached_run):
         tag = request.config.getoption("--tag")
-        result = docker_run(f"brineylab/jupyterhub-deeplearning:{tag}", "jupyter server extension list")
+        result = cached_run(f"brineylab/jupyterhub-deeplearning:{tag}", "jupyter server extension list")
         assert "jupyterlab_nvdashboard" in result.stdout

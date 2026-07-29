@@ -33,34 +33,41 @@ def _gpu_available() -> bool:
 #      AI/ML packages
 # ----------------------------
 
+AIML_MODULES = [
+    "torch",
+    "lightning",
+    "deepspeed",
+    "wandb",
+    "jax",
+    "flax",
+    "optax",
+    "equinox",
+    "chex",
+    "accelerate",
+    "transformers",
+    "datasets",
+    "diffusers",
+    "peft",
+    "evaluate",
+    "optimum",
+    "gradio",
+    "tree",
+    "ml_collections",
+    "treescope",
+]
+
+
 class TestAIML:
-    @pytest.mark.parametrize("package", [
-        "torch",
-        "lightning",
-        "deepspeed",
-        "wandb",
-        "jax",
-        "flax",
-        "optax",
-        "equinox",
-        "chex",
-        "keras",
-        "accelerate",
-        "transformers",
-        "datasets",
-        "diffusers",
-        "peft",
-        "evaluate",
-        "optimum",
-        "gradio",
-        "tree",
-        "ml_collections",
-        "treescope",
-    ])
-    def test_aiml_import(self, image, package):
-        env = "KERAS_BACKEND=torch " if package == "keras" else ""
-        result = docker_run(image, f"{env}python3 -c 'import {package}'")
-        assert result.returncode == 0, f"Failed to import {package}: {result.stdout}"
+    @pytest.mark.parametrize("module", AIML_MODULES)
+    def test_aiml_import(self, image, import_probe, module):
+        results = import_probe(image, AIML_MODULES)
+        ok, detail = results.get(module, (False, "not reported by probe"))
+        assert ok, f"Failed to import {module}: {detail}"
+
+    def test_keras_import(self, image):
+        """Separate from the batch: keras needs a backend selected up front."""
+        result = docker_run(image, "KERAS_BACKEND=torch python3 -c 'import keras'", timeout=120)
+        assert result.returncode == 0, f"Failed to import keras: {result.stdout}"
 
     def test_torch_cuda_build(self, image):
         result = docker_run(image, "python3 -c 'import torch; print(torch.__version__)'")
