@@ -5,7 +5,7 @@ import subprocess
 
 import pytest
 
-from conftest import docker_run
+from conftest import _run_python, docker_run
 
 
 # ----------------------------
@@ -247,6 +247,56 @@ print('OK')
 " """)
         assert result.returncode == 0, f"fastcluster test failed: {result.stdout}"
         assert "OK" in result.stdout
+
+
+# ----------------------------
+#      AnnData / h5ad
+# ----------------------------
+
+class TestAnnData:
+    """Regression guards for two anndata bugs an import test would miss."""
+
+    def test_h5ad_write_with_string_obs_index(self, stack_image):
+        """Save an AnnData with a string obs index (anndata 0.12.6 raised on this)."""
+        script = """
+import numpy as np, pandas as pd, anndata as ad, scipy.sparse as sp
+rng = np.random.default_rng(0)
+X = sp.csr_matrix(rng.random((10, 4), dtype=np.float32))
+obs = pd.DataFrame({"cell": [f"c{i}" for i in range(10)]}).set_index("cell")
+a = ad.AnnData(X=X, obs=obs, var=pd.DataFrame(index=[f"g{i}" for i in range(4)]))
+a.write_h5ad("/tmp/t.h5ad")
+b = ad.read_h5ad("/tmp/t.h5ad")
+assert b.shape == (10, 4), b.shape
+assert list(b.obs_names[:2]) == ["c0", "c1"], list(b.obs_names[:2])
+print("H5AD_OK")
+"""
+        result = _run_python(stack_image, script, timeout=180)
+        assert "H5AD_OK" in result.stdout, f"h5ad round-trip failed:\n{result.stdout}"
+
+    def test_layers_keys_are_strings(self, stack_image):
+        """.layers must not yield a None key (anndata 0.13 exposes X as layers[None])."""
+        script = """
+import numpy as np, pandas as pd, anndata as ad, scipy.sparse as sp
+rng = np.random.default_rng(0)
+X = sp.csr_matrix(rng.random((10, 4), dtype=np.float32))
+a = ad.AnnData(X=X, obs=pd.DataFrame(index=[f"c{i}" for i in range(10)]),
+               var=pd.DataFrame(index=[f"g{i}" for i in range(4)]))
+a.layers["counts"] = X.copy()
+a.write_h5ad("/tmp/l.h5ad")
+b = ad.read_h5ad("/tmp/l.h5ad")
+keys = list(b.layers)
+print("LAYER_KEYS", repr(keys))
+print("LAYER_LEN", len(b.layers))
+"""
+        result = _run_python(stack_image, script, timeout=180)
+        assert "LAYER_KEYS" in result.stdout, result.stdout
+        keys_line = [l for l in result.stdout.splitlines() if l.startswith("LAYER_KEYS")][0]
+        assert "None" not in keys_line, (
+            f"anndata exposes a None layer key (X); iterating .layers will "
+            f"silently touch X and sorted(keys()) raises TypeError -- {keys_line}"
+        )
+        len_line = [l for l in result.stdout.splitlines() if l.startswith("LAYER_LEN")][0]
+        assert len_line.split()[1] == "1", f"expected exactly one layer -- {len_line}"
 
 
 # ----------------------------
