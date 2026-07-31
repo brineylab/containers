@@ -35,9 +35,7 @@ class TestJupyter:
         result = docker_run(jupyterhub_image, "test -f /etc/jupyter/docker_healthcheck.py")
         assert result.returncode == 0
 
-    # -x rather than -f: these are exec'd as commands (start-notebook.py is CMD,
-    # and it execvp's start-singleuser.py), so a present-but-non-executable file
-    # is a broken image that -f would not catch.
+    # -x not -f: these are exec'd, so a non-executable file is broken but -f passes.
     def test_start_notebook_executable(self, jupyterhub_image):
         result = docker_run(jupyterhub_image, "test -x /usr/local/bin/start-notebook.py")
         assert result.returncode == 0, "start-notebook.py is not executable"
@@ -82,6 +80,7 @@ class TestLabExtensions:
     def test_lab_extension(self, jupyterhub_image, cached_run, extension):
         """Extensions installed from jupyter_pip.txt, so present in every variant."""
         result = cached_run(jupyterhub_image, "jupyter labextension list")
+        assert result.returncode == 0, f"labextension list failed: {result.stdout}"
         assert extension in result.stdout, \
             f"{extension} not found in labextension list"
 
@@ -96,12 +95,14 @@ class TestLabExtensions:
         from ipywidgets pulled in transitively, so jupyterhub-base has neither.
         """
         result = cached_run(stack_jupyterhub_image, "jupyter labextension list")
+        assert result.returncode == 0, f"labextension list failed: {result.stdout}"
         assert extension in result.stdout, \
             f"{extension} not found in labextension list"
 
     def test_nvdashboard(self, request, cached_run):
         tag = request.config.getoption("--tag")
         result = cached_run(f"brineylab/jupyterhub-deeplearning:{tag}", "jupyter labextension list")
+        assert result.returncode == 0, f"labextension list failed: {result.stdout}"
         assert "nvdashboard" in result.stdout
 
 
@@ -120,10 +121,12 @@ class TestServerExtensions:
     ])
     def test_server_extension(self, jupyterhub_image, cached_run, extension):
         result = cached_run(jupyterhub_image, "jupyter server extension list")
+        assert result.returncode == 0, f"server extension list failed: {result.stdout}"
         assert extension in result.stdout, \
             f"{extension} not found in server extension list"
 
     def test_nvdashboard_server(self, request, cached_run):
         tag = request.config.getoption("--tag")
         result = cached_run(f"brineylab/jupyterhub-deeplearning:{tag}", "jupyter server extension list")
+        assert result.returncode == 0, f"server extension list failed: {result.stdout}"
         assert "jupyterlab_nvdashboard" in result.stdout

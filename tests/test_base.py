@@ -12,96 +12,55 @@ from conftest import _run_python, docker_run
 #      Environment
 # ----------------------------
 
-# These are invariants of every published image, including the minimal base
-# images, so they run against any_image rather than just the stack images.
+# Invariants of every image; shell checks share one container per image via env_probe.
 class TestEnvironment:
-    def test_python_location(self, any_image):
-        result = docker_run(any_image, "which python3")
-        assert result.returncode == 0
-        assert "/opt/conda/bin/python3" in result.stdout
+    def test_python_location(self, any_image, env_probe):
+        assert env_probe(any_image)["which_python3"] == "/opt/conda/bin/python3"
 
-    def test_python_version(self, any_image):
-        result = docker_run(any_image, "python3 --version")
-        assert result.returncode == 0
-        assert "3.12" in result.stdout
+    def test_python_version(self, any_image, env_probe):
+        assert "3.12" in env_probe(any_image)["python_version"]
 
-    def test_no_third_python(self, any_image):
-        """Exactly two interpreters: conda's and Ubuntu's system python3.
+    def test_no_third_python(self, any_image, env_probe):
+        """Only conda + Ubuntu python3; 0b374c0 dropped NVIDIA's third interpreter."""
+        count = env_probe(any_image)["unique_python"]
+        assert count == "2", f"expected conda + system python only, found {count}"
 
-        0b374c0 switched deeplearning to CUDA DL Base to drop a *third* Python
-        that NVIDIA's PyTorch image bundled. Ubuntu's /usr/bin/python3 is
-        unavoidable and harmless as long as conda's wins on PATH, which
-        test_python_location covers. Symlinks are resolved because /bin/python3
-        and /usr/bin/python3 are the same file.
-        """
-        result = docker_run(
-            any_image, "which -a python3 | xargs -n1 readlink -f | sort -u | wc -l"
-        )
-        assert result.returncode == 0
-        assert result.stdout.strip() == "2", \
-            f"expected conda + system python only, found {result.stdout.strip()} interpreters"
+    def test_mamba(self, any_image, env_probe):
+        assert env_probe(any_image)["which_mamba"] == "/opt/conda/bin/mamba"
 
-    def test_mamba(self, any_image):
-        result = docker_run(any_image, "which mamba")
-        assert result.returncode == 0
-        assert "/opt/conda/bin/mamba" in result.stdout
+    def test_conda(self, any_image, env_probe):
+        assert env_probe(any_image)["conda_rc"] == "0", "conda not on PATH"
 
-    def test_conda(self, any_image):
-        result = docker_run(any_image, "which conda")
-        assert result.returncode == 0
+    def test_uv(self, any_image, env_probe):
+        assert env_probe(any_image)["uv_rc"] == "0", "uv not on PATH"
 
-    def test_uv(self, any_image):
-        result = docker_run(any_image, "which uv")
-        assert result.returncode == 0
+    def test_r(self, any_image, env_probe):
+        assert env_probe(any_image)["rscript_rc"] == "0", "Rscript not runnable"
 
-    def test_r(self, any_image):
-        result = docker_run(any_image, "Rscript --version")
-        assert result.returncode == 0
+    def test_tini(self, any_image, env_probe):
+        assert env_probe(any_image)["which_tini"], "tini not on PATH"
 
-    def test_tini(self, any_image):
-        result = docker_run(any_image, "which tini")
-        assert result.returncode == 0
+    def test_git(self, any_image, env_probe):
+        assert env_probe(any_image)["git_rc"] == "0", "git not runnable"
 
-    def test_git(self, any_image):
-        result = docker_run(any_image, "git --version")
-        assert result.returncode == 0
-
-    def test_gh(self, any_image):
+    def test_gh(self, any_image, env_probe):
         """GitHub CLI, installed via apt.txt so it reaches every image."""
-        result = docker_run(any_image, "gh --version")
-        assert result.returncode == 0
+        assert env_probe(any_image)["gh_rc"] == "0", "gh not runnable"
 
-    def test_s5cmd(self, any_image):
-        result = docker_run(any_image, "s5cmd version")
-        assert result.returncode == 0
+    def test_s5cmd(self, any_image, env_probe):
+        assert env_probe(any_image)["s5cmd_rc"] == "0", "s5cmd not runnable"
 
-    def test_conda_dir_exists(self, any_image):
-        result = docker_run(any_image, "test -d /opt/conda")
-        assert result.returncode == 0
-
-    def test_home_dir_exists(self, any_image):
+    def test_home_dir_exists(self, any_image, env_probe):
         """HOME is created in the image; work/ and shared/ arrive as NFS mounts."""
-        result = docker_run(any_image, "test -d /home/jovyan")
-        assert result.returncode == 0
+        assert env_probe(any_image)["home_dir"] == "yes"
 
-    def test_umask_is_000_in_interactive_shell(self, any_image):
-        """umask 000 is set in /etc/bash.bashrc.
+    def test_umask_is_000_in_interactive_shell(self, any_image, env_probe):
+        """umask 000 from /etc/bash.bashrc -- interactive shells only, not kernels."""
+        assert env_probe(any_image)["umask"] == "0000"
 
-        Scope matters: bash sources that file only for interactive shells, so
-        this covers terminal sessions but NOT files written by a notebook
-        kernel, which inherits the server process umask instead. Group-writable
-        notebook output on shared NFS depends on NB_UMASK in the singleuser pod
-        spec, which no image test can verify.
-        """
-        result = docker_run(any_image, "bash -ic umask")
-        assert result.returncode == 0
-        assert "0000" in result.stdout
-
-    def test_runs_as_root(self, any_image):
-        """85fbee4 removed the jovyan user; these images always run as root."""
-        result = docker_run(any_image, "id -u")
-        assert result.returncode == 0
-        assert result.stdout.strip() == "0"
+    def test_runs_as_root(self, any_image, env_probe):
+        """85fbee4 removed jovyan; images run as root."""
+        assert env_probe(any_image)["uid"] == "0"
 
     def test_entrypoint_is_tini(self, any_image):
         """tini reaps zombies; losing it from ENTRYPOINT would be silent."""
