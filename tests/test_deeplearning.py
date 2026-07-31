@@ -4,7 +4,7 @@ import subprocess
 
 import pytest
 
-from conftest import docker_run
+from conftest import _run_python, docker_run
 
 
 @pytest.fixture
@@ -174,3 +174,64 @@ class TestStructuralBiology:
     def test_pdbfixer(self, image):
         result = docker_run(image, "python3 -c 'import pdbfixer'")
         assert result.returncode == 0, f"Failed to import pdbfixer: {result.stdout}"
+
+
+# ----------------------------
+#      Training workflows
+# ----------------------------
+
+# A few real CPU steps -- catches broken torch/transformers pairings imports don't.
+# All tiny and network-free.
+class TestTraining:
+    def test_torch_trains_a_few_steps(self, image):
+        """A small MLP must drive its loss down over 50 CPU steps."""
+        script = """
+import math, torch, torch.nn as nn
+torch.manual_seed(0)
+X = torch.randn(256, 20); w = torch.randn(20, 1)
+y = X @ w + 0.1 * torch.randn(256, 1)
+model = nn.Sequential(nn.Linear(20, 32), nn.ReLU(), nn.Linear(32, 1))
+opt = torch.optim.Adam(model.parameters(), lr=1e-2)
+losses = []
+for _ in range(50):
+    opt.zero_grad()
+    loss = nn.functional.mse_loss(model(X), y)
+    loss.backward(); opt.step()
+    losses.append(loss.item())
+assert all(math.isfinite(x) for x in losses), "loss went non-finite"
+assert losses[-1] < losses[0] * 0.5, f"did not learn: {losses[0]:.3f} -> {losses[-1]:.3f}"
+print("TORCH_OK")
+"""
+        result = _run_python(image, script, timeout=180)
+        assert "TORCH_OK" in result.stdout, f"torch training failed:\n{result.stdout}"
+
+    def test_transformers_masked_lm_step(self, image):
+        """Tiny masked-LM from config does a training step -- the AbLM path in miniature."""
+        script = """
+import torch
+from transformers import BertConfig, BertForMaskedLM
+cfg = BertConfig(vocab_size=64, hidden_size=32, num_hidden_layers=2,
+                 num_attention_heads=2, intermediate_size=64, max_position_embeddings=32)
+model = BertForMaskedLM(cfg)
+ids = torch.randint(0, 64, (2, 16))
+out = model(input_ids=ids, labels=ids.clone())
+out.loss.backward()
+grad = model.bert.embeddings.word_embeddings.weight.grad
+assert torch.isfinite(out.loss) and out.loss.item() > 0, out.loss
+assert grad is not None and torch.isfinite(grad).all(), "no/invalid embedding grad"
+print("TRANSFORMERS_OK")
+"""
+        result = _run_python(image, script, timeout=180)
+        assert "TRANSFORMERS_OK" in result.stdout, f"transformers step failed:\n{result.stdout}"
+
+    def test_jax_value_and_grad(self, image):
+        """JAX autodiff on CPU must match the analytic gradient of sin(x)^2."""
+        script = """
+import math, jax, jax.numpy as jnp
+val, grad = jax.value_and_grad(lambda x: jnp.sum(jnp.sin(x) ** 2))(jnp.arange(5.0))
+assert math.isfinite(float(val))
+assert all(abs(float(grad[i]) - math.sin(2 * i)) < 1e-4 for i in range(5)), grad
+print("JAX_OK")
+"""
+        result = _run_python(image, script, timeout=180)
+        assert "JAX_OK" in result.stdout, f"jax grad failed:\n{result.stdout}"

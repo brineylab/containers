@@ -300,6 +300,51 @@ print("LAYER_LEN", len(b.layers))
 
 
 # ----------------------------
+#      End-to-end workflows
+# ----------------------------
+
+# Exercise whole subsystems -- catches interop breakage imports don't.
+class TestWorkflows:
+    def test_single_cell_pipeline(self, stack_image):
+        """scanpy pipeline must recover two planted clusters (anndata+sklearn+numba+leidenalg)."""
+        script = """
+import numpy as np, scipy.sparse as sp, anndata as ad, scanpy as sc
+rng = np.random.default_rng(0)
+counts = rng.poisson(0.3, (200, 300)).astype("float32")
+counts[:100, :50] += rng.poisson(3.0, (100, 50)).astype("float32")
+counts[100:, 50:100] += rng.poisson(3.0, (100, 50)).astype("float32")
+a = ad.AnnData(sp.csr_matrix(counts))
+sc.pp.normalize_total(a, target_sum=1e4)
+sc.pp.log1p(a)
+sc.pp.pca(a, n_comps=20)
+sc.pp.neighbors(a, n_neighbors=15)
+sc.tl.leiden(a)
+assert a.obsm["X_pca"].shape == (200, 20), a.obsm["X_pca"].shape
+n = a.obs["leiden"].nunique()
+assert n >= 2, f"planted 2 groups, leiden found {n}"
+print("SCANPY_OK", n)
+"""
+        result = _run_python(stack_image, script, timeout=180)
+        assert "SCANPY_OK" in result.stdout, f"scanpy pipeline failed:\n{result.stdout}"
+
+    def test_parquet_cross_library_roundtrip(self, stack_image):
+        """pandas writes a parquet; polars and duckdb must read it and agree."""
+        script = """
+import numpy as np, pandas as pd, polars as pl, duckdb
+rng = np.random.default_rng(0)
+df = pd.DataFrame({"i": range(500), "f": rng.random(500), "s": [f"x{i}" for i in range(500)]})
+df.to_parquet("/tmp/t.parquet", index=False)
+assert pl.read_parquet("/tmp/t.parquet").height == 500
+n, mean = duckdb.sql("select count(*), avg(f) from '/tmp/t.parquet'").fetchone()
+assert n == 500, n
+assert abs(mean - df["f"].mean()) < 1e-9, (mean, df["f"].mean())
+print("PARQUET_OK")
+"""
+        result = _run_python(stack_image, script, timeout=120)
+        assert "PARQUET_OK" in result.stdout, f"parquet round-trip failed:\n{result.stdout}"
+
+
+# ----------------------------
 #      Utility packages
 # ----------------------------
 
