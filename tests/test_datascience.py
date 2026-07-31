@@ -48,15 +48,8 @@ class TestNGSTools:
 
 class TestNGSPaths:
     def test_tools_dir(self, image):
+        # Paired with test_no_ngs_tools (asserts /tools absent in base images).
         result = docker_run(image, "test -d /tools")
-        assert result.returncode == 0
-
-    def test_cellranger_in_path(self, image):
-        result = docker_run(image, "echo $PATH | grep -q cellranger")
-        assert result.returncode == 0
-
-    def test_dorado_in_path(self, image):
-        result = docker_run(image, "echo $PATH | grep -q dorado")
         assert result.returncode == 0
 
 

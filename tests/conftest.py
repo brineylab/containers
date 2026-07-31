@@ -1,9 +1,7 @@
 """Shared fixtures for container tests.
 
-Container startup dominates this suite's runtime, so anything invoked with the
-same arguments more than once goes through `cached_run`, and groups of Python
-imports are probed in a single container via `import_probe`. Both keep one test
-per package so failures stay granular.
+Container startup dominates runtime, so repeated commands go through `cached_run`
+and grouped imports through `import_probe` -- one container, one test per package.
 """
 
 import base64
@@ -39,12 +37,7 @@ def _run_python(image: str, script: str, timeout: int = 600) -> subprocess.Compl
 
 @pytest.fixture(scope="session")
 def cached_run():
-    """docker_run memoized on (image, command) for the whole session.
-
-    Several tests assert different things about the same command output -- the
-    extension lists were each re-running `jupyter labextension list`, ~1.5s a
-    time, twenty times over.
-    """
+    """docker_run memoized on (image, command) for the session."""
     cache: dict = {}
 
     def run(image: str, command: str, **kwargs) -> subprocess.CompletedProcess:
@@ -58,11 +51,7 @@ def cached_run():
 
 @pytest.fixture(scope="session")
 def import_probe():
-    """Import a group of modules in ONE container; report each individually.
-
-    Returns {module: (ok, detail)}. Batching also means numba's first-import
-    cost is paid once per container rather than once per test.
-    """
+    """Import a group of modules in ONE container. Returns {module: (ok, detail)}."""
     cache: dict = {}
 
     def probe(image: str, modules) -> dict:
@@ -84,8 +73,7 @@ def import_probe():
                 parts = line.split(None, 2)
                 if len(parts) >= 2 and parts[0] in ("OK", "FAIL"):
                     parsed[parts[1]] = (parts[0] == "OK", parts[2] if len(parts) > 2 else "")
-            # Surface a probe that never ran rather than reporting every module absent
-            if not parsed:
+            if not parsed:  # probe never ran; don't report every module absent
                 pytest.fail(
                     f"import probe produced no parsable output for {image}\n{result.stdout}"
                 )
@@ -108,20 +96,64 @@ def version_probe():
                 "from importlib.metadata import version, PackageNotFoundError\n"
                 f"for p in {packages!r}:\n"
                 "    try:\n"
-                "        print(p, version(p))\n"
+                "        print('VER', p, version(p))\n"
                 "    except PackageNotFoundError:\n"
-                "        print(p, 'MISSING')\n"
+                "        print('VER', p, 'MISSING')\n"
             )
             result = _run_python(image, script)
-            parsed = dict(
-                line.split(None, 1) for line in result.stdout.splitlines() if len(line.split()) == 2
-            )
+            # 'VER' prefix so a stray two-word warning can't parse in
+            parsed = {}
+            for line in result.stdout.splitlines():
+                parts = line.split(None, 2)
+                if len(parts) == 3 and parts[0] == "VER":
+                    parsed[parts[1]] = parts[2]
             if not parsed:
                 pytest.fail(
                     f"version probe produced no parsable output for {image}\n{result.stdout}"
                 )
             cache[key] = parsed
         return cache[key]
+
+    return probe
+
+
+# Everything TestEnvironment checks, emitted as key<TAB>value, one container per image.
+_ENV_PROBE_SCRIPT = r"""
+emit() { printf '%s\t%s\n' "$1" "$2"; }
+emit which_python3  "$(which python3)"
+emit python_version "$(python3 --version 2>&1)"
+emit unique_python  "$(which -a python3 | xargs -n1 readlink -f | sort -u | wc -l | tr -d '[:space:]')"
+emit which_mamba    "$(which mamba)"
+emit conda_rc       "$(which conda >/dev/null 2>&1; echo $?)"
+emit uv_rc          "$(which uv >/dev/null 2>&1; echo $?)"
+emit rscript_rc     "$(Rscript --version >/dev/null 2>&1; echo $?)"
+emit which_tini     "$(which tini)"
+emit git_rc         "$(git --version >/dev/null 2>&1; echo $?)"
+emit gh_rc          "$(gh --version >/dev/null 2>&1; echo $?)"
+emit s5cmd_rc       "$(s5cmd version >/dev/null 2>&1; echo $?)"
+emit home_dir       "$(test -d /home/jovyan && echo yes || echo no)"
+emit umask          "$(bash -ic umask 2>/dev/null | tr -d '[:space:]')"
+emit uid            "$(id -u)"
+"""
+
+
+@pytest.fixture(scope="session")
+def env_probe():
+    """Run every environment check in ONE container per image. Returns {key: value}."""
+    cache: dict = {}
+
+    def probe(image: str) -> dict:
+        if image not in cache:
+            result = docker_run(image, _ENV_PROBE_SCRIPT, timeout=120)
+            env = {}
+            for line in result.stdout.splitlines():
+                if "\t" in line:
+                    k, v = line.split("\t", 1)
+                    env[k] = v
+            if "uid" not in env:  # last line emitted; absent means script died early
+                pytest.fail(f"env probe incomplete for {image}\n{result.stdout}")
+            cache[image] = env
+        return cache[image]
 
     return probe
 
