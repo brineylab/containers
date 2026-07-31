@@ -32,6 +32,9 @@ sympy
 tables
 
 # biology
+# <0.13 blocks the None-in-.layers bug; >=0.12.19 is the first with the pandas 3.0
+# h5ad write fix. Currently resolves to 0.12.19; floats forward on 0.12 patches.
+anndata>=0.12.19,<0.13
 abnumber
 anarci
 baltic
