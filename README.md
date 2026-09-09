@@ -5,6 +5,9 @@ Docker images maintained by the Briney Lab, published to Docker Hub under
 [`docker-publish.yml`](.github/workflows/docker-publish.yml) on each GitHub release,
 tagged with both the release tag and `latest`.
 
+> Working in this repo, human or agent? See [`AGENTS.md`](./AGENTS.md) for who consumes these
+> images, how builds are triggered, and the conventions.
+
 ## Images
 
 | Image | Built on | Contents |
