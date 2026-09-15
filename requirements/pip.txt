@@ -18,7 +18,8 @@ natsort
 numba
 numexpr
 openpyxl
-pandas
+# floor: a transitive cap once reverted this to 2.x image-wide
+pandas>=3
 patsy
 protobuf
 pyarrow
@@ -32,9 +33,8 @@ sympy
 tables
 
 # biology
-# <0.13 blocks the None-in-.layers bug; >=0.12.19 is the first with the pandas 3.0
-# h5ad write fix. Currently resolves to 0.12.19; floats forward on 0.12 patches.
-anndata>=0.12.19,<0.13
+# 0.12 caps pandas <3; 0.13 writes h5ad fine under 3. X is layers[None] from 0.13 by design.
+anndata>=0.13.3
 abnumber
 anarci
 baltic
