@@ -113,6 +113,11 @@ class TestScientificStack:
         version = version_probe(stack_image, ["numpy"])["numpy"]
         assert int(version.split(".")[0]) >= 2, f"Expected numpy >= 2, got {version}"
 
+    def test_pandas_version_gte_3(self, stack_image, version_probe):
+        """A transitive cap once reverted pandas 3->2 image-wide; fail loudly instead."""
+        version = version_probe(stack_image, ["pandas"])["pandas"]
+        assert int(version.split(".")[0]) >= 3, f"Expected pandas >= 3, got {version}"
+
 
 # ----------------------------
 #      Biology packages
@@ -213,7 +218,7 @@ print('OK')
 # ----------------------------
 
 class TestAnnData:
-    """Regression guards for two anndata bugs an import test would miss."""
+    """Regression guards for anndata behaviour an import test would miss."""
 
     def test_h5ad_write_with_string_obs_index(self, stack_image):
         """Save an AnnData with a string obs index (anndata 0.12.6 raised on this)."""
@@ -232,8 +237,11 @@ print("H5AD_OK")
         result = _run_python(stack_image, script, timeout=180)
         assert "H5AD_OK" in result.stdout, f"h5ad round-trip failed:\n{result.stdout}"
 
-    def test_layers_keys_are_strings(self, stack_image):
-        """.layers must not yield a None key (anndata 0.13 exposes X as layers[None])."""
+    def test_layers_exposes_x_under_none_key(self, stack_image):
+        """anndata >=0.13 exposes X as layers[None] by design (scverse/anndata#1707).
+
+        Failing here means upstream reversed that, not that the image broke.
+        """
         script = """
 import numpy as np, pandas as pd, anndata as ad, scipy.sparse as sp
 rng = np.random.default_rng(0)
@@ -243,19 +251,21 @@ a = ad.AnnData(X=X, obs=pd.DataFrame(index=[f"c{i}" for i in range(10)]),
 a.layers["counts"] = X.copy()
 a.write_h5ad("/tmp/l.h5ad")
 b = ad.read_h5ad("/tmp/l.h5ad")
-keys = list(b.layers)
-print("LAYER_KEYS", repr(keys))
-print("LAYER_LEN", len(b.layers))
+print("LAYER_KEYS", repr(sorted(k for k in b.layers if k is not None)))
+print("HAS_NONE", None in list(b.layers))
+print("NONE_IS_X", np.allclose(b.layers[None].toarray(), b.X.toarray()))
 """
         result = _run_python(stack_image, script, timeout=180)
-        assert "LAYER_KEYS" in result.stdout, result.stdout
-        keys_line = [l for l in result.stdout.splitlines() if l.startswith("LAYER_KEYS")][0]
-        assert "None" not in keys_line, (
-            f"anndata exposes a None layer key (X); iterating .layers will "
-            f"silently touch X and sorted(keys()) raises TypeError -- {keys_line}"
+        assert "LAYER_KEYS ['counts']" in result.stdout, (
+            f"expected exactly one named layer -- {result.stdout}"
         )
-        len_line = [l for l in result.stdout.splitlines() if l.startswith("LAYER_LEN")][0]
-        assert len_line.split()[1] == "1", f"expected exactly one layer -- {len_line}"
+        assert "HAS_NONE True" in result.stdout, (
+            f"anndata no longer exposes X as layers[None]; upstream reversed "
+            f"scverse/anndata#1707 and the pin/comment need revisiting -- {result.stdout}"
+        )
+        assert "NONE_IS_X True" in result.stdout, (
+            f"layers[None] did not round-trip as X -- {result.stdout}"
+        )
 
 
 # ----------------------------
