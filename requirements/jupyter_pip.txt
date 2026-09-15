@@ -2,7 +2,7 @@
 # jupyterhub images only
 
 # core
-jupyterhub
+jupyterhub<6
 jupyterlab
 notebook>=7.2.2
 jupyter-server-proxy
