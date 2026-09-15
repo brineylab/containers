@@ -6,6 +6,8 @@ jupyterhub
 jupyterlab
 notebook>=7.2.2
 jupyter-server-proxy
+# <6.5.10 500s every static asset
+tornado>=6.5.10
 
 # extensions
 jupyterlab-code-formatter
