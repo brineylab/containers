@@ -4,7 +4,9 @@
 # training
 deepspeed
 lightning
-torch
+# <2.14: flash-attn 2.8.3 fails to compile against torch 2.14 headers (needs C++20,
+# at::symint::sizes gone). No FA2 release since 2026-06 and no wheel past torch 2.9.
+torch<2.14
 wandb
 
 # JAX
