@@ -158,6 +158,43 @@ def env_probe():
     return probe
 
 
+_SERVE_PROBE_SCRIPT = r"""
+emit() { printf '%s\t%s\n' "$1" "$2"; }
+status() { curl -s -o /dev/null -w '%{http_code}' "http://127.0.0.1:8899$1"; }
+jupyter lab --no-browser --allow-root --port=8899 --ip=127.0.0.1 \
+    --ServerApp.token= --ServerApp.password= >/tmp/lab.log 2>&1 &
+for _ in $(seq 1 90); do
+    curl -sf -o /dev/null http://127.0.0.1:8899/lab && break
+    sleep 1
+done
+bundle=$(curl -s http://127.0.0.1:8899/lab | grep -oE '/static/lab/main[^"]*\.js' | head -1)
+emit page          "$(status /lab)"
+emit favicon       "$(status /static/favicons/favicon.ico)"
+emit bundle        "$bundle"
+emit bundle_status "$(status "$bundle")"
+emit tracebacks    "$(grep -c Traceback /tmp/lab.log)"
+"""
+
+
+@pytest.fixture(scope="session")
+def serve_probe():
+    """Serve from ONE container per image and report status codes. Returns {key: value}."""
+    cache: dict = {}
+
+    def probe(image: str) -> dict:
+        if image not in cache:
+            result = docker_run(image, _SERVE_PROBE_SCRIPT, timeout=300)
+            out = dict(
+                line.split("\t", 1) for line in result.stdout.splitlines() if "\t" in line
+            )
+            if "tracebacks" not in out:  # last line emitted; absent means the probe died early
+                pytest.fail(f"serve probe incomplete for {image}\n{result.stdout}")
+            cache[image] = out
+        return cache[image]
+
+    return probe
+
+
 MINIMAL_IMAGES = ["brineylab/base", "brineylab/jupyterhub-base"]
 STACK_IMAGES = ["brineylab/datascience", "brineylab/deeplearning"]
 STACK_JUPYTERHUB_IMAGES = [

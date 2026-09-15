@@ -130,3 +130,27 @@ class TestServerExtensions:
         result = cached_run(f"brineylab/jupyterhub-deeplearning:{tag}", "jupyter server extension list")
         assert result.returncode == 0, f"server extension list failed: {result.stdout}"
         assert "jupyterlab_nvdashboard" in result.stdout
+
+
+# ----------------------------
+#      Server runtime
+# ----------------------------
+
+class TestServerRuntime:
+    """Checks the server serves, not just that its CLIs report versions."""
+
+    def test_lab_page_served(self, jupyterhub_image, serve_probe):
+        out = serve_probe(jupyterhub_image)
+        assert out["page"] == "200", f"GET /lab returned {out['page']}"
+
+    def test_static_assets_served(self, jupyterhub_image, serve_probe):
+        """A 500 here is the white page: the shell loads, its assets do not."""
+        out = serve_probe(jupyterhub_image)
+        assert out["favicon"] == "200", f"GET favicon returned {out['favicon']}"
+        assert out["bundle"], "no main lab bundle referenced by /lab"
+        assert out["bundle_status"] == "200", \
+            f"GET {out['bundle']} returned {out['bundle_status']}"
+
+    def test_no_tracebacks_while_serving(self, jupyterhub_image, serve_probe):
+        out = serve_probe(jupyterhub_image)
+        assert out["tracebacks"] == "0", f"{out['tracebacks']} tracebacks in the server log"
