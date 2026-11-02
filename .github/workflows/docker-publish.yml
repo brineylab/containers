@@ -13,6 +13,10 @@ on:
                 description: Push image to Docker Hub
                 type: boolean
                 default: true
+            hosted:
+                description: Build on GitHub-hosted runners instead of legolas
+                type: boolean
+                default: false
 
 concurrency:
     group: docker-publish
@@ -28,7 +32,7 @@ env:
 jobs:
     # base
     base:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         steps:
             - name: checkout
               uses: actions/checkout@v7
@@ -45,7 +49,7 @@ jobs:
 
     # datascience
     datascience:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         steps:
             - name: checkout
               uses: actions/checkout@v7
@@ -62,7 +66,7 @@ jobs:
 
     # deeplearning
     deeplearning:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         steps:
             - name: checkout
               uses: actions/checkout@v7
@@ -79,7 +83,7 @@ jobs:
 
     # jupyterhub-base depends on base (adds JupyterLab/Hub)
     jupyterhub-base:
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         needs: [base]
         steps:
             - name: checkout
@@ -97,7 +101,7 @@ jobs:
 
     # jupyterhub-datascience depends on datascience (adds JupyterLab/Hub)
     jupyterhub-datascience:
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         needs: [datascience]
         steps:
             - name: checkout
@@ -115,7 +119,7 @@ jobs:
 
     # jupyterhub-deeplearning depends on deeplearning (adds JupyterLab/Hub)
     jupyterhub-deeplearning:
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         needs: [deeplearning]
         steps:
             - name: checkout
@@ -133,7 +137,7 @@ jobs:
 
     # test all images after build
     test:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         needs: [jupyterhub-base, jupyterhub-datascience, jupyterhub-deeplearning]
         steps:
             - name: checkout
@@ -145,12 +149,8 @@ jobs:
               with:
                 username: ${{ env.DOCKERHUB_USERNAME }}
                 password: ${{ env.DOCKERHUB_TOKEN }}
-            - name: set up Python
-              uses: actions/setup-python@v7
-              with:
-                python-version: "3.12"
-            - name: install pytest
-              run: pip install pytest
+            - name: set up uv
+              uses: astral-sh/setup-uv@v10.3.3
             - name: determine tag
               id: tag
               run: |
@@ -168,4 +168,4 @@ jobs:
                 docker pull brineylab/jupyterhub-datascience:${{ steps.tag.outputs.tag }}
                 docker pull brineylab/jupyterhub-deeplearning:${{ steps.tag.outputs.tag }}
             - name: run tests
-              run: pytest tests/ -v --tag=${{ steps.tag.outputs.tag }}
+              run: uvx --python 3.12 pytest tests/ -v --tag=${{ steps.tag.outputs.tag }}
