@@ -89,6 +89,8 @@ jobs:
                 tag_name: ${{ inputs.tag }}
                 use_cache: ${{ inputs.use_cache }}
                 push: ${{ inputs.push }}
+                # 8 measured at a 115 GiB peak in legolas's 160 GiB containers slice.
+                build_args: FLASH_ATTN_MAX_JOBS=${{ runner.environment == 'self-hosted' && '8' || '2' }}
             - name: hand the image to the GPU tests
               if: runner.environment == 'self-hosted'
               env:
@@ -220,4 +222,4 @@ jobs:
                   fi
                 done
             - name: run tests
-              run: uvx --python 3.12 pytest tests/ -v --tag=${{ steps.tag.outputs.tag }}
+              run: uvx --python 3.12 --with pytest-xdist pytest tests/ -v -n 8 --dist loadscope --tag=${{ steps.tag.outputs.tag }}
