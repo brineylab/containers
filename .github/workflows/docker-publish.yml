@@ -52,7 +52,7 @@ jobs:
                 dockerfile: ./images/base/Dockerfile
                 tag_name: ${{ inputs.tag }}
                 use_cache: ${{ inputs.use_cache }}
-                push: ${{ inputs.push }}
+                push: ${{ inputs.push && inputs.hosted }}
 
     # datascience
     datascience:
@@ -70,7 +70,7 @@ jobs:
                 dockerfile: ./images/datascience/Dockerfile
                 tag_name: ${{ inputs.tag }}
                 use_cache: ${{ inputs.use_cache }}
-                push: ${{ inputs.push }}
+                push: ${{ inputs.push && inputs.hosted }}
 
     # deeplearning
     deeplearning:
@@ -88,7 +88,7 @@ jobs:
                 dockerfile: ./images/deeplearning/Dockerfile
                 tag_name: ${{ inputs.tag }}
                 use_cache: ${{ inputs.use_cache }}
-                push: ${{ inputs.push }}
+                push: ${{ inputs.push && inputs.hosted }}
                 # 8 measured at a 115 GiB peak in legolas's 160 GiB containers slice.
                 build_args: FLASH_ATTN_MAX_JOBS=${{ runner.environment == 'self-hosted' && '8' || '2' }}
             - name: hand the image to the GPU tests
@@ -116,7 +116,7 @@ jobs:
                 dockerfile: ./images/jupyterhub-base/Dockerfile
                 tag_name: ${{ inputs.tag }}
                 use_cache: ${{ inputs.use_cache }}
-                push: ${{ inputs.push }}
+                push: ${{ inputs.push && inputs.hosted }}
 
     # jupyterhub-datascience depends on datascience (adds JupyterLab/Hub)
     jupyterhub-datascience:
@@ -135,7 +135,7 @@ jobs:
                 dockerfile: ./images/jupyterhub-datascience/Dockerfile
                 tag_name: ${{ inputs.tag }}
                 use_cache: ${{ inputs.use_cache }}
-                push: ${{ inputs.push }}
+                push: ${{ inputs.push && inputs.hosted }}
 
     # jupyterhub-deeplearning depends on deeplearning (adds JupyterLab/Hub)
     jupyterhub-deeplearning:
@@ -154,7 +154,7 @@ jobs:
                 dockerfile: ./images/jupyterhub-deeplearning/Dockerfile
                 tag_name: ${{ inputs.tag }}
                 use_cache: ${{ inputs.use_cache }}
-                push: ${{ inputs.push }}
+                push: ${{ inputs.push && inputs.hosted }}
 
     # GPU tests on flint, against the image deeplearning just built
     gpu-test:
@@ -180,46 +180,87 @@ jobs:
                 TAG: ${{ inputs.tag || 'latest' }}
               run: uvx --python 3.12 pytest tests/test_deeplearning.py -m gpu --require-gpu -v --tag="$TAG"
 
-    # test all images after build
-    test:
+    # Each image family is tested as soon as its jupyterhub image is built.
+    test-base:
         runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
-        needs: [jupyterhub-base, jupyterhub-datascience, jupyterhub-deeplearning]
+        needs: [jupyterhub-base]
         steps:
             - name: checkout
               uses: actions/checkout@v7
               with:
                 fetch-depth: 1
                 ref: ${{ inputs.tag || github.ref }}
+            - name: test
+              uses: ./.github/actions/run_tests
+              with:
+                images: base,jupyterhub-base
+                tag: ${{ inputs.tag }}
+
+    test-datascience:
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
+        needs: [jupyterhub-datascience]
+        steps:
+            - name: checkout
+              uses: actions/checkout@v7
+              with:
+                fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
+            - name: test
+              uses: ./.github/actions/run_tests
+              with:
+                images: datascience,jupyterhub-datascience
+                tag: ${{ inputs.tag }}
+
+    test-deeplearning:
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
+        needs: [jupyterhub-deeplearning]
+        steps:
+            - name: checkout
+              uses: actions/checkout@v7
+              with:
+                fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
+            - name: test
+              uses: ./.github/actions/run_tests
+              with:
+                images: deeplearning,jupyterhub-deeplearning
+                tag: ${{ inputs.tag }}
+
+    # The one check that spans families: shared packages match across datascience and deeplearning.
+    test-cross:
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
+        needs: [datascience, deeplearning]
+        steps:
+            - name: checkout
+              uses: actions/checkout@v7
+              with:
+                fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
+            - name: test
+              uses: ./.github/actions/run_tests
+              with:
+                images: datascience,deeplearning
+                tests: tests/test_base.py::TestVersionConsistency
+                tag: ${{ inputs.tag }}
+
+    # On legolas the builds push nothing, so an image reaches Docker Hub only once every test passed. Hosted
+    # jobs share no engine, so there the builds push as before and the tests run after.
+    publish:
+        if: ${{ inputs.push && !inputs.hosted }}
+        runs-on: [self-hosted, legolas, containers]
+        needs: [test-base, test-datascience, test-deeplearning, test-cross, gpu-test]
+        steps:
             - name: login to Docker Hub
               uses: docker/login-action@v4
               with:
                 username: ${{ env.DOCKERHUB_USERNAME }}
                 password: ${{ env.DOCKERHUB_TOKEN }}
-            - name: set up uv
-              uses: astral-sh/setup-uv@v10.3.3
-            - name: determine tag
-              id: tag
+            - name: push the tested images
               env:
-                  TAG: ${{ inputs.tag }}
+                TAG: ${{ inputs.tag }}
               run: |
-                if [ -n "$TAG" ]; then
-                  [[ "$TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || { echo "::error::not a Docker tag: $TAG"; exit 1; }
-                  echo "tag=$TAG" >> $GITHUB_OUTPUT
-                else
-                  echo "tag=latest" >> $GITHUB_OUTPUT
-                fi
-            # On legolas this run's builds are already in the store (the docker driver loads them, and the concurrency
-            # group keeps runs apart), so a push=false run tests what it built. Hosted builders load nothing.
-            - name: pull images
-              env:
-                TAG: ${{ steps.tag.outputs.tag }}
-              run: |
+                [[ -z "$TAG" || "$TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || { echo "::error::not a Docker tag: $TAG"; exit 1; }
                 for image in base datascience deeplearning jupyterhub-base jupyterhub-datascience jupyterhub-deeplearning; do
-                  if docker image inspect "brineylab/$image:$TAG" >/dev/null 2>&1; then
-                    echo "brineylab/$image:$TAG: built by this run"
-                  else
-                    docker pull "brineylab/$image:$TAG"
-                  fi
+                  docker push -q "brineylab/$image:latest"
+                  [ -z "$TAG" ] || docker push -q "brineylab/$image:$TAG"
                 done
-            - name: run tests
-              run: uvx --python 3.12 --with pytest-xdist pytest tests/ -v -n 8 --dist loadscope --tag=${{ steps.tag.outputs.tag }}

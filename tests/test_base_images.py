@@ -60,6 +60,7 @@ class TestNoDomainPackages:
         assert result.returncode != 0, "NGS tools directory should not exist in a base image"
 
 
+@pytest.mark.images("brineylab/base")
 class TestBaseHasNoJupyter:
     """Only the jupyterhub-* variant should carry Jupyter."""
 
@@ -69,6 +70,7 @@ class TestBaseHasNoJupyter:
         assert result.returncode != 0, "jupyter should only be in the jupyterhub images"
 
 
+@pytest.mark.images("brineylab/base", "brineylab/jupyterhub-base")
 class TestRVersionParity:
     """base and jupyterhub-base must agree on R.
 

@@ -1,0 +1,49 @@
+name: Run image tests
+description: Test some of this run's images, pulling any the runner does not already hold
+
+inputs:
+    images:
+        description: Comma-separated image names; only tests that use nothing else run
+        required: true
+    tests:
+        description: pytest paths or node ids
+        required: false
+        default: tests/
+    tag:
+        description: Release tag (empty tests latest)
+        required: false
+        default: ''
+
+runs:
+    using: composite
+    steps:
+        - name: login to Docker Hub
+          uses: docker/login-action@v4
+          with:
+            username: ${{ env.DOCKERHUB_USERNAME }}
+            password: ${{ env.DOCKERHUB_TOKEN }}
+        - name: set up uv
+          uses: astral-sh/setup-uv@v10.3.3
+        # On legolas this run's builds are already in the store (the docker driver loads them, and the
+        # concurrency group keeps runs apart). Hosted builders load nothing, so those jobs pull.
+        - name: pull images
+          shell: bash
+          env:
+            IMAGES: ${{ inputs.images }}
+            TAG: ${{ inputs.tag || 'latest' }}
+          run: |
+            [[ "$TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || { echo "::error::not a Docker tag: $TAG"; exit 1; }
+            for image in ${IMAGES//,/ }; do
+              if docker image inspect "brineylab/$image:$TAG" >/dev/null 2>&1; then
+                echo "brineylab/$image:$TAG: built by this run"
+              else
+                docker pull "brineylab/$image:$TAG"
+              fi
+            done
+        - name: run tests
+          shell: bash
+          env:
+            IMAGES: ${{ inputs.images }}
+            TESTS: ${{ inputs.tests }}
+            TAG: ${{ inputs.tag || 'latest' }}
+          run: uvx --python 3.12 --with pytest-xdist pytest $TESTS -v -n 8 --dist loadscope -m "not gpu" --images "$IMAGES" --tag="$TAG"

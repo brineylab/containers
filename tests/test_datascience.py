@@ -5,6 +5,9 @@ import pytest
 from conftest import docker_run
 
 
+pytestmark = pytest.mark.images("brineylab/datascience")
+
+
 @pytest.fixture
 def image(request):
     tag = request.config.getoption("--tag")

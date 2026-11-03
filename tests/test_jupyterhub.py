@@ -99,6 +99,7 @@ class TestLabExtensions:
         assert extension in result.stdout, \
             f"{extension} not found in labextension list"
 
+    @pytest.mark.images("brineylab/jupyterhub-deeplearning")
     def test_nvdashboard(self, request, cached_run):
         tag = request.config.getoption("--tag")
         result = cached_run(f"brineylab/jupyterhub-deeplearning:{tag}", "jupyter labextension list")
@@ -125,6 +126,7 @@ class TestServerExtensions:
         assert extension in result.stdout, \
             f"{extension} not found in server extension list"
 
+    @pytest.mark.images("brineylab/jupyterhub-deeplearning")
     def test_nvdashboard_server(self, request, cached_run):
         tag = request.config.getoption("--tag")
         result = cached_run(f"brineylab/jupyterhub-deeplearning:{tag}", "jupyter server extension list")

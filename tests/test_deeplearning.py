@@ -7,6 +7,9 @@ import pytest
 from conftest import _run_python, docker_run
 
 
+pytestmark = pytest.mark.images("brineylab/deeplearning")
+
+
 @pytest.fixture
 def image(request):
     tag = request.config.getoption("--tag")

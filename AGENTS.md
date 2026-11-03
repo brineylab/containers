@@ -29,7 +29,13 @@ that updates everyone.
 
 **Images publish on a GitHub release**, not on merge — tagged with both the release tag and
 `latest`. A merged PR changes nothing that anyone is running until a release is cut. Manual runs
-are possible via `workflow_dispatch`, which also exposes `use_cache` and `push` inputs.
+are possible via `workflow_dispatch`, which also exposes `use_cache`, `push` and `hosted` inputs.
+
+**On legolas nothing reaches Docker Hub until every test passed.** Each image family is tested
+once its jupyterhub image is built (`test-base`, `test-datascience`, `test-deeplearning`),
+`test-cross` compares shared package versions, `gpu-test` runs on flint, and `publish` pushes only
+after all of them. `pytest --images a,b` runs just the tests that use those images. With
+`hosted=true` the builds push as they finish, as before, since hosted jobs share no image store.
 
 The build graph is expressed in the workflow's `needs:`, so `base` → `jupyterhub-base`,
 `datascience` → `jupyterhub-datascience`, `deeplearning` → `jupyterhub-deeplearning`. Builds run

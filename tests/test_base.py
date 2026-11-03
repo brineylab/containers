@@ -389,6 +389,7 @@ SHARED_PINNED_PACKAGES = [
 ]
 
 
+@pytest.mark.images("brineylab/datascience", "brineylab/deeplearning")
 class TestVersionConsistency:
     """Verify key packages have the same version across images."""
 
