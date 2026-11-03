@@ -29,18 +29,23 @@ runs:
           with:
             username: ${{ env.DOCKERHUB_USERNAME }}
             password: ${{ env.DOCKERHUB_TOKEN }}
-        - name: set up QEMU
-          uses: docker/setup-qemu-action@v4
         - name: set up docker buildx
           uses: docker/setup-buildx-action@v4
+          with:
+            # Self-hosted: dockerd's own BuildKit, so images land in the runner's store and the layer
+            # cache persists. Its registry cache export needs the containerd store hosted may lack.
+            driver: ${{ runner.environment == 'self-hosted' && 'docker' || 'docker-container' }}
         - name: determine tags
           id: tags
           shell: bash
+          env:
+            IMAGE: ${{ inputs.image_name }}
+            TAG: ${{ inputs.tag_name }}
           run: |
-            TAGS="brineylab/${{ inputs.image_name }}:latest"
-            if [ -n "${{ inputs.tag_name }}" ]; then
+            TAGS="brineylab/${IMAGE}:latest"
+            if [ -n "$TAG" ]; then
               TAGS="${TAGS}
-            brineylab/${{ inputs.image_name }}:${{ inputs.tag_name }}"
+            brineylab/${IMAGE}:${TAG}"
             fi
             echo "tags<<EOF" >> $GITHUB_OUTPUT
             echo "$TAGS" >> $GITHUB_OUTPUT

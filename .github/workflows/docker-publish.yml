@@ -1,10 +1,14 @@
 name: build and push BrineyLab Docker images
 
+# Releases arrive through release.yml, which dispatches this from main: the legolas runner group admits only this
+# workflow on main, and a release's own tag ref cannot be listed before it exists.
 on:
-    release:
-        types: [published]
     workflow_dispatch:
         inputs:
+            tag:
+                description: Release tag to build and publish alongside latest (empty builds main as latest only)
+                type: string
+                default: ''
             use_cache:
                 description: Use Docker layer cache
                 type: boolean
@@ -13,6 +17,10 @@ on:
                 description: Push image to Docker Hub
                 type: boolean
                 default: true
+            hosted:
+                description: Build on GitHub-hosted runners instead of legolas
+                type: boolean
+                default: false
 
 concurrency:
     group: docker-publish
@@ -28,144 +36,155 @@ env:
 jobs:
     # base
     base:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         steps:
             - name: checkout
               uses: actions/checkout@v7
               with:
                 fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
             - name: build and push
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: base
                 dockerfile: ./images/base/Dockerfile
-                tag_name: ${{ github.event.release.tag_name }}
-                use_cache: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cache }}
-                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+                tag_name: ${{ inputs.tag }}
+                use_cache: ${{ inputs.use_cache }}
+                push: ${{ inputs.push }}
 
     # datascience
     datascience:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         steps:
             - name: checkout
               uses: actions/checkout@v7
               with:
                 fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
             - name: build and push
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: datascience
                 dockerfile: ./images/datascience/Dockerfile
-                tag_name: ${{ github.event.release.tag_name }}
-                use_cache: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cache }}
-                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+                tag_name: ${{ inputs.tag }}
+                use_cache: ${{ inputs.use_cache }}
+                push: ${{ inputs.push }}
 
     # deeplearning
     deeplearning:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         steps:
             - name: checkout
               uses: actions/checkout@v7
               with:
                 fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
             - name: build and push
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: deeplearning
                 dockerfile: ./images/deeplearning/Dockerfile
-                tag_name: ${{ github.event.release.tag_name }}
-                use_cache: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cache }}
-                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+                tag_name: ${{ inputs.tag }}
+                use_cache: ${{ inputs.use_cache }}
+                push: ${{ inputs.push }}
 
     # jupyterhub-base depends on base (adds JupyterLab/Hub)
     jupyterhub-base:
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         needs: [base]
         steps:
             - name: checkout
               uses: actions/checkout@v7
               with:
                 fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
             - name: build and push
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: jupyterhub-base
                 dockerfile: ./images/jupyterhub-base/Dockerfile
-                tag_name: ${{ github.event.release.tag_name }}
-                use_cache: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cache }}
-                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+                tag_name: ${{ inputs.tag }}
+                use_cache: ${{ inputs.use_cache }}
+                push: ${{ inputs.push }}
 
     # jupyterhub-datascience depends on datascience (adds JupyterLab/Hub)
     jupyterhub-datascience:
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         needs: [datascience]
         steps:
             - name: checkout
               uses: actions/checkout@v7
               with:
                 fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
             - name: build and push
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: jupyterhub-datascience
                 dockerfile: ./images/jupyterhub-datascience/Dockerfile
-                tag_name: ${{ github.event.release.tag_name }}
-                use_cache: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cache }}
-                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+                tag_name: ${{ inputs.tag }}
+                use_cache: ${{ inputs.use_cache }}
+                push: ${{ inputs.push }}
 
     # jupyterhub-deeplearning depends on deeplearning (adds JupyterLab/Hub)
     jupyterhub-deeplearning:
-        runs-on: ubuntu-latest
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         needs: [deeplearning]
         steps:
             - name: checkout
               uses: actions/checkout@v7
               with:
                 fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
             - name: build and push
               uses: ./.github/actions/docker_build_push
               with:
                 image_name: jupyterhub-deeplearning
                 dockerfile: ./images/jupyterhub-deeplearning/Dockerfile
-                tag_name: ${{ github.event.release.tag_name }}
-                use_cache: ${{ github.event_name == 'workflow_dispatch' && inputs.use_cache }}
-                push: ${{ github.event_name != 'workflow_dispatch' || inputs.push }}
+                tag_name: ${{ inputs.tag }}
+                use_cache: ${{ inputs.use_cache }}
+                push: ${{ inputs.push }}
 
     # test all images after build
     test:
-        runs-on: ubuntu-latest-brineylab-xlarge
+        runs-on: ${{ inputs.hosted && 'ubuntu-latest-brineylab-xlarge' || fromJSON('["self-hosted","legolas","containers"]') }}
         needs: [jupyterhub-base, jupyterhub-datascience, jupyterhub-deeplearning]
         steps:
             - name: checkout
               uses: actions/checkout@v7
               with:
                 fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
             - name: login to Docker Hub
               uses: docker/login-action@v4
               with:
                 username: ${{ env.DOCKERHUB_USERNAME }}
                 password: ${{ env.DOCKERHUB_TOKEN }}
-            - name: set up Python
-              uses: actions/setup-python@v7
-              with:
-                python-version: "3.12"
-            - name: install pytest
-              run: pip install pytest
+            - name: set up uv
+              uses: astral-sh/setup-uv@v10.3.3
             - name: determine tag
               id: tag
+              env:
+                  TAG: ${{ inputs.tag }}
               run: |
-                if [ -n "${{ github.event.release.tag_name }}" ]; then
-                  echo "tag=${{ github.event.release.tag_name }}" >> $GITHUB_OUTPUT
+                if [ -n "$TAG" ]; then
+                  [[ "$TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || { echo "::error::not a Docker tag: $TAG"; exit 1; }
+                  echo "tag=$TAG" >> $GITHUB_OUTPUT
                 else
                   echo "tag=latest" >> $GITHUB_OUTPUT
                 fi
+            # On legolas this run's builds are already in the store (the docker driver loads them, and the concurrency
+            # group keeps runs apart), so a push=false run tests what it built. Hosted builders load nothing.
             - name: pull images
+              env:
+                TAG: ${{ steps.tag.outputs.tag }}
               run: |
-                docker pull brineylab/base:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/datascience:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/deeplearning:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/jupyterhub-base:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/jupyterhub-datascience:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/jupyterhub-deeplearning:${{ steps.tag.outputs.tag }}
+                for image in base datascience deeplearning jupyterhub-base jupyterhub-datascience jupyterhub-deeplearning; do
+                  if docker image inspect "brineylab/$image:$TAG" >/dev/null 2>&1; then
+                    echo "brineylab/$image:$TAG: built by this run"
+                  else
+                    docker pull "brineylab/$image:$TAG"
+                  fi
+                done
             - name: run tests
-              run: pytest tests/ -v --tag=${{ steps.tag.outputs.tag }}
+              run: uvx --python 3.12 pytest tests/ -v --tag=${{ steps.tag.outputs.tag }}
