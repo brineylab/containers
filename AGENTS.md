@@ -52,9 +52,13 @@ actually ran before concluding an image is good.
 ## Conventions
 
 **Add packages in `requirements/`, not in a Dockerfile.** The split is by package manager and
-audience (`apt.txt`, `pip.txt`, `ai-ml_pip.txt`, `r_conda.txt`, `conda.txt`, `r_cran.txt`, `jupyter_pip.txt`),
+audience (`apt.txt`, `pip.txt`, `datascience_pip.txt`, `ai-ml_pip.txt`, `r_conda.txt`, `conda.txt`,
+`r_cran.txt`, `jupyter_pip.txt`),
 and the `jupyterhub-*` images inherit through their parents — so a line added to `apt.txt` reaches
 all six images. That inheritance is the reason to resist adding a package "just for one image".
+
+**pip versions come from `requirements/constraints.txt`.** Regenerate it with
+`requirements/compile-constraints.sh` after editing any `*_pip.txt`; never hand-edit it.
 
 **Pin what you can reason about.** These images are the reproducibility floor for lab analyses;
 an unpinned dependency changes what a rebuilt image does without any commit here.

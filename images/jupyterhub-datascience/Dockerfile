@@ -29,8 +29,9 @@ WORKDIR /tmp
 RUN mamba install --yes 'nodejs>=20.0.0' \
     && mamba clean --all -f -y
 
+COPY ./requirements/constraints.txt /tmp/constraints.txt
 COPY ./requirements/jupyter_pip.txt /tmp/jupyter_pip.txt
-RUN uv pip install --no-cache --system -r /tmp/jupyter_pip.txt \
+RUN uv pip install --no-cache --system -c /tmp/constraints.txt -r /tmp/jupyter_pip.txt \
     && jupyter server --generate-config \
     && jupyter lab clean \
     && npm cache clean --force

@@ -90,8 +90,9 @@ RUN mamba install --yes --file /tmp/conda.txt \
 # ----------------------------
 RUN python3 -m pip install --no-cache-dir uv
 
+COPY ./requirements/constraints.txt /tmp/constraints.txt
 COPY ./requirements/pip.txt /tmp/pip.txt
-RUN uv pip install --no-cache --system --torch-backend=cpu -r /tmp/pip.txt
+RUN uv pip install --no-cache --system --torch-backend=cpu -c /tmp/constraints.txt -r /tmp/pip.txt
 
 
 # ----------------------------
@@ -188,7 +189,8 @@ RUN wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar
     && rm "dorado-0.7.0-linux-x64.tar.gz"
 
 # cutadapt
-RUN uv pip install --no-cache --system "cutadapt"
+COPY ./requirements/datascience_pip.txt /tmp/datascience_pip.txt
+RUN uv pip install --no-cache --system -c /tmp/constraints.txt -r /tmp/datascience_pip.txt
 
 # IgDiscover
 RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
