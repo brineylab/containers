@@ -31,6 +31,13 @@ that updates everyone.
 `latest`. A merged PR changes nothing that anyone is running until a release is cut. Manual runs
 are possible via `workflow_dispatch`, which also exposes `use_cache`, `push` and `hosted` inputs.
 
+**A release builds the tagged commit, which must be on `main`.** `release.yml` dispatches
+`docker-publish.yml` on `main` (the only ref the runner groups admit) with the tag; every job checks
+the tag out. The build is uncached, unless `main` already built and tested that exact commit
+uncached on legolas within 7 days, in which case those layers are reused and the release publishes
+the tested images (`.github/scripts/release-reuse-check.sh`; the run's summary says which). Runs
+queue rather than cancel each other.
+
 **On legolas nothing reaches Docker Hub until every test passed.** Each image family is tested
 once its jupyterhub image is built (`test-base`, `test-datascience`, `test-deeplearning`),
 `test-cross` compares shared package versions, `gpu-test` runs on flint, and `publish` pushes only
