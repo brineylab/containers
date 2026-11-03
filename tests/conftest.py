@@ -12,6 +12,50 @@ import pytest
 
 def pytest_addoption(parser):
     parser.addoption("--tag", default="latest", help="Docker image tag to test (default: latest)")
+    parser.addoption(
+        "--require-gpu",
+        action="store_true",
+        help="Fail the gpu-marked tests, instead of skipping them, when the host has no GPU",
+    )
+    parser.addoption(
+        "--images",
+        default="",
+        help="Comma-separated images (e.g. datascience,jupyterhub-datascience): run only the tests "
+        "that use nothing else",
+    )
+
+
+def _images_of(item) -> set[str]:
+    """Images an item uses: its image-fixture parameters plus any images marker."""
+    used = set()
+    for value in getattr(getattr(item, "callspec", None), "params", {}).values():
+        if isinstance(value, str) and value.startswith("brineylab/"):
+            used.add(value)
+    for marker in item.iter_markers("images"):
+        used.update(marker.args)
+    return used
+
+
+def pytest_collection_modifyitems(config, items):
+    selected = {f"brineylab/{name.strip()}" for name in config.getoption("--images").split(",") if name.strip()}
+    if not selected:
+        return
+    keep, drop, unknown = [], [], []
+    for item in items:
+        used = _images_of(item)
+        if not used:
+            unknown.append(item.nodeid)
+        elif used <= selected:
+            keep.append(item)
+        else:
+            drop.append(item)
+    if unknown:
+        raise pytest.UsageError(
+            "--images cannot place these tests; give them an image fixture or @pytest.mark.images:\n  "
+            + "\n  ".join(unknown)
+        )
+    config.hook.pytest_deselected(items=drop)
+    items[:] = keep
 
 
 def docker_run(image: str, command: str, timeout: int = 60, gpus: bool = False) -> subprocess.CompletedProcess:
@@ -21,18 +65,19 @@ def docker_run(image: str, command: str, timeout: int = 60, gpus: bool = False) 
     """
     cmd = ["docker", "run", "--rm"]
     if gpus:
-        cmd += ["--gpus", "all"]
+        # CDI, not --gpus: it needs no NVIDIA runtime hook, so rootless engines work too.
+        cmd += ["--device", "nvidia.com/gpu=all"]
     cmd += [image, "bash", "-c", command]
     return subprocess.run(cmd, capture_output=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=timeout)
 
 
-def _run_python(image: str, script: str, timeout: int = 600) -> subprocess.CompletedProcess:
+def _run_python(image: str, script: str, timeout: int = 600, gpus: bool = False) -> subprocess.CompletedProcess:
     """Run a multi-line Python script in a container.
 
     Base64 so the script survives the bash -c layer regardless of quoting.
     """
     encoded = base64.b64encode(script.encode()).decode()
-    return docker_run(image, f"echo {encoded} | base64 -d | python3", timeout=timeout)
+    return docker_run(image, f"echo {encoded} | base64 -d | python3", timeout=timeout, gpus=gpus)
 
 
 @pytest.fixture(scope="session")

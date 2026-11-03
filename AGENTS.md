@@ -29,7 +29,13 @@ that updates everyone.
 
 **Images publish on a GitHub release**, not on merge — tagged with both the release tag and
 `latest`. A merged PR changes nothing that anyone is running until a release is cut. Manual runs
-are possible via `workflow_dispatch`, which also exposes `use_cache` and `push` inputs.
+are possible via `workflow_dispatch`, which also exposes `use_cache`, `push` and `hosted` inputs.
+
+**On legolas nothing reaches Docker Hub until every test passed.** Each image family is tested
+once its jupyterhub image is built (`test-base`, `test-datascience`, `test-deeplearning`),
+`test-cross` compares shared package versions, `gpu-test` runs on flint, and `publish` pushes only
+after all of them. `pytest --images a,b` runs just the tests that use those images. With
+`hosted=true` the builds push as they finish, as before, since hosted jobs share no image store.
 
 The build graph is expressed in the workflow's `needs:`, so `base` → `jupyterhub-base`,
 `datascience` → `jupyterhub-datascience`, `deeplearning` → `jupyterhub-deeplearning`. Builds run
@@ -46,8 +52,8 @@ actually ran before concluding an image is good.
 ## Conventions
 
 **Add packages in `requirements/`, not in a Dockerfile.** The split is by package manager and
-audience (`apt.txt`, `pip.txt`, `datascience_pip.txt`, `ai-ml_pip.txt`, `r_conda.txt`, `r_cran.txt`,
-`jupyter_pip.txt`),
+audience (`apt.txt`, `pip.txt`, `datascience_pip.txt`, `ai-ml_pip.txt`, `r_conda.txt`, `conda.txt`,
+`r_cran.txt`, `jupyter_pip.txt`),
 and the `jupyterhub-*` images inherit through their parents — so a line added to `apt.txt` reaches
 all six images. That inheritance is the reason to resist adding a package "just for one image".
 

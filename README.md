@@ -59,6 +59,7 @@ for every image and every package manager:
 | `pip.txt` | scientific and biology Python packages | datascience, deeplearning |
 | `ai-ml_pip.txt` | AI/ML packages | deeplearning |
 | `r_conda.txt` / `r_cran.txt` | R packages | datascience, deeplearning |
+| `conda.txt` | non-R conda packages (Rust, mmseqs2) | datascience, deeplearning |
 | `jupyter_pip.txt` | Jupyter packages | all three `jupyterhub-*` images |
 | `datascience_pip.txt` | Python packages for datascience only | datascience |
 | `constraints.txt` | exact versions for every pip package above (generated) | every `uv pip install` |

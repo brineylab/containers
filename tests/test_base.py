@@ -304,7 +304,7 @@ rng = np.random.default_rng(0)
 df = pd.DataFrame({"i": range(500), "f": rng.random(500), "s": [f"x{i}" for i in range(500)]})
 df.to_parquet("/tmp/t.parquet", index=False)
 assert pl.read_parquet("/tmp/t.parquet").height == 500
-n, mean = duckdb.sql("select count(*), avg(f) from '/tmp/t.parquet'").fetchone()
+[(n, mean)] = duckdb.sql("select count(*), avg(f) from '/tmp/t.parquet'").fetchall()
 assert n == 500, n
 assert abs(mean - df["f"].mean()) < 1e-9, (mean, df["f"].mean())
 print("PARQUET_OK")
@@ -335,6 +335,28 @@ class TestUtilities:
         results = import_probe(stack_image, UTILITY_MODULES)
         ok, detail = results.get(module, (False, "not reported by probe"))
         assert ok, f"Failed to import {module}: {detail}"
+
+
+class TestCompiledTools:
+    def test_cargo_builds_and_runs_a_crate(self, stack_image):
+        result = docker_run(
+            stack_image,
+            "cd /tmp && cargo new --quiet hello && cd hello && cargo run --quiet --offline",
+            timeout=300,
+        )
+        assert "Hello, world!" in result.stdout, f"cargo build failed:\n{result.stdout}"
+
+    def test_mmseqs_finds_a_real_antibody(self, stack_image):
+        """Search trastuzumab VH against itself: the top hit must be itself at 100% identity."""
+        seq = TestBiology.TRASTUZUMAB_VH
+        result = docker_run(
+            stack_image,
+            f"cd /tmp && printf '>trastuzumab_vh\\n{seq}\\n' > q.fasta"
+            " && mmseqs easy-search q.fasta q.fasta hits.m8 tmp -v 1 && head -1 hits.m8",
+            timeout=300,
+        )
+        fields = result.stdout.strip().splitlines()[-1].split("\t") if result.stdout.strip() else []
+        assert fields[:3] == ["trastuzumab_vh", "trastuzumab_vh", "1.000"], f"mmseqs search failed:\n{result.stdout}"
 
 
 # ----------------------------
@@ -389,6 +411,7 @@ SHARED_PINNED_PACKAGES = [
 ]
 
 
+@pytest.mark.images("brineylab/datascience", "brineylab/deeplearning")
 class TestVersionConsistency:
     """Verify key packages have the same version across images."""
 

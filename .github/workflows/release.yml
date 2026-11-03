@@ -1,0 +1,25 @@
+name: publish a release
+
+# Starts docker-publish.yml from main for the published tag: the legolas runner group admits that workflow only on main,
+# and a release's own tag ref cannot be listed there before it exists. Release builds ignore the layer cache, as before.
+on:
+    release:
+        types: [published]
+
+permissions:
+    actions: write
+    contents: read
+
+jobs:
+    dispatch:
+        runs-on: ubuntu-latest
+        steps:
+            - name: start docker-publish on main
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  [[ "$TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || { echo "::error::not a Docker tag: $TAG"; exit 1; }
+                  gh workflow run docker-publish.yml --repo "$GITHUB_REPOSITORY" --ref main \
+                      -f tag="$TAG" -f use_cache=false -f push=true -f hosted=false
+                  echo "started docker-publish.yml on main for $TAG"
