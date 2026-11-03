@@ -1,7 +1,7 @@
 name: publish a release
 
-# Starts docker-publish.yml from main for the published tag: the legolas runner group admits that workflow only on main,
-# and a release's own tag ref cannot be listed there before it exists. Release builds ignore the layer cache, as before.
+# Dispatches docker-publish.yml on main (the only ref the runner groups admit) for a tag that must be on main.
+# Builds uncached, unless main built and tested this exact commit uncached in the last 7 days.
 on:
     release:
         types: [published]
@@ -14,12 +14,31 @@ jobs:
     dispatch:
         runs-on: ubuntu-latest
         steps:
+            - name: checkout
+              uses: actions/checkout@v7
+              with:
+                fetch-depth: 1
+                ref: main
             - name: start docker-publish on main
               env:
                   GH_TOKEN: ${{ github.token }}
                   TAG: ${{ github.event.release.tag_name }}
               run: |
                   [[ "$TAG" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || { echo "::error::not a Docker tag: $TAG"; exit 1; }
+                  sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq .sha)
+                  status=$(gh api "repos/$GITHUB_REPOSITORY/compare/main...$sha" --jq .status)
+                  if [[ "$status" != identical && "$status" != behind ]]; then
+                      echo "::error::$TAG is at ${sha:0:7}, which is not on main ($status). Release from main."
+                      exit 1
+                  fi
+                  run=$(.github/scripts/release-reuse-check.sh "$GITHUB_REPOSITORY" "$sha")
+                  if [[ -n "$run" ]]; then
+                      cache=true
+                      why="reusing run $run, which built and tested ${sha:0:7} uncached"
+                  else
+                      cache=false
+                      why="no uncached build of ${sha:0:7} on main in the last 7 days, so building uncached"
+                  fi
                   gh workflow run docker-publish.yml --repo "$GITHUB_REPOSITORY" --ref main \
-                      -f tag="$TAG" -f use_cache=false -f push=true -f hosted=false
-                  echo "started docker-publish.yml on main for $TAG"
+                      -f tag="$TAG" -f use_cache="$cache" -f push=true -f hosted=false
+                  echo "$TAG: $why" | tee -a "$GITHUB_STEP_SUMMARY"

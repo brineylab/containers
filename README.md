@@ -1,9 +1,11 @@
 # containers
 
 Docker images maintained by the Briney Lab, published to Docker Hub under
-[`brineylab`](https://hub.docker.com/u/brineylab). Images are built and pushed by
-[`docker-publish.yml`](.github/workflows/docker-publish.yml) on each GitHub release,
-tagged with both the release tag and `latest`.
+[`brineylab`](https://hub.docker.com/u/brineylab). Publishing a GitHub release builds the
+tagged commit with [`docker-publish.yml`](.github/workflows/docker-publish.yml), tests every
+image (deeplearning on a GPU too), and pushes them tagged with both the release tag and `latest`
+once every test has passed. Builds run on the lab's self-hosted runners; [`AGENTS.md`](./AGENTS.md)
+covers those, the hosted fallback, and when a release reuses an earlier build.
 
 > Working in this repo, human or agent? See [`AGENTS.md`](./AGENTS.md) for who consumes these
 > images, how builds are triggered, and the conventions.
@@ -13,8 +15,8 @@ tagged with both the release tag and `latest`.
 | Image | Built on | Contents |
 |---|---|---|
 | `brineylab/base` | NVIDIA CUDA DL Base | OS tooling, the Python and R interpreters, conda/mamba, uv, s5cmd. No scientific, AI/ML, or R libraries. |
-| `brineylab/datascience` | `ubuntu:24.04` | Scientific Python, R, and the NGS toolchain (CellRanger, dorado, IgDiscover, ...). |
-| `brineylab/deeplearning` | NVIDIA CUDA DL Base | Everything in datascience minus NGS tools, plus PyTorch, JAX, HuggingFace, DeepSpeed, and flash-attn. |
+| `brineylab/datascience` | `ubuntu:24.04` | Scientific Python, R, Rust, mmseqs2, and the NGS toolchain (CellRanger, dorado, IgDiscover, ...). |
+| `brineylab/deeplearning` | NVIDIA CUDA DL Base | Everything in datascience minus the NGS tools, plus PyTorch, JAX, HuggingFace, DeepSpeed, OpenMM, and flash-attn. |
 | `brineylab/jupyterhub-base` | `brineylab/base` | Adds JupyterLab, Notebook, JupyterHub, and the R kernel. |
 | `brineylab/jupyterhub-datascience` | `brineylab/datascience` | Adds JupyterLab, Notebook, and JupyterHub. |
 | `brineylab/jupyterhub-deeplearning` | `brineylab/deeplearning` | Adds JupyterLab, Notebook, JupyterHub, and the GPU dashboard. |
@@ -48,6 +50,8 @@ name in the workflow.
 requirements/   package lists — the thing you edit to add a package
 runtime/        config and scripts baked into the images
 images/<name>/  one Dockerfile per published image
+tests/          pytest suite run against the built images
+.github/        the build, release and constraints-bump workflows, and their actions and scripts
 ```
 
 **To add a package, go to [`requirements/`](requirements).** It is always there,
@@ -58,10 +62,10 @@ for every image and every package manager:
 | `apt.txt` | OS packages | base, datascience, deeplearning |
 | `pip.txt` | scientific and biology Python packages | datascience, deeplearning |
 | `ai-ml_pip.txt` | AI/ML packages | deeplearning |
+| `datascience_pip.txt` | Python packages for datascience only | datascience |
 | `r_conda.txt` / `r_cran.txt` | R packages | datascience, deeplearning |
 | `conda.txt` | non-R conda packages (Rust, mmseqs2) | datascience, deeplearning |
 | `jupyter_pip.txt` | Jupyter packages | all three `jupyterhub-*` images |
-| `datascience_pip.txt` | Python packages for datascience only | datascience |
 | `constraints.txt` | exact versions for every pip package above (generated) | every `uv pip install` |
 
 The `jupyterhub-*` images inherit everything above through their parent image, so
@@ -72,6 +76,10 @@ a package added to `apt.txt` reaches all six.
 pip packages against that one file, so a shared package has the same version in every image, and
 a cached layer stays valid exactly as long as its pins. `bump-pip-constraints.yml` reruns the
 script with `--upgrade` every Monday and opens (or refreshes) a PR from `deps/pip-constraints`.
+
+**After a package change, add a test that uses it**, not just imports it (`tests/`; see
+`TestCompiledTools` in `test_base.py`). Run the suite against a local build with
+`uvx --with pytest-xdist pytest tests/ -n 8 --dist loadscope --tag=<tag>`.
 
 [`runtime/`](runtime) holds files copied into the images rather than installed:
 `initial-condarc` (conda channels), the `start-notebook.py` and
