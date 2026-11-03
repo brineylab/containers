@@ -304,7 +304,7 @@ rng = np.random.default_rng(0)
 df = pd.DataFrame({"i": range(500), "f": rng.random(500), "s": [f"x{i}" for i in range(500)]})
 df.to_parquet("/tmp/t.parquet", index=False)
 assert pl.read_parquet("/tmp/t.parquet").height == 500
-n, mean = duckdb.sql("select count(*), avg(f) from '/tmp/t.parquet'").fetchone()
+[(n, mean)] = duckdb.sql("select count(*), avg(f) from '/tmp/t.parquet'").fetchall()
 assert n == 500, n
 assert abs(mean - df["f"].mean()) < 1e-9, (mean, df["f"].mean())
 print("PARQUET_OK")
