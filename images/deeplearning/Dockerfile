@@ -89,6 +89,10 @@ COPY ./requirements/r_conda.txt /tmp/r_conda.txt
 RUN mamba install --yes --file /tmp/r_conda.txt \
     && mamba clean --all -f -y
 
+COPY ./requirements/conda.txt /tmp/conda.txt
+RUN mamba install --yes --file /tmp/conda.txt \
+    && mamba clean --all -f -y
+
 
 # ----------------------------
 #      Pip Packages
