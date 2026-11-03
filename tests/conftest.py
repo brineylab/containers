@@ -12,6 +12,11 @@ import pytest
 
 def pytest_addoption(parser):
     parser.addoption("--tag", default="latest", help="Docker image tag to test (default: latest)")
+    parser.addoption(
+        "--require-gpu",
+        action="store_true",
+        help="Fail the gpu-marked tests, instead of skipping them, when the host has no GPU",
+    )
 
 
 def docker_run(image: str, command: str, timeout: int = 60, gpus: bool = False) -> subprocess.CompletedProcess:
@@ -21,18 +26,19 @@ def docker_run(image: str, command: str, timeout: int = 60, gpus: bool = False) 
     """
     cmd = ["docker", "run", "--rm"]
     if gpus:
-        cmd += ["--gpus", "all"]
+        # CDI, not --gpus: it needs no NVIDIA runtime hook, so rootless engines work too.
+        cmd += ["--device", "nvidia.com/gpu=all"]
     cmd += [image, "bash", "-c", command]
     return subprocess.run(cmd, capture_output=False, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, timeout=timeout)
 
 
-def _run_python(image: str, script: str, timeout: int = 600) -> subprocess.CompletedProcess:
+def _run_python(image: str, script: str, timeout: int = 600, gpus: bool = False) -> subprocess.CompletedProcess:
     """Run a multi-line Python script in a container.
 
     Base64 so the script survives the bash -c layer regardless of quoting.
     """
     encoded = base64.b64encode(script.encode()).decode()
-    return docker_run(image, f"echo {encoded} | base64 -d | python3", timeout=timeout)
+    return docker_run(image, f"echo {encoded} | base64 -d | python3", timeout=timeout, gpus=gpus)
 
 
 @pytest.fixture(scope="session")

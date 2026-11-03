@@ -32,6 +32,8 @@ permissions:
 env:
     DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
     DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+    # legolas's CI registry (ansible roles/actions_runner): how deeplearning's build reaches flint's GPU.
+    CI_REGISTRY: 172.29.180.191:5001
 
 jobs:
     # base
@@ -87,6 +89,13 @@ jobs:
                 tag_name: ${{ inputs.tag }}
                 use_cache: ${{ inputs.use_cache }}
                 push: ${{ inputs.push }}
+            - name: hand the image to the GPU tests
+              if: runner.environment == 'self-hosted'
+              env:
+                TAG: ${{ inputs.tag || 'latest' }}
+              run: |
+                docker tag "brineylab/deeplearning:$TAG" "$CI_REGISTRY/deeplearning:ci"
+                docker push -q "$CI_REGISTRY/deeplearning:ci"
 
     # jupyterhub-base depends on base (adds JupyterLab/Hub)
     jupyterhub-base:
@@ -144,6 +153,30 @@ jobs:
                 tag_name: ${{ inputs.tag }}
                 use_cache: ${{ inputs.use_cache }}
                 push: ${{ inputs.push }}
+
+    # GPU tests on flint, against the image deeplearning just built
+    gpu-test:
+        if: ${{ !inputs.hosted }}
+        runs-on: [self-hosted, flint, gpu]
+        needs: [deeplearning]
+        steps:
+            - name: checkout
+              uses: actions/checkout@v7
+              with:
+                fetch-depth: 1
+                ref: ${{ inputs.tag || github.ref }}
+            - name: set up uv
+              uses: astral-sh/setup-uv@v10.3.3
+            - name: pull the image deeplearning built
+              env:
+                TAG: ${{ inputs.tag || 'latest' }}
+              run: |
+                docker pull -q "$CI_REGISTRY/deeplearning:ci"
+                docker tag "$CI_REGISTRY/deeplearning:ci" "brineylab/deeplearning:$TAG"
+            - name: run GPU tests
+              env:
+                TAG: ${{ inputs.tag || 'latest' }}
+              run: uvx --python 3.12 pytest tests/test_deeplearning.py -m gpu --require-gpu -v --tag="$TAG"
 
     # test all images after build
     test:
