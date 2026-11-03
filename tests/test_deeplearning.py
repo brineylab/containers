@@ -125,21 +125,75 @@ class TestNVIDIA:
 #      GPU tests
 # ----------------------------
 
+@pytest.fixture
+def gpu(request):
+    """Skip without a GPU, or fail under --require-gpu so a GPU job cannot pass by skipping."""
+    if not _gpu_available():
+        if request.config.getoption("--require-gpu"):
+            pytest.fail("--require-gpu is set but nvidia-smi finds no GPU on this host")
+        pytest.skip("No GPU available")
+
+
+FLASH_ATTN_SCRIPT = """
+import torch
+import torch.nn.functional as F
+from flash_attn import flash_attn_func
+torch.manual_seed(0)
+q, k, v = (torch.randn(2, 256, 8, 64, device="cuda", dtype=torch.bfloat16) for _ in range(3))
+out = flash_attn_func(q, k, v, causal=True)
+ref = F.scaled_dot_product_attention(
+    q.transpose(1, 2), k.transpose(1, 2), v.transpose(1, 2), is_causal=True
+).transpose(1, 2)
+assert out.shape == (2, 256, 8, 64), out.shape
+err = (out.float() - ref.float()).abs().max().item()
+assert err < 2e-2, err
+print("FLASH_OK", torch.cuda.get_device_capability(), err)
+"""
+
+JAX_MATMUL_SCRIPT = """
+import jax
+import jax.numpy as jnp
+import numpy as np
+gpu = [d for d in jax.devices() if d.platform == "gpu"][0]
+a = jax.device_put(jnp.arange(256 * 256, dtype=jnp.float32).reshape(256, 256) / 65536, gpu)
+b = (a @ a.T).block_until_ready()
+assert b.devices() == {gpu}, b.devices()
+na = np.asarray(a)
+assert np.allclose(np.asarray(b), na @ na.T, rtol=1e-3), "matmul mismatch"
+print("JAX_OK", gpu.device_kind)
+"""
+
+OPENMM_CUDA_SCRIPT = """
+import openmm as mm
+from openmm import unit
+system = mm.System()
+for _ in range(2):
+    system.addParticle(39.9 * unit.amu)
+force = mm.NonbondedForce()
+for _ in range(2):
+    force.addParticle(0.0, 0.34 * unit.nanometer, 0.996 * unit.kilojoule_per_mole)
+system.addForce(force)
+platform = mm.Platform.getPlatformByName("CUDA")
+context = mm.Context(system, mm.VerletIntegrator(1.0 * unit.femtosecond), platform)
+context.setPositions([mm.Vec3(0, 0, 0), mm.Vec3(0.4, 0, 0)] * unit.nanometer)
+energy = context.getState(getEnergy=True).getPotentialEnergy().value_in_unit(unit.kilojoule_per_mole)
+assert context.getPlatform().getName() == "CUDA"
+assert -1.0 < energy < 0.0, energy
+print("OPENMM_OK", energy)
+"""
+
+
+@pytest.mark.gpu
+@pytest.mark.usefixtures("gpu")
 class TestGPU:
-    @pytest.mark.gpu
-    @pytest.mark.skipif(not _gpu_available(), reason="No GPU available")
     def test_torch_cuda(self, image):
         result = docker_run(image, "python3 -c 'import torch; assert torch.cuda.is_available()'", gpus=True)
         assert result.returncode == 0, f"torch CUDA not available: {result.stdout}"
 
-    @pytest.mark.gpu
-    @pytest.mark.skipif(not _gpu_available(), reason="No GPU available")
     def test_torch_gpu_name(self, image):
         result = docker_run(image, "python3 -c 'import torch; print(torch.cuda.get_device_name(0))'", gpus=True)
         assert result.returncode == 0
 
-    @pytest.mark.gpu
-    @pytest.mark.skipif(not _gpu_available(), reason="No GPU available")
     def test_jax_gpu(self, image):
         result = docker_run(
             image,
@@ -148,8 +202,6 @@ class TestGPU:
         )
         assert result.returncode == 0, f"JAX GPU not available: {result.stdout}"
 
-    @pytest.mark.gpu
-    @pytest.mark.skipif(not _gpu_available(), reason="No GPU available")
     def test_torch_tensor_on_gpu(self, image):
         result = docker_run(
             image,
@@ -158,6 +210,18 @@ class TestGPU:
         )
         assert result.returncode == 0
         assert "cuda" in result.stdout
+
+    def test_flash_attn_bf16_forward(self, image):
+        result = _run_python(image, FLASH_ATTN_SCRIPT, gpus=True)
+        assert "FLASH_OK" in result.stdout, f"flash-attn forward failed:\n{result.stdout}"
+
+    def test_jax_matmul_on_gpu(self, image):
+        result = _run_python(image, JAX_MATMUL_SCRIPT, gpus=True)
+        assert "JAX_OK" in result.stdout, f"JAX GPU matmul failed:\n{result.stdout}"
+
+    def test_openmm_cuda_platform(self, image):
+        result = _run_python(image, OPENMM_CUDA_SCRIPT, gpus=True)
+        assert "OPENMM_OK" in result.stdout, f"OpenMM CUDA failed:\n{result.stdout}"
 
 
 # ----------------------------
