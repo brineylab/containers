@@ -17,6 +17,45 @@ def pytest_addoption(parser):
         action="store_true",
         help="Fail the gpu-marked tests, instead of skipping them, when the host has no GPU",
     )
+    parser.addoption(
+        "--images",
+        default="",
+        help="Comma-separated images (e.g. datascience,jupyterhub-datascience): run only the tests "
+        "that use nothing else",
+    )
+
+
+def _images_of(item) -> set[str]:
+    """Images an item uses: its image-fixture parameters plus any images marker."""
+    used = set()
+    for value in getattr(getattr(item, "callspec", None), "params", {}).values():
+        if isinstance(value, str) and value.startswith("brineylab/"):
+            used.add(value)
+    for marker in item.iter_markers("images"):
+        used.update(marker.args)
+    return used
+
+
+def pytest_collection_modifyitems(config, items):
+    selected = {f"brineylab/{name.strip()}" for name in config.getoption("--images").split(",") if name.strip()}
+    if not selected:
+        return
+    keep, drop, unknown = [], [], []
+    for item in items:
+        used = _images_of(item)
+        if not used:
+            unknown.append(item.nodeid)
+        elif used <= selected:
+            keep.append(item)
+        else:
+            drop.append(item)
+    if unknown:
+        raise pytest.UsageError(
+            "--images cannot place these tests; give them an image fixture or @pytest.mark.images:\n  "
+            + "\n  ".join(unknown)
+        )
+    config.hook.pytest_deselected(items=drop)
+    items[:] = keep
 
 
 def docker_run(image: str, command: str, timeout: int = 60, gpus: bool = False) -> subprocess.CompletedProcess:
