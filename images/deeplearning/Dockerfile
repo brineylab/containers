@@ -107,15 +107,17 @@ RUN uv pip install --no-cache --system -r /tmp/ai-ml_pip.txt
 
 
 # Flash attention
-# Built from source against the torch installed above.
-RUN MAX_JOBS=2 uv pip install --no-cache --system --no-build-isolation flash-attn
+# Built from source against the torch installed above. Each job needs ~15 GiB, so 2 fits a
+# 64 GB hosted runner; the workflow passes 8 on legolas.
+ARG FLASH_ATTN_MAX_JOBS=2
+RUN MAX_JOBS=${FLASH_ATTN_MAX_JOBS} uv pip install --no-cache --system --no-build-isolation flash-attn
 
 
 # ----------------------------
 #    R CRAN / Bioconductor
 # ----------------------------
 # Bioconductor packages (BiocManager installed by conda above)
-RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE)"
+RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE, Ncpus = parallel::detectCores())"
 
 # CRAN packages
 COPY ./requirements/r_cran.txt /tmp/r_cran.txt

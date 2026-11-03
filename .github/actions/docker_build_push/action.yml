@@ -20,6 +20,10 @@ inputs:
         description: Push image to Docker Hub
         required: false
         default: 'true'
+    build_args:
+        description: Newline-separated build arguments
+        required: false
+        default: ''
 
 runs:
     using: composite
@@ -59,5 +63,6 @@ runs:
             cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,compression=zstd,mode=max,ignore-error=true
             cache-from: type=registry,ref=brineylab/${{ github.job }}:cache,compression=zstd
             provenance: false
+            build-args: ${{ inputs.build_args }}
             push: ${{ inputs.push == 'true' }}
             tags: ${{ steps.tags.outputs.tags }}

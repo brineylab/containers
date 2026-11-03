@@ -94,7 +94,7 @@ RUN uv pip install --no-cache --system --torch-backend=cpu -r /tmp/pip.txt
 #    R CRAN / Bioconductor
 # ----------------------------
 # Bioconductor packages (BiocManager installed by conda above)
-RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE)"
+RUN Rscript -e "BiocManager::install(c('biomaRt', 'DESeq2'), ask = FALSE, update = FALSE, Ncpus = parallel::detectCores())"
 
 # CRAN packages
 COPY ./requirements/r_cran.txt /tmp/r_cran.txt
