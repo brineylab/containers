@@ -51,6 +51,12 @@ uncached on legolas within 7 days, in which case those layers are reused and the
 the tested images (`.github/scripts/release-reuse-check.sh`; the run's summary says which). Runs
 queue rather than cancel each other.
 
+GitHub runs the `release.yml` that is in the tagged commit, not `main`'s, so a change to it only
+applies to releases of later commits. To publish without a second full build: dispatch
+`docker-publish.yml` on `main` with `use_cache=false` and `push=false`, wait for it to pass, then
+release that same commit within 7 days. If a release still starts the wrong build, cancel it (on
+legolas only `publish` pushes) and dispatch `docker-publish.yml` on `main` with the tag yourself.
+
 **On legolas nothing reaches Docker Hub until every test passed.** Each image family is tested
 once its jupyterhub image is built (`test-base`, `test-datascience`, `test-deeplearning`),
 `test-cross` compares shared package versions, `gpu-test` runs on flint, and `publish` pushes only
