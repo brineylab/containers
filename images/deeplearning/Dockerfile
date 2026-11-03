@@ -95,20 +95,21 @@ RUN mamba install --yes --file /tmp/r_conda.txt \
 # ----------------------------
 RUN python3 -m pip install --no-cache-dir uv
 
+COPY ./requirements/constraints.txt /tmp/constraints.txt
 COPY ./requirements/pip.txt /tmp/pip.txt
-RUN uv pip install --no-cache --system -r /tmp/pip.txt
+RUN uv pip install --no-cache --system -c /tmp/constraints.txt -r /tmp/pip.txt
 
 
 # ----------------------------
 #      AI/ML Packages
 # ----------------------------
 COPY ./requirements/ai-ml_pip.txt /tmp/ai-ml_pip.txt
-RUN uv pip install --no-cache --system -r /tmp/ai-ml_pip.txt
+RUN uv pip install --no-cache --system -c /tmp/constraints.txt -r /tmp/ai-ml_pip.txt
 
 
 # Flash attention
 # Built from source against the torch installed above.
-RUN MAX_JOBS=2 uv pip install --no-cache --system --no-build-isolation flash-attn
+RUN MAX_JOBS=2 uv pip install --no-cache --system --no-build-isolation -c /tmp/constraints.txt flash-attn
 
 
 # ----------------------------

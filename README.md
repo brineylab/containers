@@ -60,9 +60,17 @@ for every image and every package manager:
 | `ai-ml_pip.txt` | AI/ML packages | deeplearning |
 | `r_conda.txt` / `r_cran.txt` | R packages | datascience, deeplearning |
 | `jupyter_pip.txt` | Jupyter packages | all three `jupyterhub-*` images |
+| `datascience_pip.txt` | Python packages for datascience only | datascience |
+| `constraints.txt` | exact versions for every pip package above (generated) | every `uv pip install` |
 
 The `jupyterhub-*` images inherit everything above through their parent image, so
 a package added to `apt.txt` reaches all six.
+
+**After editing a `*_pip.txt` file, run `requirements/compile-constraints.sh`** and commit
+`constraints.txt` with it; a package missing from it installs unpinned. Every image installs
+pip packages against that one file, so a shared package has the same version in every image, and
+a cached layer stays valid exactly as long as its pins. `bump-pip-constraints.yml` reruns the
+script with `--upgrade` every Monday and opens (or refreshes) a PR from `deps/pip-constraints`.
 
 [`runtime/`](runtime) holds files copied into the images rather than installed:
 `initial-condarc` (conda channels), the `start-notebook.py` and
