@@ -173,13 +173,18 @@ jobs:
                 else
                   echo "tag=latest" >> $GITHUB_OUTPUT
                 fi
+            # On legolas this run's builds are already in the store (the docker driver loads them, and the concurrency
+            # group keeps runs apart), so a push=false run tests what it built. Hosted builders load nothing.
             - name: pull images
+              env:
+                TAG: ${{ steps.tag.outputs.tag }}
               run: |
-                docker pull brineylab/base:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/datascience:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/deeplearning:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/jupyterhub-base:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/jupyterhub-datascience:${{ steps.tag.outputs.tag }}
-                docker pull brineylab/jupyterhub-deeplearning:${{ steps.tag.outputs.tag }}
+                for image in base datascience deeplearning jupyterhub-base jupyterhub-datascience jupyterhub-deeplearning; do
+                  if docker image inspect "brineylab/$image:$TAG" >/dev/null 2>&1; then
+                    echo "brineylab/$image:$TAG: built by this run"
+                  else
+                    docker pull "brineylab/$image:$TAG"
+                  fi
+                done
             - name: run tests
               run: uvx --python 3.12 pytest tests/ -v --tag=${{ steps.tag.outputs.tag }}
