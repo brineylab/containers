@@ -1,0 +1,6 @@
+# --- Non-R conda packages ---
+# datascience and deeplearning images
+# Rust toolchain (rustc, cargo): Ubuntu 24.04's apt rustc is 1.75
+rust
+# CPU build: bioconda's has no CUDA, so no `mmseqs gpu*` modes
+mmseqs2
