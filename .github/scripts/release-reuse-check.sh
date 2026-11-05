@@ -1,9 +1,11 @@
 #!/usr/bin/env bash
 # Prints the id of a <workflow> run on main that built and tested <sha> uncached on a <runner-prefix>*
 # runner within the last 7 days (the runners' build-cache lifetime), or nothing. <job> is the build job
-# whose logged inputs are checked. Usage: release-reuse-check.sh <repo> <sha> <workflow> <job> <runner-prefix>
+# whose logged inputs are checked. Usage: release-reuse-check.sh <repo> <sha> [<workflow> <job> <runner-prefix>]
+# The last three default to x86 on legolas: release.yml runs from the tagged commit but checks out main, so
+# releases of commits before #81 call this with two arguments.
 set -euo pipefail
-repo=$1 sha=$2 workflow=$3 build_job=$4 runner_prefix=$5
+repo=$1 sha=$2 workflow=${3:-docker-publish.yml} build_job=${4:-deeplearning} runner_prefix=${5:-legolas-}
 since=$(date -u -d '7 days ago' +%Y-%m-%dT%H:%M:%SZ)
 runs=$(gh api "repos/$repo/actions/workflows/$workflow/runs?branch=main&event=workflow_dispatch&status=success&head_sha=$sha&created=%3E%3D$since&per_page=20" --jq '.workflow_runs[].id')
 for run in $runs; do
