@@ -1,4 +1,6 @@
 # --- OS dependencies ---
+autoconf
+automake
 bash
 btop
 build-essential
@@ -19,6 +21,8 @@ hmmer
 htop
 less
 libaio-dev
+libltdl-dev
+libtool
 locales
 nano
 netbase
@@ -26,6 +30,7 @@ nfs-common
 openssh-client
 pandoc
 pigz
+pkg-config
 run-one
 screen
 sudo

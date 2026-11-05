@@ -100,12 +100,12 @@ RUN python3 -m pip install --no-cache-dir uv
 #    s5cmd (CoreWeave fork)
 # ----------------------------
 ARG S5CMD_VERSION=2.3.0-acb67716
-RUN wget -q "https://github.com/coreweave/s5cmd/releases/download/v${S5CMD_VERSION}/s5cmd_${S5CMD_VERSION}_linux_amd64.deb" \
+RUN wget -q "https://github.com/coreweave/s5cmd/releases/download/v${S5CMD_VERSION}/s5cmd_${S5CMD_VERSION}_linux_$(dpkg --print-architecture).deb" \
     && apt-get update --yes \
-    && apt-get install --yes --no-install-recommends "./s5cmd_${S5CMD_VERSION}_linux_amd64.deb" \
+    && apt-get install --yes --no-install-recommends "./s5cmd_${S5CMD_VERSION}_linux_$(dpkg --print-architecture).deb" \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && rm "s5cmd_${S5CMD_VERSION}_linux_amd64.deb"
+    && rm "s5cmd_${S5CMD_VERSION}_linux_$(dpkg --print-architecture).deb"
 
 
 # ----------------------------

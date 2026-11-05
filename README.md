@@ -24,6 +24,37 @@ covers those, the hosted fallback, and when a release reuses an earlier build.
 The `base` images build on NVIDIA's CUDA image but contain no driver, so they run
 on CPU-only hosts as well; the CUDA libraries are simply unused.
 
+## arm64 images
+
+`base`, `datascience` and `deeplearning` are also built for arm64, for the DGX Sparks (Slurm
+partition `gb10`), as `brineylab/<image>:<tag>-arm64` and `:latest-arm64`. They come from the same
+Dockerfiles, built and tested natively on niblet by
+[`docker-publish-arm64.yml`](.github/workflows/docker-publish-arm64.yml), which a release starts
+alongside the x86 build. An arm64 failure never holds up the x86 images. There are no arm64
+`jupyterhub-*` images.
+
+Slurm runs them as `.sqsh` files whose name carries `arm64`. Build those with
+`slinky-config/tools/build-sqsh.sh` with `POD` set to a Spark worker pod, since `enroot import` takes
+the architecture of the pod it runs in.
+
+Four tools are **absent** on arm64; keep that work on x86 nodes:
+
+| Tool | Why |
+|---|---|
+| `bcl2fastq2` | Illumina ships an amd64 `.deb` only, no source. |
+| `bases2fastq` | Element's binary is x86-64 only. |
+| `cellranger` | 10x Genomics ships x86-64 only. |
+| IgDiscover | Its environment cannot be satisfied on aarch64. |
+
+IgDiscover's case has scientific stakes. Two of its pins have no aarch64 build and exist to keep
+its output correct: `igblast =1.19` (1.20+ adds AIRR columns and changes assignments) and
+`muscle =3.8.1551` (MUSCLE 5 has an incompatible CLI). `flash` and `tinyalign` have no aarch64 conda
+build either. Do not bump the pins to whatever aarch64 has; supporting IgDiscover on arm means
+building those versions from source and validating against x86.
+
+`dorado` on arm64 comes from ONT's CDN (the lab mirror holds only `linux-x64`), and `r-locfit`
+comes from conda because its CRAN source build fails on aarch64, which would silently drop DESeq2.
+
 ## Rolling your own environment
 
 `base` exists so you can install your own packages rather than inherit ours. It
