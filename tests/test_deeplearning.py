@@ -83,7 +83,7 @@ class TestAIML:
         Renamed from test_deepspeed_ops: this only checks the shared library
         exists, it does not build or load any DeepSpeed op.
         """
-        result = docker_run(image, "test -f /usr/lib/x86_64-linux-gnu/libaio.so || test -f /usr/lib/x86_64-linux-gnu/libaio.so.1")
+        result = docker_run(image, 'ls "/usr/lib/$(uname -m)-linux-gnu"/libaio.so*')
         assert result.returncode == 0, "libaio not found — DeepSpeed async I/O will fail"
 
     def test_flash_attn(self, image):
