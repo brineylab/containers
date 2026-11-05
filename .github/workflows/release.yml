@@ -1,8 +1,8 @@
 name: publish a release
 
 # Dispatches docker-publish.yml and docker-publish-arm64.yml on main (the only ref the runner groups
-# admit) for a tag that must be on main. x86 builds uncached, unless main built and tested this exact
-# commit uncached in the last 7 days; arm64 always builds uncached.
+# admit) for a tag that must be on main. Each builds uncached, unless main built and tested this exact
+# commit uncached on its own runners in the last 7 days.
 on:
     release:
         types: [published]
@@ -32,7 +32,8 @@ jobs:
                       echo "::error::$TAG is at ${sha:0:7}, which is not on main ($status). Release from main."
                       exit 1
                   fi
-                  run=$(.github/scripts/release-reuse-check.sh "$GITHUB_REPOSITORY" "$sha")
+                  run=$(.github/scripts/release-reuse-check.sh "$GITHUB_REPOSITORY" "$sha" \
+                      docker-publish.yml deeplearning legolas-)
                   if [[ -n "$run" ]]; then
                       cache=true
                       why="reusing run $run, which built and tested ${sha:0:7} uncached"
@@ -49,6 +50,16 @@ jobs:
                   GH_TOKEN: ${{ github.token }}
                   TAG: ${{ github.event.release.tag_name }}
               run: |
+                  sha=$(gh api "repos/$GITHUB_REPOSITORY/commits/$TAG" --jq .sha)
+                  run=$(.github/scripts/release-reuse-check.sh "$GITHUB_REPOSITORY" "$sha" \
+                      docker-publish-arm64.yml deeplearning-arm64 niblet-)
+                  if [[ -n "$run" ]]; then
+                      cache=true
+                      why="reusing run $run, which built and tested ${sha:0:7} uncached on niblet"
+                  else
+                      cache=false
+                      why="no uncached arm64 build of ${sha:0:7} on main in the last 7 days, so building uncached"
+                  fi
                   gh workflow run docker-publish-arm64.yml --repo "$GITHUB_REPOSITORY" --ref main \
-                      -f tag="$TAG" -f use_cache=false -f push=true
-                  echo "$TAG-arm64: building on niblet" | tee -a "$GITHUB_STEP_SUMMARY"
+                      -f tag="$TAG" -f use_cache="$cache" -f push=true
+                  echo "$TAG-arm64: $why" | tee -a "$GITHUB_STEP_SUMMARY"
