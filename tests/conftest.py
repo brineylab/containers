@@ -5,6 +5,7 @@ and grouped imports through `import_probe` -- one container, one test per packag
 """
 
 import base64
+import functools
 import subprocess
 
 import pytest
@@ -56,6 +57,28 @@ def pytest_collection_modifyitems(config, items):
         )
     config.hook.pytest_deselected(items=drop)
     items[:] = keep
+
+
+@functools.cache
+def image_arch(image: str) -> str:
+    """The image's architecture as Docker reports it (e.g. amd64, arm64)."""
+    result = subprocess.run(
+        ["docker", "image", "inspect", "--format", "{{.Architecture}}", image],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0 or not result.stdout.strip():
+        raise RuntimeError(f"cannot read the architecture of {image}: {result.stderr.strip()}")
+    return result.stdout.strip()
+
+
+@pytest.fixture(autouse=True)
+def _skip_x86_only(request):
+    """Skip x86_only tests on arm64 images, where those vendor tools are absent by design."""
+    if request.node.get_closest_marker("x86_only") is None:
+        return
+    if image_arch(request.getfixturevalue("image")) == "arm64":
+        pytest.skip("amd64-only tool, absent on arm64 images")
 
 
 def docker_run(image: str, command: str, timeout: int = 60, gpus: bool = False) -> subprocess.CompletedProcess:

@@ -13,6 +13,7 @@ r-hexbin
 r-htmltools
 r-htmlwidgets
 r-irkernel
+r-locfit
 r-nycflights13
 r-pak
 r-pheatmap

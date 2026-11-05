@@ -132,14 +132,23 @@ RUN mkdir "${NGS_TOOLS_DIR}"
 WORKDIR "${NGS_TOOLS_DIR}"
 
 # bcl2fastq
-RUN wget -q "https://burtonlab.s3.amazonaws.com/software/bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
-    && dpkg -i "bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
-    && rm "bcl2fastq2_0v2.20.0.422-2_amd64.deb"
+# bcl2fastq2, bases2fastq, cellranger and IgDiscover are amd64-only; see the README's arm64 section.
+RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+        wget -q "https://burtonlab.s3.amazonaws.com/software/bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
+        && dpkg -i "bcl2fastq2_0v2.20.0.422-2_amd64.deb" \
+        && rm "bcl2fastq2_0v2.20.0.422-2_amd64.deb"; \
+    else \
+        echo "bcl2fastq2: SKIPPED - Illumina publishes amd64 only"; \
+    fi
 
 # bases2fastq
-RUN wget -q "https://brineylab.s3.amazonaws.com/tools/bases2fastq-1.4.0.tar.gz" \
-    && tar xzvf "bases2fastq-1.4.0.tar.gz" \
-    && rm "bases2fastq-1.4.0.tar.gz"
+RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+        wget -q "https://brineylab.s3.amazonaws.com/tools/bases2fastq-1.4.0.tar.gz" \
+        && tar xzvf "bases2fastq-1.4.0.tar.gz" \
+        && rm "bases2fastq-1.4.0.tar.gz"; \
+    else \
+        echo "bases2fastq: SKIPPED - Element ships x86_64 only"; \
+    fi
 
 # FastQC
 RUN wget -q "http://burtonlab.s3.amazonaws.com/software/fastqc_v0.11.9.zip" \
@@ -179,29 +188,49 @@ RUN git clone -b v1.2.11 "https://github.com/madler/zlib/" \
     && ln -s "${NGS_TOOLS_DIR}/sickle/sickle" "/usr/local/bin/sickle"
 
 # CellRanger
-RUN wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
-    && tar xf "cellranger-8.0.1.tar" \
-    && rm "cellranger-8.0.1.tar"
+RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+        wget -q "https://brineylab.s3.amazonaws.com/tools/cellranger-8.0.1.tar" \
+        && tar xf "cellranger-8.0.1.tar" \
+        && rm "cellranger-8.0.1.tar"; \
+    else \
+        echo "cellranger: SKIPPED - 10x Genomics ships x86_64 only"; \
+    fi
 
 # dorado (ONT)
-RUN wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar.gz" \
-    && tar xzf "dorado-0.7.0-linux-x64.tar.gz" \
-    && rm "dorado-0.7.0-linux-x64.tar.gz"
+# The lab's S3 mirrors only linux-x64; ONT publishes linux-arm64 for the same version.
+RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+        wget -q "https://brineylab.s3.amazonaws.com/tools/dorado-0.7.0-linux-x64.tar.gz" \
+        && tar xzf "dorado-0.7.0-linux-x64.tar.gz" \
+        && rm "dorado-0.7.0-linux-x64.tar.gz"; \
+    else \
+        wget -q "https://cdn.oxfordnanoportal.com/software/analysis/dorado-0.7.0-linux-arm64.tar.gz" \
+        && tar xzf "dorado-0.7.0-linux-arm64.tar.gz" \
+        && rm "dorado-0.7.0-linux-arm64.tar.gz" \
+        && ln -s "${NGS_TOOLS_DIR}/dorado-0.7.0-linux-arm64/bin/dorado" "/usr/local/bin/dorado"; \
+    fi
 
 # cutadapt
 COPY ./requirements/datascience_pip.txt /tmp/datascience_pip.txt
 RUN uv pip install --no-cache --system -c /tmp/constraints.txt -r /tmp/datascience_pip.txt
 
 # IgDiscover
-RUN git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
-    && cd igdiscover22 \
-    && sed '/- defaults/d' environment.yml > environment_no-default.yml
+# Its igblast =1.19 and muscle =3.8.1551 pins have no aarch64 build and keep V(D)J output
+# correct: never bump them to get arm working.
+RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+        git clone "https://gitlab.com/gkhlab/igdiscover22.git" \
+        && cd igdiscover22 \
+        && sed '/- defaults/d' environment.yml > environment_no-default.yml; \
+    else \
+        echo "IgDiscover: SKIPPED - its pinned igblast and muscle have no aarch64 build"; \
+    fi
 
-RUN cd "${NGS_TOOLS_DIR}/igdiscover22" \
-    && mamba create -f environment_no-default.yml -n igdiscover \
-    && mamba run -n igdiscover python3 -m pip install --no-cache-dir --no-deps -e . \
-    && mamba run -n igdiscover python3 -m pip install --no-cache-dir "networkx==2.1" \
-    && mamba clean --all -f -y
+RUN if [ "$(dpkg --print-architecture)" = "amd64" ]; then \
+        cd "${NGS_TOOLS_DIR}/igdiscover22" \
+        && mamba create -f environment_no-default.yml -n igdiscover \
+        && mamba run -n igdiscover python3 -m pip install --no-cache-dir --no-deps -e . \
+        && mamba run -n igdiscover python3 -m pip install --no-cache-dir "networkx==2.1" \
+        && mamba clean --all -f -y; \
+    fi
 
 # update path with all tools
 ENV PATH="${NGS_TOOLS_DIR}:${NGS_TOOLS_DIR}/cellranger-8.0.1/bin:${NGS_TOOLS_DIR}/dorado-0.7.0-linux-x64/bin:$PATH"
@@ -211,12 +240,12 @@ ENV PATH="${NGS_TOOLS_DIR}:${NGS_TOOLS_DIR}/cellranger-8.0.1/bin:${NGS_TOOLS_DIR
 #    s5cmd (CoreWeave fork)
 # ----------------------------
 ARG S5CMD_VERSION=2.3.0-acb67716
-RUN wget -q "https://github.com/coreweave/s5cmd/releases/download/v${S5CMD_VERSION}/s5cmd_${S5CMD_VERSION}_linux_amd64.deb" \
+RUN wget -q "https://github.com/coreweave/s5cmd/releases/download/v${S5CMD_VERSION}/s5cmd_${S5CMD_VERSION}_linux_$(dpkg --print-architecture).deb" \
     && apt-get update --yes \
-    && apt-get install --yes --no-install-recommends "./s5cmd_${S5CMD_VERSION}_linux_amd64.deb" \
+    && apt-get install --yes --no-install-recommends "./s5cmd_${S5CMD_VERSION}_linux_$(dpkg --print-architecture).deb" \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/* \
-    && rm "s5cmd_${S5CMD_VERSION}_linux_amd64.deb"
+    && rm "s5cmd_${S5CMD_VERSION}_linux_$(dpkg --print-architecture).deb"
 
 
 # ----------------------------

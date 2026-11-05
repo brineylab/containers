@@ -20,6 +20,7 @@ class TestNGSTools:
         assert result.returncode == 0
         assert "FastQC" in result.stdout
 
+    @pytest.mark.x86_only
     def test_cellranger(self, image):
         result = docker_run(image, "cellranger --version")
         assert result.returncode == 0
@@ -32,6 +33,7 @@ class TestNGSTools:
         result = docker_run(image, "cutadapt --version")
         assert result.returncode == 0
 
+    @pytest.mark.x86_only
     def test_bases2fastq(self, image):
         result = docker_run(image, "test -x /tools/bases2fastq")
         assert result.returncode == 0
@@ -44,6 +46,7 @@ class TestNGSTools:
         result = docker_run(image, "which pandaseq")
         assert result.returncode == 0
 
+    @pytest.mark.x86_only
     def test_bcl2fastq(self, image):
         result = docker_run(image, "which bcl2fastq")
         assert result.returncode == 0
@@ -56,6 +59,7 @@ class TestNGSPaths:
         assert result.returncode == 0
 
 
+@pytest.mark.x86_only
 class TestIgDiscover:
     def test_igdiscover_env_exists(self, image):
         result = docker_run(image, "mamba env list | grep igdiscover")

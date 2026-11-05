@@ -1,7 +1,8 @@
 name: publish a release
 
-# Dispatches docker-publish.yml on main (the only ref the runner groups admit) for a tag that must be on main.
-# Builds uncached, unless main built and tested this exact commit uncached in the last 7 days.
+# Dispatches docker-publish.yml and docker-publish-arm64.yml on main (the only ref the runner groups
+# admit) for a tag that must be on main. x86 builds uncached, unless main built and tested this exact
+# commit uncached in the last 7 days; arm64 always builds uncached.
 on:
     release:
         types: [published]
@@ -42,3 +43,12 @@ jobs:
                   gh workflow run docker-publish.yml --repo "$GITHUB_REPOSITORY" --ref main \
                       -f tag="$TAG" -f use_cache="$cache" -f push=true -f hosted=false
                   echo "$TAG: $why" | tee -a "$GITHUB_STEP_SUMMARY"
+            # After x86, so an arm dispatch that fails cannot stop the x86 release.
+            - name: start docker-publish-arm64 on main
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  TAG: ${{ github.event.release.tag_name }}
+              run: |
+                  gh workflow run docker-publish-arm64.yml --repo "$GITHUB_REPOSITORY" --ref main \
+                      -f tag="$TAG" -f use_cache=false -f push=true
+                  echo "$TAG-arm64: building on niblet" | tee -a "$GITHUB_STEP_SUMMARY"
