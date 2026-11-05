@@ -20,6 +20,14 @@ inputs:
         description: Push image to Docker Hub
         required: false
         default: 'true'
+    tag_suffix:
+        description: Appended to every tag (-arm64 for the arm64 builds)
+        required: false
+        default: ''
+    cache_name:
+        description: Image name of the registry layer cache (default the job id)
+        required: false
+        default: ''
     build_args:
         description: Newline-separated build arguments
         required: false
@@ -45,11 +53,12 @@ runs:
           env:
             IMAGE: ${{ inputs.image_name }}
             TAG: ${{ inputs.tag_name }}
+            SUFFIX: ${{ inputs.tag_suffix }}
           run: |
-            TAGS="brineylab/${IMAGE}:latest"
+            TAGS="brineylab/${IMAGE}:latest${SUFFIX}"
             if [ -n "$TAG" ]; then
               TAGS="${TAGS}
-            brineylab/${IMAGE}:${TAG}"
+            brineylab/${IMAGE}:${TAG}${SUFFIX}"
             fi
             echo "tags<<EOF" >> $GITHUB_OUTPUT
             echo "$TAGS" >> $GITHUB_OUTPUT
@@ -60,8 +69,8 @@ runs:
             context: .
             file: ${{ inputs.dockerfile }}
             no-cache: ${{ inputs.use_cache != 'true' }}
-            cache-to: type=registry,ref=brineylab/${{ github.job }}:cache,compression=zstd,mode=max,ignore-error=true
-            cache-from: type=registry,ref=brineylab/${{ github.job }}:cache,compression=zstd
+            cache-to: type=registry,ref=brineylab/${{ inputs.cache_name || github.job }}:cache,compression=zstd,mode=max,ignore-error=true
+            cache-from: type=registry,ref=brineylab/${{ inputs.cache_name || github.job }}:cache,compression=zstd
             provenance: false
             build-args: ${{ inputs.build_args }}
             push: ${{ inputs.push == 'true' }}

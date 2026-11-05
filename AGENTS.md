@@ -63,6 +63,14 @@ once its jupyterhub image is built (`test-base`, `test-datascience`, `test-deepl
 after all of them. `pytest --images a,b` runs just the tests that use those images. With
 `hosted=true` the builds push as they finish, as before, since hosted jobs share no image store.
 
+**arm64 is a separate workflow.** `docker-publish-arm64.yml` builds `base`, `datascience` and
+`deeplearning` natively on niblet (a DGX Spark, also slinky-prod's `gb10` node; runner group
+`arm64`, one runner capped at 48 GiB, alongside Slurm jobs), runs the same tests including the GPU
+ones on the GB10, and pushes `<tag>-arm64` and `latest-arm64` only if they all passed. It has its
+own concurrency group and no x86 job waits on it, so a failed or queued arm build never holds up an
+x86 release; `release.yml` dispatches both. Tests for tools absent on arm carry `x86_only`. There is
+no hosted fallback for arm.
+
 The build graph is expressed in the workflow's `needs:`, so `base` → `jupyterhub-base`,
 `datascience` → `jupyterhub-datascience`, `deeplearning` → `jupyterhub-deeplearning`. Builds run
 with the **repository root** as the Docker context, so `COPY` paths are written relative to the

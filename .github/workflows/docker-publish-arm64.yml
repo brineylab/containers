@@ -1,0 +1,128 @@
+name: build and push the arm64 images
+run-name: "${{ inputs.tag && format('release {0}-arm64', inputs.tag) || format('build {0} arm64', github.ref_name) }}: use_cache=${{ inputs.use_cache }}, push=${{ inputs.push }}"
+
+# base, datascience and deeplearning for the DGX Sparks, built natively on niblet and tagged
+# <tag>-arm64 / latest-arm64. Its own workflow and concurrency group, so a slow or offline niblet
+# never holds up an x86 release. release.yml dispatches it next to docker-publish.yml.
+on:
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: Release tag; images are pushed as <tag>-arm64 alongside latest-arm64
+                type: string
+                default: ''
+            use_cache:
+                description: Use Docker layer cache
+                type: boolean
+                default: true
+            push:
+                description: Push the tested images to Docker Hub
+                type: boolean
+                default: true
+
+concurrency:
+    group: docker-publish-arm64
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+
+env:
+    DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+    DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+
+jobs:
+    preflight:
+        runs-on: [self-hosted, niblet, arm64]
+        outputs:
+            test_tag: ${{ steps.tag.outputs.test_tag }}
+        steps:
+            - name: confirm this is aarch64 with a GPU
+              run: |
+                test "$(uname -m)" = aarch64
+                nvidia-smi -L
+            - name: resolve the tag
+              id: tag
+              env:
+                TAG: ${{ inputs.tag }}
+              run: |
+                test_tag="${TAG:-latest}-arm64"
+                [[ "$test_tag" =~ ^[A-Za-z0-9_][A-Za-z0-9_.-]{0,127}$ ]] || { echo "::error::not a Docker tag: $test_tag"; exit 1; }
+                echo "test_tag=$test_tag" >> "$GITHUB_OUTPUT"
+
+    build:
+        runs-on: [self-hosted, niblet, arm64]
+        needs: [preflight]
+        timeout-minutes: 720
+        strategy:
+            fail-fast: true
+            max-parallel: 1
+            matrix:
+                image: [base, datascience, deeplearning]
+        name: ${{ matrix.image }}-arm64
+        steps:
+            - name: checkout
+              uses: actions/checkout@v7
+              with:
+                fetch-depth: 1
+                ref: ${{ inputs.tag || github.sha }}
+            # The tests take an image already in the store as this run's build, so drop any older one.
+            - name: remove any earlier image under this tag
+              env:
+                REF: brineylab/${{ matrix.image }}:${{ needs.preflight.outputs.test_tag }}
+              run: docker image rm -f "$REF" || true
+            - name: build
+              uses: ./.github/actions/docker_build_push
+              with:
+                image_name: ${{ matrix.image }}
+                dockerfile: ./images/${{ matrix.image }}/Dockerfile
+                tag_name: ${{ inputs.tag }}
+                tag_suffix: -arm64
+                cache_name: ${{ matrix.image }}-arm64
+                use_cache: ${{ inputs.use_cache }}
+                push: false
+                build_args: ${{ matrix.image == 'deeplearning' && 'FLASH_ATTN_MAX_JOBS=2' || '' }}
+            - name: confirm the image is arm64
+              env:
+                REF: brineylab/${{ matrix.image }}:${{ needs.preflight.outputs.test_tag }}
+              run: |
+                test "$(docker image inspect "$REF" --format '{{.Architecture}}')" = arm64
+                test "$(docker run --rm --entrypoint uname "$REF" -m)" = aarch64
+
+    test:
+        runs-on: [self-hosted, niblet, arm64]
+        needs: [preflight, build]
+        steps:
+            - name: checkout
+              uses: actions/checkout@v7
+              with:
+                fetch-depth: 1
+                ref: ${{ inputs.tag || github.sha }}
+            - name: test
+              uses: ./.github/actions/run_tests
+              with:
+                images: base,datascience,deeplearning
+                tag: ${{ needs.preflight.outputs.test_tag }}
+            - name: GPU tests on the GB10
+              env:
+                TAG: ${{ needs.preflight.outputs.test_tag }}
+              run: uvx --python 3.12 pytest tests/test_deeplearning.py -m gpu --require-gpu -v --tag="$TAG"
+
+    publish:
+        if: ${{ inputs.push }}
+        runs-on: [self-hosted, niblet, arm64]
+        needs: [test]
+        steps:
+            - name: login to Docker Hub
+              uses: docker/login-action@v4
+              with:
+                username: ${{ env.DOCKERHUB_USERNAME }}
+                password: ${{ env.DOCKERHUB_TOKEN }}
+            - name: push the tested images
+              env:
+                TAG: ${{ inputs.tag }}
+              run: |
+                for image in base datascience deeplearning; do
+                  docker push -q "brineylab/$image:latest-arm64"
+                  [ -z "$TAG" ] || docker push -q "brineylab/$image:$TAG-arm64"
+                done
