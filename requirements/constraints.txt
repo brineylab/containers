@@ -35,7 +35,7 @@ biopython==1.88           # via abnumber, abutils, anarci, dnachisel, python-cir
 black==26.10.1            # via -r pip.txt
 bleach==6.4.0             # via nbconvert
 blosc2==4.14.1            # via tables
-bokeh==3.10.1             # via -r pip.txt
+bokeh==3.10.2             # via -r pip.txt
 bottleneck==1.6.0         # via -r pip.txt
 brotli==1.2.1             # via gradio
 certifi==2026.10.23       # via httpcore, httpx, requests, scanpy
@@ -43,14 +43,14 @@ certipy==0.2.3            # via jupyterhub
 cffi==2.1.1               # via argon2-cffi-bindings, cryptography, pynacl
 charset-normalizer==3.5.2  # via requests
 chex==0.1.92              # via -r ai-ml_pip.txt
-click==8.5.0              # via abstar, black, dask, huggingface-hub, loompy, marimo, sample-sheet, scab, uvicorn, wandb
+click==8.5.1              # via abstar, black, dask, huggingface-hub, loompy, marimo, sample-sheet, scab, uvicorn, wandb
 cloudpickle==3.1.2        # via dask, joblib, -r pip.txt
 colorama==0.4.6           # via nbdime
 comm==0.2.3               # via ipykernel, ipywidgets
 contourpy==1.4.0          # via matplotlib
 cryptography==50.0.2      # via certipy, google-auth, paramiko
-cuda-bindings==13.4.4     # via torch
-cuda-pathfinder==1.8.5    # via cuda-bindings
+cuda-bindings==13.5.0     # via torch
+cuda-pathfinder==1.8.6    # via cuda-bindings
 cuda-toolkit==13.0.3.0    # via torch
 cutadapt==5.2             # via -r datascience_pip.txt
 cwevals==0.0.1b1          # via wandb
@@ -67,8 +67,8 @@ dill==0.4.1               # via datasets, evaluate, multiprocess, -r pip.txt
 distro==1.9.0             # via cwevals
 dm-tree==0.1.10           # via -r ai-ml_pip.txt
 dnachisel==3.2.16         # via abutils, scab, -r pip.txt
-dnaio==1.2.4              # via cutadapt
-dnspython==2.9.1          # via pymongo
+dnaio==1.2.5              # via cutadapt
+dnspython==2.9.2          # via pymongo
 docopt==0.6.2             # via dnachisel
 docutils==0.23            # via marimo
 donfig==0.8.1.post1       # via zarr
@@ -82,11 +82,11 @@ etils==1.15.0             # via orbax-checkpoint
 evaluate==0.4.6           # via -r ai-ml_pip.txt
 executing==2.3.0          # via stack-data
 fast-array-utils==1.5.1   # via scanpy
-fastapi==0.162.0          # via gradio
+fastapi==0.162.2          # via gradio
 fastcluster==1.3.0        # via abutils, scab, -r pip.txt
 fastjsonschema==2.22.3    # via nbformat
 fbpca==1.0                # via geosketch, scanorama
-filelock==4.2.7           # via datasets, diffusers, huggingface-hub, torch
+filelock==4.2.9           # via datasets, diffusers, huggingface-hub, torch
 flametree==0.2.1          # via dnachisel
 flax==0.12.12             # via -r ai-ml_pip.txt
 fonttools==4.68.0         # via matplotlib
@@ -99,7 +99,7 @@ gemmi==0.7.5              # via anarcii
 geosketch==1.3            # via scanorama
 gitdb==4.0.12             # via gitpython
 gitpython==3.2.1          # via nbdime
-google-api-core==2.43.2   # via google-cloud-core, google-cloud-storage, google-cloud-storage-control
+google-api-core==2.44.0   # via google-cloud-core, google-cloud-storage, google-cloud-storage-control
 google-auth==2.62.1       # via gcsfs, google-api-core, google-auth-oauthlib, google-cloud-core, google-cloud-storage, google-cloud-storage-control
 google-auth-oauthlib==1.5.0  # via gcsfs
 google-cloud-core==2.8.0  # via google-cloud-storage
@@ -143,7 +143,7 @@ ipympl==0.10.0            # via -r pip.txt
 ipython==9.18.1           # via ipykernel, ipympl, ipywidgets
 ipython-pygments-lexers==1.1.1  # via ipython
 ipywidgets==8.1.9         # via ipympl
-isal==1.9.0               # via xopen
+isal==1.9.1               # via xopen
 isoduration==20.11.0      # via jsonschema
 itsdangerous==2.2.0       # via marimo
 jax==0.12.0.1             # via chex, equinox, flax, optax, orbax-checkpoint, -r ai-ml_pip.txt
@@ -155,7 +155,7 @@ jedi==0.20.1              # via ipython, marimo
 jinja2==3.1.6             # via altair, bokeh, gradio, jupyter-server, jupyterhub, jupyterlab, jupyterlab-server, nbconvert, nbdime, torch
 joblib==1.6.0             # via pynndescent, scanpy, scikit-learn
 json5==0.17.3             # via jupyterlab-server
-jsonpointer==3.8          # via jsonschema
+jsonpointer==3.10         # via jsonschema
 jsonschema==4.26.0        # via altair, jupyter-events, jupyterlab-server, nbformat
 jsonschema-specifications==2025.9.1  # via jsonschema
 jupyter-builder==1.2.4    # via jupyterlab, notebook
@@ -166,8 +166,8 @@ jupyter-lsp==2.3.1        # via jupyterlab
 jupyter-server==2.21.1    # via jupyter-lsp, jupyter-server-proxy, jupyterlab, jupyterlab-code-formatter, jupyterlab-git, jupyterlab-server, nbdime, nbgitpuller, notebook, notebook-shim
 jupyter-server-proxy==4.6.0  # via marimo-jupyter-extension, -r jupyter_pip.txt
 jupyter-server-terminals==0.5.4  # via jupyter-server
-jupyterhub==5.5.4         # via -r jupyter_pip.txt
-jupyterlab==4.6.5         # via jupyterlab-github, notebook, -r jupyter_pip.txt
+jupyterhub==5.5.5         # via -r jupyter_pip.txt
+jupyterlab==4.6.6         # via jupyterlab-github, notebook, -r jupyter_pip.txt
 jupyterlab-code-formatter==3.1.0  # via -r jupyter_pip.txt
 jupyterlab-git==0.55.0    # via -r jupyter_pip.txt
 jupyterlab-git-core==0.55.0  # via jupyterlab-git
@@ -192,7 +192,7 @@ loro==1.17.1              # via marimo
 mako==1.4.3               # via alembic
 marimo==0.25.2            # via -r jupyter_pip.txt
 marimo-jupyter-extension==0.2.1  # via -r jupyter_pip.txt
-markdown==3.11.2          # via marimo, pymdown-extensions
+markdown==3.11.3          # via marimo, pymdown-extensions
 markdown-it-py==4.2.0     # via rich
 markupsafe==3.0.4         # via gradio, jinja2, mako, nbconvert
 matplotlib==3.11.2        # via abstar, abutils, baltic, doubletdetection, ipympl, logomaker, plottable, python-circos, scab, scanorama, scanpy, scrublet, scvelo, seaborn, -r pip.txt
@@ -208,7 +208,7 @@ msgpack==1.2.4            # via anarcii, blosc2, deepspeed, flax, ihm, orbax-che
 msgspec==0.22.0           # via marimo, zarr
 multidict==7.2.1          # via aiohttp, yarl
 multiprocess==0.70.19     # via datasets, evaluate
-mypy-extensions==1.1.0    # via black
+mypy-extensions==1.2.0    # via black
 namex==0.1.0              # via keras
 narwhals==2.28.0          # via altair, bokeh, formulaic, marimo, scikit-learn
 natsort==8.4.0            # via abutils, anndata, scab, scanpy, -r pip.txt
@@ -221,17 +221,17 @@ ndindex==1.10.1           # via blosc2
 nest-asyncio2==1.7.4      # via ipykernel
 networkx==3.7             # via scanpy, scikit-image, torch
 ninja==1.13.2             # via deepspeed
-notebook==7.6.4           # via -r jupyter_pip.txt
+notebook==7.6.5           # via -r jupyter_pip.txt
 notebook-shim==0.2.4      # via jupyterlab, notebook
 numba==0.68.1             # via fast-array-utils, loompy, pynndescent, scanpy, scrublet, scvelo, umap-learn, -r pip.txt
 numcodecs==0.17.1         # via zarr
 numexpr==2.14.2           # via blosc2, tables, -r pip.txt
 numpy==2.5.4              # via abstar, abutils, accelerate, anarcii, anndata, baltic, bbknn, biopython, blosc2, bokeh, bottleneck, chex, contourpy, datasets, deepspeed, diffusers, dm-tree, dnachisel, doubletdetection, evaluate, fast-array-utils, fastcluster, flax, formulaic, geosketch, gradio, h5py, harmonypy, imageio, ipympl, jax, jaxlib, keras, logomaker, loompy, matplotlib, ml-dtypes, numba, numcodecs, numexpr, numpy-groupies, openmm, optax, optimum, orbax-checkpoint, pandas, parasail, patsy, pdbfixer, peft, phenograph, plottable, scab, scanorama, scanpy, scikit-image, scikit-learn, scipy, scrublet, scvelo, seaborn, statsmodels, tables, tensorstore, tifffile, torchmetrics, transformers, treescope, umap-learn, zarr
-numpy-groupies==0.16.1    # via loompy
+numpy-groupies==0.16.3    # via loompy
 nvidia-cublas==13.1.1.3   # via cuda-toolkit, nvidia-cudnn-cu13, nvidia-cusolver
-nvidia-cuda-crt==13.4.92  # via nvidia-cuda-nvcc
+nvidia-cuda-crt==13.5.37  # via nvidia-cuda-nvcc
 nvidia-cuda-cupti==13.0.85  # via cuda-toolkit, openmm-cuda-13
-nvidia-cuda-nvcc==13.4.92  # via openmm-cuda-13
+nvidia-cuda-nvcc==13.5.37  # via openmm-cuda-13
 nvidia-cuda-nvrtc==13.0.88  # via cuda-toolkit, nvidia-cublas, openmm-cuda-13
 nvidia-cuda-runtime==13.0.96  # via cuda-toolkit, nvidia-cuda-nvcc, openmm-cuda-13
 nvidia-cudnn-cu13==9.20.0.48  # via torch
@@ -242,10 +242,10 @@ nvidia-cusolver==12.0.4.66  # via cuda-toolkit
 nvidia-cusparse==12.6.3.3  # via cuda-toolkit, nvidia-cusolver
 nvidia-cusparselt-cu13==0.8.1  # via torch
 nvidia-nccl-cu13==2.29.7  # via torch
-nvidia-nvjitlink==13.4.92  # via cuda-toolkit, nvidia-cufft, nvidia-cusolver, nvidia-cusparse
+nvidia-nvjitlink==13.5.37  # via cuda-toolkit, nvidia-cufft, nvidia-cusolver, nvidia-cusparse
 nvidia-nvshmem-cu13==3.4.5  # via torch
 nvidia-nvtx==13.0.85      # via cuda-toolkit
-nvidia-nvvm==13.4.92      # via nvidia-cuda-nvcc
+nvidia-nvvm==13.5.37      # via nvidia-cuda-nvcc
 oauthlib==4.0.1           # via jupyterhub, requests-oauthlib
 openmm==8.6.1             # via pdbfixer, -r ai-ml_pip.txt
 openmm-cuda-13==8.6.1     # via openmm
@@ -266,7 +266,7 @@ orbax-checkpoint==0.12.9  # via flax
 orjson==3.13.0            # via gradio
 packaging==26.3           # via accelerate, altair, anndata, black, bokeh, dask, datasets, deepspeed, evaluate, gradio, gradio-client, huggingface-hub, ipykernel, jupyter-events, jupyter-server, jupyterhub, jupyterlab, jupyterlab-code-formatter, jupyterlab-git-core, jupyterlab-server, keras, lazy-loader, lightning, lightning-utilities, marimo, matplotlib, nbconvert, optimum, patsy, peft, pytest, pytorch-lightning, scanpy, scikit-image, statsmodels, tables, torchmetrics, transformers, wandb, zarr
 pamela==1.2.0             # via jupyterhub
-pandas==3.1.0             # via abnumber, abstar, abutils, anndata, bbknn, datasets, evaluate, formulaic, gradio, logomaker, plottable, scab, scanpy, scrublet, scvelo, seaborn, statsmodels, -r pip.txt
+pandas==3.1.1             # via abnumber, abstar, abutils, anndata, bbknn, datasets, evaluate, formulaic, gradio, logomaker, plottable, scab, scanpy, scrublet, scvelo, seaborn, statsmodels, -r pip.txt
 pandocfilters==1.5.1      # via nbconvert
 paramiko==5.1.0           # via abutils, -r pip.txt
 parasail==1.3.4           # via abstar, abutils, -r pip.txt
@@ -279,7 +279,7 @@ peft==0.21.2              # via -r ai-ml_pip.txt
 pexpect==4.9.0            # via ipython, jupyterlab-git-core
 phenograph==1.5.7         # via doubletdetection
 pillow==12.3.0            # via bokeh, diffusers, gradio, imageio, ipympl, matplotlib, plottable, scikit-image
-platformdirs==4.14.3      # via black, jupyter-core, wandb
+platformdirs==4.14.5      # via black, jupyter-core, wandb
 plottable==0.1.5          # via -r pip.txt
 pluggy==1.7.0             # via pytest
 polars==2.1.0             # via abstar, abutils, -r pip.txt
@@ -299,8 +299,8 @@ pyarrow==26.0.1           # via abstar, abutils, datasets, -r pip.txt
 pyasn1==0.6.5             # via pyasn1-modules
 pyasn1-modules==0.4.2     # via google-auth
 pycparser==3.12           # via cffi
-pydantic==2.14.2          # via blosc2, cwevals, deepspeed, fastapi, gradio, jupyterhub, pydantic-settings, wandb
-pydantic-core==2.50.2     # via pydantic
+pydantic==2.14.3          # via blosc2, cwevals, deepspeed, fastapi, gradio, jupyterhub, pydantic-settings, wandb
+pydantic-core==2.50.4     # via pydantic
 pydantic-settings==2.16.2  # via scverse-misc
 pydub==0.25.1             # via gradio
 pyfamsa==0.6.2            # via abutils, -r pip.txt
@@ -325,10 +325,10 @@ pytokens==0.4.1           # via black
 pytorch-lightning==2.6.6  # via lightning
 pytz==2026.6              # via gradio
 pyyaml==6.0.3             # via abutils, accelerate, bokeh, dask, datasets, donfig, flax, gradio, huggingface-hub, jupyter-events, lightning, marimo, ml-collections, orbax-checkpoint, peft, pymdown-extensions, pytorch-lightning, scab, transformers, wandb, -r pip.txt
-pyzmq==27.2.0             # via ipykernel, jupyter-client, jupyter-server, marimo, marimo-jupyter-extension
+pyzmq==27.3.0             # via ipykernel, jupyter-client, jupyter-server, marimo, marimo-jupyter-extension
 rapidfuzz==3.14.6         # via abutils, levenshtein
 referencing==0.37.0       # via jsonschema, jsonschema-specifications, jupyter-events
-regex==2026.9.29          # via diffusers, transformers
+regex==2026.11.9          # via diffusers, transformers
 requests==2.34.2          # via baltic, diffusers, evaluate, gcsfs, google-api-core, google-cloud-storage, jupyterhub, jupyterlab-server, nbdime, opentelemetry-exporter-http-transport, opentelemetry-exporter-otlp-proto-http, requests-oauthlib, sample-sheet, wandb
 requests-oauthlib==2.0.0  # via google-auth-oauthlib
 rfc3339-validator==0.1.4  # via jsonschema, jupyter-events
@@ -363,8 +363,8 @@ smart-open==9.0.2         # via abutils, -r pip.txt
 smmap==5.0.3              # via gitdb
 sniffio==1.3.1            # via cwevals
 sortedcontainers==2.4.0   # via anarcii, intervaltree
-soupsieve==3.0.4          # via beautifulsoup4
-sqlalchemy==2.1.6         # via alembic, jupyterhub, -r pip.txt
+soupsieve==4.0.1          # via beautifulsoup4
+sqlalchemy==2.1.8         # via alembic, jupyterhub, -r pip.txt
 stack-data==0.6.3         # via ipython
 starlette==1.10.0         # via fastapi, gradio, marimo
 statsmodels==0.15.0       # via scanpy, -r pip.txt
@@ -375,8 +375,8 @@ tensorstore==0.1.86       # via flax, orbax-checkpoint
 terminado==0.18.1         # via jupyter-server, jupyter-server-terminals
 terminaltables==3.1.10    # via sample-sheet
 texttable==1.7.2          # via igraph
-threadpoolctl==3.7.0      # via blosc2, scikit-learn
-tifffile==2026.10.15      # via scikit-image
+threadpoolctl==3.8.0      # via blosc2, scikit-learn
+tifffile==2026.11.8       # via scikit-image
 tinycss2==1.5.1           # via bleach
 tokenizers==0.23.3        # via transformers
 tomlkit==0.14.0           # via gradio, marimo
@@ -386,13 +386,13 @@ torchmetrics==1.9.0       # via lightning, pytorch-lightning
 tornado==6.6              # via bokeh, ipykernel, jupyter-client, jupyter-server, jupyter-server-proxy, jupyterhub, jupyterlab, nbdime, nbgitpuller, notebook, terminado, -r jupyter_pip.txt
 tqdm==4.70.1              # via abutils, datasets, deepspeed, doubletdetection, evaluate, huggingface-hub, lightning, peft, proglog, pytorch-lightning, scanpy, transformers, umap-learn, -r pip.txt
 traitlets==5.16.1         # via ipykernel, ipympl, ipython, ipywidgets, jupyter-builder, jupyter-client, jupyter-core, jupyter-events, jupyter-server, jupyter-server-proxy, jupyterhub, jupyterlab, jupyterlab-git, jupyterlab-git-core, marimo-jupyter-extension, matplotlib-inline, nbclient, nbconvert, nbformat
-transformers==5.22.1      # via optimum, peft, -r ai-ml_pip.txt
+transformers==5.22.2      # via optimum, peft, -r ai-ml_pip.txt
 treescope==0.1.10         # via flax, -r ai-ml_pip.txt
 triton==3.7.1             # via torch
 truststore==0.10.5        # via httpcore2, httpx2
-typer==0.27.3             # via gradio, hf-gradio, transformers
+typer==0.28.0             # via gradio, hf-gradio, transformers
 typing-extensions==4.16.0  # via aiohttp, aiosignal, alembic, altair, anndata, anyio, beautifulsoup4, chex, cwevals, equinox, etils, fastapi, flax, formulaic, gradio, gradio-client, grpcio, httpx2, huggingface-hub, jupyter-client, lightning, lightning-utilities, numcodecs, opentelemetry-api, opentelemetry-exporter-otlp-proto-http, opentelemetry-sdk, opentelemetry-semantic-conventions, optree, orbax-checkpoint, pydantic, pydantic-core, pydantic-settings, pytorch-lightning, referencing, scanpy, scverse-misc, sqlalchemy, starlette, torch, typing-inspection, wandb, zarr
-typing-inspection==0.4.4  # via fastapi, pydantic, pydantic-settings
+typing-inspection==0.4.5  # via fastapi, pydantic, pydantic-settings
 tzdata==2026.6            # via arrow, python-dateutil
 umap-learn==0.5.12        # via bbknn, scab, scanpy, scrublet, scvelo, -r pip.txt
 uri-template==1.3.0       # via jsonschema
@@ -410,9 +410,9 @@ websockets==17.4          # via marimo
 widgetsnbextension==4.0.16  # via ipywidgets
 wrapt==2.5.2              # via dm-tree, formulaic, smart-open
 xopen==2.1.0              # via cutadapt, dnaio
-xxhash==4.0.2             # via datasets, evaluate, wandb
+xxhash==4.1.0             # via datasets, evaluate, wandb
 xyzservices==2026.9.1     # via bokeh
 yarl==1.25.1              # via aiohttp
 zarr==3.4.2               # via anndata
 zipp==4.1.2               # via etils, importlib-metadata
-zlib-ng==1.0.0            # via xopen
+zlib-ng==1.1.0            # via xopen
